@@ -1,0 +1,32 @@
+{
+  "name": "@type-shards/compiler",
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "native/Cargo.toml",
+    "native/Cargo.lock",
+    "native/src",
+    "rust-toolchain.toml"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "build:native": "cargo build --release --manifest-path native/Cargo.toml",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@type-shards/core": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.6",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.4"
+  }
+}
