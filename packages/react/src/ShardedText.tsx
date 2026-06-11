@@ -148,6 +148,20 @@ function applySvgStyle(svg: SVGSVGElement, style: React.CSSProperties): void {
   }
 }
 
+function createTextFallbackStyle(
+  props: Required<Pick<ShardedTextProps, "size">> &
+    Pick<ShardedTextProps, "align" | "maxWidth" | "style">,
+): React.CSSProperties {
+  return {
+    display: "block",
+    fontSize: props.size,
+    lineHeight: 1.2,
+    maxWidth: props.maxWidth,
+    textAlign: props.align,
+    ...props.style,
+  };
+}
+
 function ShardedSvg({
   props,
 }: {
@@ -251,7 +265,7 @@ export function ShardedText(input: ShardedTextProps) {
       throw new Error(`Missing type-shards outline for "${props.text}"`);
     }
     content = (
-      <span className={props.className} style={props.style}>
+      <span className={props.className} style={createTextFallbackStyle(props)}>
         {props.text}
       </span>
     );

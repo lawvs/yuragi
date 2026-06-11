@@ -74,6 +74,28 @@ describe("ShardedText", () => {
     expect(screen.getByText("Missing")).not.toBeNull();
   });
 
+  it("styles text fallback with the same layout inputs as sharded text", () => {
+    render(
+      <ShardedText
+        text="Missing"
+        size={88}
+        maxWidth={360}
+        align="center"
+        className="title"
+        style={{ color: "red" }}
+      />,
+    );
+
+    const fallback = screen.getByText("Missing");
+    expect(fallback.className).toBe("title");
+    expect(fallback.style.color).toBe("red");
+    expect(fallback.style.display).toBe("block");
+    expect(fallback.style.fontSize).toBe("88px");
+    expect(fallback.style.lineHeight).toBe("1.2");
+    expect(fallback.style.maxWidth).toBe("360px");
+    expect(fallback.style.textAlign).toBe("center");
+  });
+
   it("throws when fallback is error and outline is missing", () => {
     expect(() =>
       render(<ShardedText text="Missing" fallback="error" />),
