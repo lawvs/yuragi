@@ -55,13 +55,19 @@ export function Title() {
 
 ## Playground
 
-The playground includes Space Grotesk at `apps/playground/fonts/title.ttf`
-under the SIL Open Font License. To try another font, provide a path at build
-time:
+The playground uses the same title font as Layered:
+`SourceHanSerifSC-VF.otf` at `wght: 900`. The font is downloaded on first
+build to Vite's cache under `apps/playground/node_modules/.vite/type-shards`
+and is not committed to this repository.
+
+To use a local font file instead:
 
 ```bash
 TYPE_SHARDS_FONT="/path/to/title-font.otf" pnpm playground:build
 ```
+
+`TYPE_SHARDS_FONT` can also be an `http:` or `https:` URL; remote fonts are
+downloaded to the same Vite cache before outline compilation.
 
 ## v1 Requirements
 

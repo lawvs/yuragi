@@ -1,22 +1,97 @@
 // @vitest-environment node
 
-import { existsSync } from "node:fs";
-import { describe, expect, it } from "vitest";
-import { resolvePlaygroundFont } from "../playground-font";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
+import {
+  DEFAULT_PLAYGROUND_FONT_URL,
+  resolvePlaygroundFont,
+} from "../playground-font";
+
+const tempDirs: string[] = [];
+
+async function makeTempDir() {
+  const dir = await mkdtemp(join(tmpdir(), "type-shards-font-test-"));
+  tempDirs.push(dir);
+  return dir;
+}
 
 describe("resolvePlaygroundFont", () => {
-  it("uses the bundled playground font by default", () => {
-    const font = resolvePlaygroundFont({});
-
-    expect(font).toMatch(/apps\/playground\/fonts\/title\.ttf$/);
-    expect(existsSync(font)).toBe(true);
+  afterEach(async () => {
+    await Promise.all(tempDirs.splice(0).map((dir) => rm(dir, { recursive: true })));
   });
 
-  it("allows TYPE_SHARDS_FONT to override the bundled font", () => {
-    expect(
-      resolvePlaygroundFont({
-        TYPE_SHARDS_FONT: "/tmp/custom-title.ttf",
-      }),
-    ).toBe("/tmp/custom-title.ttf");
+  it("uses the Source Han Serif remote font by default", async () => {
+    const cacheDir = await makeTempDir();
+    let downloadedUrl = "";
+    const font = await resolvePlaygroundFont(
+      {},
+      {
+        cacheDir,
+        expectedSha256: false,
+        download: async ({ destination, url }) => {
+          downloadedUrl = url;
+          await writeFile(destination, "font");
+        },
+      },
+    );
+
+    expect(font).toBe(join(cacheDir, "SourceHanSerifSC-VF.otf"));
+    expect(await readFile(font, "utf8")).toBe("font");
+    expect(downloadedUrl).toBe(DEFAULT_PLAYGROUND_FONT_URL);
+  });
+
+  it("allows TYPE_SHARDS_FONT to load from a local file without caching", async () => {
+    const dir = await makeTempDir();
+    const localFont = join(dir, "local.otf");
+    await writeFile(localFont, "local-font");
+
+    const font = await resolvePlaygroundFont({
+      TYPE_SHARDS_FONT: localFont,
+    });
+
+    expect(font).toBe(localFont);
+  });
+
+  it("resolves relative TYPE_SHARDS_FONT paths from a local base directory", async () => {
+    const baseDir = await makeTempDir();
+    await mkdir(join(baseDir, "fonts"));
+    await writeFile(join(baseDir, "fonts", "local.otf"), "relative-local-font");
+
+    const font = await resolvePlaygroundFont(
+      {
+        TYPE_SHARDS_FONT: "fonts/local.otf",
+      },
+      { localBaseDir: baseDir },
+    );
+
+    expect(font).toBe(resolve(baseDir, "fonts/local.otf"));
+  });
+
+  it("allows TYPE_SHARDS_FONT to load from a URL into the Vite cache", async () => {
+    const cacheDir = await makeTempDir();
+    const font = await resolvePlaygroundFont(
+      {
+        TYPE_SHARDS_FONT: "https://example.test/title.otf",
+      },
+      {
+        cacheDir,
+        download: async ({ destination, url }) => {
+          await writeFile(destination, `downloaded from ${url}`);
+        },
+      },
+    );
+
+    expect(font).toBe(join(cacheDir, "title.otf"));
+    expect(await readFile(font, "utf8")).toBe(
+      "downloaded from https://example.test/title.otf",
+    );
+  });
+
+  it("exposes the layered-compatible default font URL", () => {
+    expect(DEFAULT_PLAYGROUND_FONT_URL).toBe(
+      "https://raw.githubusercontent.com/adobe-fonts/source-han-serif/release/Variable/OTF/SourceHanSerifSC-VF.otf",
+    );
   });
 });

@@ -4,7 +4,7 @@ import { defineConfig } from "vite";
 import { resolvePlaygroundFont } from "./playground-font";
 import { outlineTitles } from "./src/data";
 
-const font = resolvePlaygroundFont();
+const font = await resolvePlaygroundFont();
 
 export default defineConfig({
   plugins: [
