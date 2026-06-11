@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+.turbo
+.DS_Store
+.vite
+target
+Cargo.lock
+!packages/compiler/native/Cargo.lock
+docs/superpowers
