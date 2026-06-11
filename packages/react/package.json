@@ -1,0 +1,34 @@
+{
+  "name": "@type-shards/react",
+  "version": "0.0.0",
+  "type": "module",
+  "peerDependencies": {
+    "react": "19.3.0-canary-900ae094-20260605",
+    "react-dom": "19.3.0-canary-900ae094-20260605"
+  },
+  "dependencies": {
+    "@type-shards/core": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --sourcemap --clean --target es2022 --external react",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "react": "canary",
+    "react-dom": "canary",
+    "tsup": "^8.3.6",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.4"
+  }
+}
