@@ -1,0 +1,26 @@
+{
+  "name": "@type-shards/playground",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@type-shards/core": "workspace:*",
+    "@type-shards/react": "workspace:*",
+    "@type-shards/unplugin": "workspace:*",
+    "@vitejs/plugin-react": "^4.5.0",
+    "vite": "^6.3.5",
+    "react": "canary",
+    "react-dom": "canary"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.4"
+  }
+}
