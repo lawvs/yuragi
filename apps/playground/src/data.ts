@@ -22,4 +22,6 @@ export const demoPosts: DemoPost[] = [
   },
 ];
 
-export const outlineTitles = ["Dashboard", "Settings"];
+export const outlineTitles = demoPosts
+  .filter((post) => post.id !== "missing")
+  .map((post) => post.title);
