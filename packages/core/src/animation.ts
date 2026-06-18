@@ -29,7 +29,8 @@ export type PlanShardTimingsOptions = {
 
 const DEFAULT_SPEED = 1;
 const BASE_DURATION = 500;
-const SPATIAL_STAGGER_WINDOW = 120;
+const SPATIAL_STAGGER_MS_PER_PX = 1.2;
+const FALLBACK_STAGGER_WINDOW = 120;
 const EASINGS = {
   settle: "cubic-bezier(0, 0, 0, 1)",
   scatter: "cubic-bezier(0.22, 1, 0.36, 1)",
@@ -53,22 +54,24 @@ function normalizedSpeed(speed: number | undefined): number {
     : DEFAULT_SPEED;
 }
 
-function normalizedShardX(
+function shardDelay(
   index: number,
   shardXs: Array<number | undefined>,
+  speed: number,
 ): number {
   const finiteXs = shardXs.filter(
     (value): value is number => value !== undefined,
   );
-  if (finiteXs.length > 1) {
+  if (finiteXs.length > 0) {
     const min = Math.min(...finiteXs);
-    const max = Math.max(...finiteXs);
     const current = shardXs[index];
-    if (max > min && current !== undefined) {
-      return (current - min) / (max - min);
+    if (current !== undefined) {
+      return ((current - min) * SPATIAL_STAGGER_MS_PER_PX) / speed;
     }
   }
-  return shardXs.length > 1 ? index / (shardXs.length - 1) : 0;
+
+  if (shardXs.length <= 1) return 0;
+  return (index / (shardXs.length - 1) / speed) * FALLBACK_STAGGER_WINDOW;
 }
 
 export function planShardTimings(
@@ -76,12 +79,13 @@ export function planShardTimings(
 ): ShardTiming[] {
   const speed = normalizedSpeed(options.speed);
   const duration = BASE_DURATION / speed;
-  const staggerWindow =
-    options.stagger === "by-x" ? SPATIAL_STAGGER_WINDOW / speed : 0;
 
   return options.shardXs.map((_, index) => ({
     duration,
-    delay: normalizedShardX(index, options.shardXs) * staggerWindow,
+    delay:
+      options.stagger === "by-x"
+        ? shardDelay(index, options.shardXs, speed)
+        : 0,
     easing: EASINGS[options.type],
   }));
 }

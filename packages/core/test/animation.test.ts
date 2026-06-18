@@ -68,7 +68,32 @@ describe("planShardTimings", () => {
     });
   });
 
-  it("plans stagger delay from normalized shard x positions", () => {
+  it("scales transition playback and spatial delay with speed", () => {
+    expect(
+      planShardTimings({
+        type: "scatter",
+        speed: 0.5,
+        stagger: "by-x",
+        shardXs: [0, 100],
+      })[1],
+    ).toMatchObject({
+      duration: 1000,
+      delay: 240,
+    });
+    expect(
+      planShardTimings({
+        type: "scatter",
+        speed: 2,
+        stagger: "by-x",
+        shardXs: [0, 100],
+      })[1],
+    ).toMatchObject({
+      duration: 250,
+      delay: 60,
+    });
+  });
+
+  it("plans stagger delay from shard x distance", () => {
     const timings = planShardTimings({
       type: "scatter",
       stagger: "by-x",
@@ -76,6 +101,16 @@ describe("planShardTimings", () => {
     });
 
     expect(timings.map((timing) => timing.delay)).toEqual([120, 0, 60]);
+  });
+
+  it("preserves wider x spans instead of normalizing them into a fixed window", () => {
+    const timings = planShardTimings({
+      type: "scatter",
+      stagger: "by-x",
+      shardXs: [0, 200],
+    });
+
+    expect(timings.map((timing) => timing.delay)).toEqual([0, 240]);
   });
 
   it("falls back to index-normalized delay when x positions are missing", () => {
