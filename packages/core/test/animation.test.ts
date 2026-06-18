@@ -221,6 +221,49 @@ describe("animateShards", () => {
     );
   });
 
+  it("uses visual shard x positions before generated fallback positions", async () => {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const first = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    const second = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "g",
+    );
+    first.dataset.shardMotion = "true";
+    first.dataset.shardX = "0";
+    first.getBoundingClientRect = vi.fn(
+      () =>
+        ({
+          left: 100,
+          width: 20,
+          height: 20,
+        }) as DOMRect,
+    );
+    second.dataset.shardMotion = "true";
+    second.dataset.shardX = "0";
+    second.getBoundingClientRect = vi.fn(
+      () =>
+        ({
+          left: 0,
+          width: 20,
+          height: 20,
+        }) as DOMRect,
+    );
+    svg.append(first, second);
+
+    await animateShards(svg, { type: "scatter", stagger: "by-x" });
+
+    expect(Element.prototype.animate).toHaveBeenNthCalledWith(
+      1,
+      expect.any(Array),
+      expect.objectContaining({ delay: 120 }),
+    );
+    expect(Element.prototype.animate).toHaveBeenNthCalledWith(
+      2,
+      expect.any(Array),
+      expect.objectContaining({ delay: 0 }),
+    );
+  });
+
   it("does not animate when reduced motion is preferred", async () => {
     Object.defineProperty(window, "matchMedia", {
       configurable: true,

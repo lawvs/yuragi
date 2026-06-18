@@ -106,6 +106,15 @@ function finiteDatasetNumberOrUndefined(
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
+function visualShardX(shardMotion: SVGGElement): number | undefined {
+  const rect = shardMotion.getBoundingClientRect();
+  const hasVisibleBounds = rect.width > 0 || rect.height > 0;
+  if (!hasVisibleBounds) return undefined;
+
+  const centerX = rect.left + rect.width / 2;
+  return Number.isFinite(centerX) ? centerX : undefined;
+}
+
 function ignoreAnimationFailure(error: unknown): void {
   void error;
 }
@@ -128,6 +137,7 @@ export async function animateShards(
     speed: options.speed,
     stagger: options.stagger,
     shardXs: shardMotions.map((shardMotion) =>
+      visualShardX(shardMotion) ??
       finiteDatasetNumberOrUndefined(shardMotion.dataset.shardX),
     ),
   });
