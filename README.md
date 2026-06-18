@@ -101,8 +101,8 @@ Exit scatter is rendered in a fixed viewport overlay so the old title keeps its
 screen position while React View Transition moves the new shared title. Exit
 scatter and enter settle share the same x-position wave timing, so when a title
 changes the outgoing and incoming shard waves visually line up from left to
-right. The speed value scales this whole playback model; it is not a strict
-millisecond duration.
+right. They also share the same base playback envelope, and `speed` scales that
+whole model; it is not a strict millisecond duration.
 
 ## Playground
 

@@ -52,7 +52,7 @@ describe("planShardTimings", () => {
         shardXs: [0],
       })[0],
     ).toMatchObject({
-      duration: 400,
+      duration: 1000,
       delay: 0,
     });
     expect(
@@ -63,7 +63,7 @@ describe("planShardTimings", () => {
         shardXs: [0],
       })[0],
     ).toMatchObject({
-      duration: 100,
+      duration: 250,
       delay: 0,
     });
   });
@@ -109,6 +109,26 @@ describe("planShardTimings", () => {
         stagger: "by-x",
         shardXs,
       }).map((timing) => timing.delay),
+    );
+  });
+
+  it("keeps settle and scatter on the same playback envelope", () => {
+    const shardXs = [0, 50, 100];
+    const settle = planShardTimings({
+      type: "settle",
+      speed: 0.8,
+      stagger: "by-x",
+      shardXs,
+    });
+    const scatter = planShardTimings({
+      type: "scatter",
+      speed: 0.8,
+      stagger: "by-x",
+      shardXs,
+    });
+
+    expect(scatter.map(({ delay, duration }) => ({ delay, duration }))).toEqual(
+      settle.map(({ delay, duration }) => ({ delay, duration })),
     );
   });
 });
@@ -166,7 +186,7 @@ describe("animateShards", () => {
         },
       ],
       {
-        duration: 200,
+        duration: 500,
         delay: 0,
         easing: "cubic-bezier(0.22, 1, 0.36, 1)",
         fill: "both",
@@ -192,12 +212,12 @@ describe("animateShards", () => {
     expect(Element.prototype.animate).toHaveBeenNthCalledWith(
       1,
       expect.any(Array),
-      expect.objectContaining({ duration: 200, delay: 120 }),
+      expect.objectContaining({ duration: 500, delay: 120 }),
     );
     expect(Element.prototype.animate).toHaveBeenNthCalledWith(
       2,
       expect.any(Array),
-      expect.objectContaining({ duration: 200, delay: 0 }),
+      expect.objectContaining({ duration: 500, delay: 0 }),
     );
   });
 

@@ -28,10 +28,7 @@ export type PlanShardTimingsOptions = {
 };
 
 const DEFAULT_SPEED = 1;
-const BASE_DURATIONS = {
-  settle: 500,
-  scatter: 200,
-} as const;
+const BASE_DURATION = 500;
 const SPATIAL_STAGGER_WINDOW = 120;
 const EASINGS = {
   settle: "cubic-bezier(0, 0, 0, 1)",
@@ -78,7 +75,7 @@ export function planShardTimings(
   options: PlanShardTimingsOptions,
 ): ShardTiming[] {
   const speed = normalizedSpeed(options.speed);
-  const duration = BASE_DURATIONS[options.type] / speed;
+  const duration = BASE_DURATION / speed;
   const staggerWindow =
     options.stagger === "by-x" ? SPATIAL_STAGGER_WINDOW / speed : 0;
 
