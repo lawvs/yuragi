@@ -196,19 +196,19 @@ describe("ShardedText", () => {
     });
   });
 
-  it("passes custom enter duration to settle animation", () => {
+  it("passes transition speed to settle animation", () => {
     render(
       <ShardedText
         text="A"
         outline={outline}
-        transition={{ enter: "settle", enterDuration: 640 }}
+        transition={{ enter: "settle", speed: 0.8 }}
       />,
     );
 
     expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
       type: "settle",
       stagger: "by-x",
-      duration: 640,
+      speed: 0.8,
     });
   });
 
@@ -230,12 +230,12 @@ describe("ShardedText", () => {
     });
   });
 
-  it("passes custom exit duration to scatter animation", async () => {
+  it("passes transition speed to scatter animation", async () => {
     const { unmount } = render(
       <ShardedText
         text="A"
         outline={outline}
-        transition={{ exit: "scatter", exitDuration: 560 }}
+        transition={{ exit: "scatter", speed: 0.8 }}
       />,
     );
 
@@ -245,7 +245,7 @@ describe("ShardedText", () => {
     expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
       type: "scatter",
       stagger: "by-x",
-      duration: 560,
+      speed: 0.8,
     });
   });
 
@@ -288,8 +288,7 @@ describe("ShardedText", () => {
           transition={{
             enter: "settle",
             exit: "scatter",
-            enterDuration: 640,
-            exitDuration: 560,
+            speed: 0.8,
           }}
         />,
       );
@@ -315,12 +314,12 @@ describe("ShardedText", () => {
       expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
         type: "settle",
         stagger: "by-x",
-        duration: 640,
+        speed: 0.8,
       });
       expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
         type: "scatter",
         stagger: "by-x",
-        duration: 560,
+        speed: 0.8,
       });
       expect(document.querySelectorAll("[data-type-shards-root]")).toHaveLength(
         2,
@@ -429,7 +428,7 @@ describe("ShardedText", () => {
         text="A"
         outline={outline}
         style={{ color: "red" }}
-        transition={{ exit: "scatter", exitDuration: 200 }}
+        transition={{ exit: "scatter", speed: 1 }}
       />,
     );
 
@@ -438,7 +437,7 @@ describe("ShardedText", () => {
         text="A"
         outline={outline}
         style={{ color: "red" }}
-        transition={{ exit: "scatter", exitDuration: 560 }}
+        transition={{ exit: "scatter", speed: 0.8 }}
       />,
     );
 

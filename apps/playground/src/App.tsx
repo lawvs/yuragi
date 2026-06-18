@@ -16,8 +16,7 @@ export function App() {
   const [size, setSize] = useState(88);
   const [align, setAlign] = useState<Align>("start");
   const [hoverOutline, setHoverOutline] = useState(true);
-  const [enterDuration, setEnterDuration] = useState(500);
-  const [exitDuration, setExitDuration] = useState(420);
+  const [transitionSpeed, setTransitionSpeed] = useState(1);
 
   const selectedPost = useMemo(
     () => demoPosts.find((post) => post.id === selectedId) ?? demoPosts[0],
@@ -100,37 +99,20 @@ export function App() {
               </label>
 
               <label className="range-control">
-                <span>Enter</span>
+                <span>Speed</span>
                 <input
-                  aria-label="Enter duration"
+                  aria-label="Transition speed"
                   type="range"
-                  name="enter-duration"
-                  min="100"
-                  max="1200"
-                  step="20"
-                  value={enterDuration}
+                  name="transition-speed"
+                  min="0.25"
+                  max="2"
+                  step="0.05"
+                  value={transitionSpeed}
                   onChange={(event) =>
-                    setEnterDuration(Number(event.target.value))
+                    setTransitionSpeed(Number(event.target.value))
                   }
                 />
-                <output>{enterDuration}ms</output>
-              </label>
-
-              <label className="range-control">
-                <span>Exit</span>
-                <input
-                  aria-label="Exit duration"
-                  type="range"
-                  name="exit-duration"
-                  min="100"
-                  max="1200"
-                  step="20"
-                  value={exitDuration}
-                  onChange={(event) =>
-                    setExitDuration(Number(event.target.value))
-                  }
-                />
-                <output>{exitDuration}ms</output>
+                <output>{transitionSpeed.toFixed(2)}x</output>
               </label>
 
               <label className="select-control">
@@ -175,8 +157,7 @@ export function App() {
                 transition={{
                   enter: "settle",
                   exit: "scatter",
-                  enterDuration,
-                  exitDuration,
+                  speed: transitionSpeed,
                 }}
               />
             </div>

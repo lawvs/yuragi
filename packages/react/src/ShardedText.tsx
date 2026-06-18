@@ -285,23 +285,23 @@ function createSvgExitOverlay(
   return overlay;
 }
 
-function createSettleAnimationOptions(duration: number | undefined) {
-  return duration === undefined
+function createSettleAnimationOptions(speed: number | undefined) {
+  return speed === undefined
     ? { type: "settle" as const, stagger: "by-x" as const }
-    : { type: "settle" as const, stagger: "by-x" as const, duration };
+    : { type: "settle" as const, stagger: "by-x" as const, speed };
 }
 
-function createScatterAnimationOptions(duration: number | undefined) {
-  return duration === undefined
+function createScatterAnimationOptions(speed: number | undefined) {
+  return speed === undefined
     ? { type: "scatter" as const, stagger: "by-x" as const }
-    : { type: "scatter" as const, stagger: "by-x" as const, duration };
+    : { type: "scatter" as const, stagger: "by-x" as const, speed };
 }
 
 function animateSvgExit(
   sourceSvg: SVGSVGElement,
   options: {
     snapshot?: SvgExitSnapshot;
-    duration?: number;
+    speed?: number;
   } = {},
 ): void {
   const snapshot = options.snapshot ?? captureSvgExitSnapshot(sourceSvg);
@@ -310,7 +310,7 @@ function animateSvgExit(
 
   void animateShards(
     animatedSvg,
-    createScatterAnimationOptions(options.duration),
+    createScatterAnimationOptions(options.speed),
   ).finally(() => {
     overlay?.remove();
   });
@@ -383,7 +383,7 @@ function ShardedSvg({
       host.replaceChildren(svg);
       animateSvgExit(previousSvg, {
         snapshot: exitSnapshot,
-        duration: props.transition?.exitDuration,
+        speed: props.transition?.speed,
       });
     } else {
       host.replaceChildren(svg);
@@ -393,7 +393,7 @@ function ShardedSvg({
     if (props.transition?.enter === "settle") {
       void animateShards(
         svg,
-        createSettleAnimationOptions(props.transition.enterDuration),
+        createSettleAnimationOptions(props.transition.speed),
       );
     }
   }, [
@@ -406,6 +406,7 @@ function ShardedSvg({
     props.style,
     props.transition?.enter,
     props.transition?.exit,
+    props.transition?.speed,
     props.text,
   ]);
 
@@ -430,7 +431,7 @@ function ShardedSvg({
         if (!nextPending.cancelled) {
           animateSvgExit(svg, {
             snapshot: exitSnapshot,
-            duration: transition.exitDuration,
+            speed: transition.speed,
           });
         }
         if (pendingScatterRef.current === nextPending) {

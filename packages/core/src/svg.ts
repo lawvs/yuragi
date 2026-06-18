@@ -75,6 +75,12 @@ export function createShardedSvg(
           shardMotionEl.dataset.shardMotion = "true";
           shardMotionEl.dataset.directionX = String(shard.direction[0]);
           shardMotionEl.dataset.directionY = String(shard.direction[1]);
+          shardMotionEl.dataset.shardX = String(
+            line.x +
+              group.x +
+              glyphX +
+              ((glyph.advance / layout.outline.em) * layout.options.size) / 2,
+          );
 
           const scaleEl = svgEl("g");
           scaleEl.dataset.shardScale = "true";

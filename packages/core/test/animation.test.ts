@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { animateShards, buildShardKeyframes } from "../src/animation";
+import {
+  animateShards,
+  buildShardKeyframes,
+  planShardTimings,
+} from "../src/animation";
 import { layoutShardedText } from "../src/layout";
 import { createShardedSvg } from "../src/svg";
 import type { TextOutline } from "../src/types";
@@ -38,6 +42,77 @@ describe("buildShardKeyframes", () => {
   });
 });
 
+describe("planShardTimings", () => {
+  it("scales transition playback with speed", () => {
+    expect(
+      planShardTimings({
+        type: "scatter",
+        speed: 0.5,
+        stagger: "by-x",
+        shardXs: [0],
+      })[0],
+    ).toMatchObject({
+      duration: 400,
+      delay: 0,
+    });
+    expect(
+      planShardTimings({
+        type: "scatter",
+        speed: 2,
+        stagger: "by-x",
+        shardXs: [0],
+      })[0],
+    ).toMatchObject({
+      duration: 100,
+      delay: 0,
+    });
+  });
+
+  it("plans stagger delay from normalized shard x positions", () => {
+    const timings = planShardTimings({
+      type: "scatter",
+      stagger: "by-x",
+      shardXs: [100, 0, 50],
+    });
+
+    expect(timings.map((timing) => timing.delay)).toEqual([120, 0, 60]);
+  });
+
+  it("falls back to index-normalized delay when x positions are missing", () => {
+    const timings = planShardTimings({
+      type: "scatter",
+      stagger: "by-x",
+      shardXs: Array.from<number | undefined>({ length: 5 }),
+    });
+
+    expect(timings.map((timing) => timing.delay)).toEqual([
+      0,
+      30,
+      60,
+      90,
+      120,
+    ]);
+  });
+
+  it("uses the same spatial delay wave for settle and scatter", () => {
+    const shardXs = [0, 50, 100];
+
+    expect(
+      planShardTimings({
+        type: "settle",
+        stagger: "by-x",
+        shardXs,
+      }).map((timing) => timing.delay),
+    ).toEqual(
+      planShardTimings({
+        type: "scatter",
+        stagger: "by-x",
+        shardXs,
+      }).map((timing) => timing.delay),
+    );
+  });
+});
+
 describe("animateShards", () => {
   beforeEach(() => {
     Element.prototype.animate = vi.fn(() => ({
@@ -67,7 +142,7 @@ describe("animateShards", () => {
     second.dataset.directionY = "1";
     svg.append(first, second);
 
-    await animateShards(svg, { type: "scatter", duration: 200 });
+    await animateShards(svg, { type: "scatter" });
 
     expect(Element.prototype.animate).toHaveBeenCalledTimes(2);
   });
@@ -80,7 +155,7 @@ describe("animateShards", () => {
     motion.dataset.directionY = "-1";
     svg.append(motion);
 
-    await animateShards(svg, { type: "scatter", duration: 200, distance: 80 });
+    await animateShards(svg, { type: "scatter", distance: 80 });
 
     expect(Element.prototype.animate).toHaveBeenCalledWith(
       [
@@ -99,7 +174,7 @@ describe("animateShards", () => {
     );
   });
 
-  it("uses default duration and by-x stagger delay", async () => {
+  it("uses default duration and x-position stagger delay", async () => {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     const first = document.createElementNS("http://www.w3.org/2000/svg", "g");
     const second = document.createElementNS(
@@ -107,7 +182,9 @@ describe("animateShards", () => {
       "g",
     );
     first.dataset.shardMotion = "true";
+    first.dataset.shardX = "100";
     second.dataset.shardMotion = "true";
+    second.dataset.shardX = "0";
     svg.append(first, second);
 
     await animateShards(svg, { type: "scatter", stagger: "by-x" });
@@ -115,12 +192,12 @@ describe("animateShards", () => {
     expect(Element.prototype.animate).toHaveBeenNthCalledWith(
       1,
       expect.any(Array),
-      expect.objectContaining({ duration: 200, delay: 0 }),
+      expect.objectContaining({ duration: 200, delay: 120 }),
     );
     expect(Element.prototype.animate).toHaveBeenNthCalledWith(
       2,
       expect.any(Array),
-      expect.objectContaining({ duration: 200, delay: 12 }),
+      expect.objectContaining({ duration: 200, delay: 0 }),
     );
   });
 

@@ -96,8 +96,10 @@ describe("createShardedSvg", () => {
 
     expect(firstMotion.getAttribute("data-direction-x")).toBe("1");
     expect(firstMotion.getAttribute("data-direction-y")).toBe("0");
+    expect(firstMotion.getAttribute("data-shard-x")).toBe("5");
     expect(secondMotion.getAttribute("data-direction-x")).toBe("0");
     expect(secondMotion.getAttribute("data-direction-y")).toBe("1");
+    expect(secondMotion.getAttribute("data-shard-x")).toBe("5");
     expect(firstShard.getAttribute("d")).toBe("M0 0L500 0L500 500Z");
     expect(firstShard.getAttribute("data-direction-x")).toBeNull();
     expect(firstShard.getAttribute("data-direction-y")).toBeNull();

@@ -37,8 +37,7 @@ vi.mock("@type-shards/react", () => ({
     transition?: {
       enter?: string;
       exit?: string;
-      enterDuration?: number;
-      exitDuration?: number;
+      speed?: number;
     };
   }) => (
     <span
@@ -47,8 +46,7 @@ vi.mock("@type-shards/react", () => ({
       data-shared-id={sharedId}
       data-transition-enter={transition?.enter}
       data-transition-exit={transition?.exit}
-      data-transition-enter-duration={transition?.enterDuration}
-      data-transition-exit-duration={transition?.exitDuration}
+      data-transition-speed={transition?.speed}
     >
       {text}
     </span>
@@ -104,8 +102,7 @@ describe("App", () => {
     });
 
     expect(host.querySelector('input[type="range"]')).not.toBeNull();
-    expect(host.querySelector('input[name="enter-duration"]')).not.toBeNull();
-    expect(host.querySelector('input[name="exit-duration"]')).not.toBeNull();
+    expect(host.querySelector('input[name="transition-speed"]')).not.toBeNull();
     expect(host.querySelector('select[name="align"]')).not.toBeNull();
     expect(host.querySelector('input[name="hover"]')).not.toBeNull();
 
@@ -115,33 +112,26 @@ describe("App", () => {
     expect(title?.getAttribute("data-shared-id")).toBe("title:settings");
     expect(title?.getAttribute("data-transition-enter")).toBe("settle");
     expect(title?.getAttribute("data-transition-exit")).toBe("scatter");
-    expect(title?.getAttribute("data-transition-enter-duration")).toBe("500");
-    expect(title?.getAttribute("data-transition-exit-duration")).toBe("420");
+    expect(title?.getAttribute("data-transition-speed")).toBe("1");
     expect(reactMocks.startTransition).toHaveBeenCalledTimes(1);
   });
 
-  it("updates enter and exit durations from the playground controls", () => {
+  it("updates transition speed from the playground control", () => {
     renderApp();
 
-    const enterDuration = host.querySelector<HTMLInputElement>(
-      'input[name="enter-duration"]',
+    const transitionSpeed = host.querySelector<HTMLInputElement>(
+      'input[name="transition-speed"]',
     );
-    const exitDuration = host.querySelector<HTMLInputElement>(
-      'input[name="exit-duration"]',
-    );
-    expect(enterDuration).not.toBeNull();
-    expect(exitDuration).not.toBeNull();
+    expect(transitionSpeed).not.toBeNull();
 
     act(() => {
-      setInputValue(enterDuration!, "640");
-      setInputValue(exitDuration!, "560");
+      setInputValue(transitionSpeed!, "0.8");
     });
 
     const title = host.querySelector(
       '.preview-title [data-sharded-text="Dashboard"]',
     );
-    expect(title?.getAttribute("data-transition-enter-duration")).toBe("640");
-    expect(title?.getAttribute("data-transition-exit-duration")).toBe("560");
+    expect(title?.getAttribute("data-transition-speed")).toBe("0.8");
   });
 
   it("constrains list shard SVG width for mobile cards", () => {

@@ -50,8 +50,7 @@ export function Title() {
       transition={{
         enter: "settle",
         exit: "scatter",
-        enterDuration: 500,
-        exitDuration: 420,
+        speed: 1,
       }}
     />
   );
@@ -75,8 +74,7 @@ export function Title() {
   transition={{
     enter: "settle",
     exit: "scatter",
-    enterDuration: 500,
-    exitDuration: 420,
+    speed: 1,
   }}
 />
 ```
@@ -96,14 +94,15 @@ Core props:
 - `transition.enter`: `"settle"` animates shards into place.
 - `transition.exit`: `"scatter"` animates the previous title out when the title
   changes or unmounts.
-- `transition.enterDuration` and `transition.exitDuration`: animation duration
-  in milliseconds. If omitted, the defaults are `500` for enter and `200` for
-  exit.
+- `transition.speed`: playback speed multiplier for both enter and exit. `1`
+  is the default, values below `1` are slower, and values above `1` are faster.
 
 Exit scatter is rendered in a fixed viewport overlay so the old title keeps its
 screen position while React View Transition moves the new shared title. Exit
-scatter also staggers shards by x-position and uses an ease-out curve for a
-less abrupt break-apart motion.
+scatter and enter settle share the same x-position wave timing, so when a title
+changes the outgoing and incoming shard waves visually line up from left to
+right. The speed value scales this whole playback model; it is not a strict
+millisecond duration.
 
 ## Playground
 
@@ -127,9 +126,8 @@ Run the playground locally:
 pnpm dev
 ```
 
-The playground includes controls for title size, enter duration, exit duration,
-alignment, and hover outline. The duration sliders drive
-`transition.enterDuration` and `transition.exitDuration` directly.
+The playground includes controls for title size, transition speed, alignment,
+and hover outline. The speed slider drives `transition.speed` directly.
 
 ## v1 Requirements
 
