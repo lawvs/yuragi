@@ -8,10 +8,21 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 
 const testDir = dirname(fileURLToPath(import.meta.url));
+const reactMocks = vi.hoisted(() => ({
+  startTransition: vi.fn((callback: () => void) => callback()),
+}));
 
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
+
+vi.mock("react", async () => {
+  const actual = await vi.importActual<typeof React>("react");
+  return {
+    ...actual,
+    startTransition: reactMocks.startTransition,
+  };
+});
 
 vi.mock("@type-shards/react", () => ({
   ShardedText: ({
@@ -42,6 +53,7 @@ describe("App", () => {
 
   afterEach(() => {
     host.remove();
+    reactMocks.startTransition.mockClear();
   });
 
   function renderApp() {
@@ -85,6 +97,7 @@ describe("App", () => {
     expect(title?.getAttribute("data-shared-id")).toBe("title:settings");
     expect(title?.getAttribute("data-transition-enter")).toBe("settle");
     expect(title?.getAttribute("data-transition-exit")).toBe("scatter");
+    expect(reactMocks.startTransition).toHaveBeenCalledTimes(1);
   });
 
   it("constrains list shard SVG width for mobile cards", () => {

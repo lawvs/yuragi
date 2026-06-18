@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { startTransition, useMemo, useState } from "react";
 import { ShardedText } from "@type-shards/react";
 import outlines from "virtual:type-shards/outlines";
 import { demoPosts, type DemoPost } from "./data";
@@ -21,6 +21,12 @@ export function App() {
     () => demoPosts.find((post) => post.id === selectedId) ?? demoPosts[0],
     [selectedId],
   );
+
+  function selectPost(id: string) {
+    startTransition(() => {
+      setSelectedId(id);
+    });
+  }
 
   return (
     <main className="playground-shell">
@@ -48,7 +54,7 @@ export function App() {
                 type="button"
                 key={post.id}
                 aria-pressed={selected}
-                onClick={() => setSelectedId(post.id)}
+                onClick={() => selectPost(post.id)}
               >
                 <span className="post-title">
                   <ShardedText
@@ -72,7 +78,7 @@ export function App() {
             <button
               className="back-button"
               type="button"
-              onClick={() => setSelectedId(demoPosts[0]?.id ?? "")}
+              onClick={() => selectPost(demoPosts[0]?.id ?? "")}
             >
               Back
             </button>

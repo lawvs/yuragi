@@ -162,6 +162,42 @@ function createTextFallbackStyle(
   };
 }
 
+type RenderedSvgState = {
+  svg: SVGSVGElement;
+  outline: TextOutline;
+  text: string;
+  size: number;
+  maxWidth?: number;
+  align?: "start" | "center" | "end";
+};
+
+function hasSameSvgLayout(
+  previous: RenderedSvgState | null,
+  props: Required<Pick<ShardedTextProps, "text" | "size" | "fallback">> &
+    Omit<ShardedTextProps, "text" | "size" | "fallback">,
+): boolean {
+  return (
+    previous !== null &&
+    previous.outline === props.outline &&
+    previous.text === props.text &&
+    previous.size === props.size &&
+    previous.maxWidth === props.maxWidth &&
+    previous.align === props.align
+  );
+}
+
+function prepareHostForExitingSvg(host: HTMLElement): void {
+  if (!host.style.position) host.style.position = "relative";
+  if (!host.style.display) host.style.display = "inline-block";
+}
+
+function prepareExitingSvg(svg: SVGSVGElement): void {
+  svg.style.position = "absolute";
+  svg.style.inset = "0";
+  svg.style.pointerEvents = "none";
+  svg.style.zIndex = "1";
+}
+
 function ShardedSvg({
   props,
 }: {
@@ -170,13 +206,22 @@ function ShardedSvg({
 }) {
   const hostRef = React.useRef<HTMLSpanElement>(null);
   const svgRef = React.useRef<SVGSVGElement | null>(null);
+  const renderedSvgRef = React.useRef<RenderedSvgState | null>(null);
   const pendingScatterRef = React.useRef<{ cancelled: boolean } | null>(null);
 
   React.useLayoutEffect(() => {
     const host = hostRef.current;
     if (!host || !props.outline) return;
 
-    host.replaceChildren();
+    const current = renderedSvgRef.current;
+    if (hasSameSvgLayout(current, props)) {
+      if (props.style && current) {
+        applySvgStyle(current.svg, props.style);
+      }
+      return;
+    }
+
+    const previous = current;
     const layout = layoutShardedText(props.outline, {
       size: props.size,
       maxWidth: props.maxWidth,
@@ -194,7 +239,30 @@ function ShardedSvg({
       applySvgStyle(svg, props.style);
     }
     svgRef.current = svg;
-    host.append(svg);
+    renderedSvgRef.current = {
+      svg,
+      outline: props.outline,
+      text: props.text,
+      size: props.size,
+      maxWidth: props.maxWidth,
+      align: props.align,
+    };
+
+    const previousSvg = previous?.svg;
+    const shouldScatterPrevious =
+      previousSvg?.parentElement === host &&
+      props.transition?.exit === "scatter";
+
+    if (shouldScatterPrevious && previousSvg) {
+      prepareHostForExitingSvg(host);
+      prepareExitingSvg(previousSvg);
+      host.append(svg);
+      void animateShards(previousSvg, { type: "scatter" }).finally(() => {
+        previousSvg.remove();
+      });
+    } else {
+      host.replaceChildren(svg);
+    }
 
     if (props.transition?.enter === "settle") {
       void animateShards(svg, { type: "settle", stagger: "by-x" });

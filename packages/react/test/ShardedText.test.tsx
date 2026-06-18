@@ -49,6 +49,27 @@ const outline: TextOutline = {
   ],
 };
 
+const nextOutline: TextOutline = {
+  em: 1000,
+  ascender: 880,
+  descender: -120,
+  groups: [
+    {
+      text: "B",
+      advance: 520,
+      breakAfter: true,
+      glyphs: [
+        {
+          char: "B",
+          advance: 520,
+          bbox: { top: -800, bottom: 200, left: 0, right: 520 },
+          shards: [{ path: "M0 0L520 0L520 500Z", direction: [-1, 0] }],
+        },
+      ],
+    },
+  ],
+};
+
 describe("ShardedText", () => {
   afterEach(async () => {
     cleanup();
@@ -157,6 +178,53 @@ describe("ShardedText", () => {
     expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
       type: "scatter",
     });
+  });
+
+  it("animates previous shards out when outline changes", async () => {
+    const scatterFinished = Promise.resolve();
+    vi.mocked(animateShards).mockImplementation(async (root, options) => {
+      if (options.type === "scatter") {
+        await scatterFinished;
+      }
+      void root;
+    });
+
+    const { rerender } = render(
+      <ShardedText
+        text="A"
+        outline={outline}
+        transition={{ enter: "settle", exit: "scatter" }}
+      />,
+    );
+    const previousSvg = document.querySelector<SVGSVGElement>(
+      "[data-type-shards-root]",
+    );
+
+    rerender(
+      <ShardedText
+        text="B"
+        outline={nextOutline}
+        transition={{ enter: "settle", exit: "scatter" }}
+      />,
+    );
+
+    expect(animateShards).toHaveBeenCalledWith(previousSvg, {
+      type: "scatter",
+    });
+    expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
+      type: "settle",
+      stagger: "by-x",
+    });
+    expect(document.querySelectorAll("[data-type-shards-root]")).toHaveLength(
+      2,
+    );
+
+    await scatterFinished;
+    await Promise.resolve();
+
+    expect(document.querySelectorAll("[data-type-shards-root]")).toHaveLength(
+      1,
+    );
   });
 
   it("does not scatter during StrictMode initial mount", async () => {
