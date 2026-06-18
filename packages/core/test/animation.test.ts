@@ -93,7 +93,7 @@ describe("animateShards", () => {
       {
         duration: 200,
         delay: 0,
-        easing: "cubic-bezier(1, 0, 1, 1)",
+        easing: "cubic-bezier(0.22, 1, 0.36, 1)",
         fill: "both",
       },
     );

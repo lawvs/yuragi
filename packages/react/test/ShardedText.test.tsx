@@ -109,9 +109,11 @@ describe("ShardedText", () => {
   });
 
   function expectNoScatterCall() {
-    expect(animateShards).not.toHaveBeenCalledWith(expect.any(SVGSVGElement), {
-      type: "scatter",
-    });
+    expect(
+      vi
+        .mocked(animateShards)
+        .mock.calls.some(([, options]) => options.type === "scatter"),
+    ).toBe(false);
   }
 
   it("renders SVG when outline exists", () => {
@@ -224,6 +226,7 @@ describe("ShardedText", () => {
 
     expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
       type: "scatter",
+      stagger: "by-x",
     });
   });
 
@@ -241,6 +244,7 @@ describe("ShardedText", () => {
 
     expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
       type: "scatter",
+      stagger: "by-x",
       duration: 560,
     });
   });
@@ -315,6 +319,7 @@ describe("ShardedText", () => {
       });
       expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
         type: "scatter",
+        stagger: "by-x",
         duration: 560,
       });
       expect(document.querySelectorAll("[data-type-shards-root]")).toHaveLength(

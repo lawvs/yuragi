@@ -293,8 +293,8 @@ function createSettleAnimationOptions(duration: number | undefined) {
 
 function createScatterAnimationOptions(duration: number | undefined) {
   return duration === undefined
-    ? { type: "scatter" as const }
-    : { type: "scatter" as const, duration };
+    ? { type: "scatter" as const, stagger: "by-x" as const }
+    : { type: "scatter" as const, stagger: "by-x" as const, duration };
 }
 
 function animateSvgExit(

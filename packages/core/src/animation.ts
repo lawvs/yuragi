@@ -82,7 +82,7 @@ export async function animateShards(
           easing:
             options.type === "settle"
               ? "cubic-bezier(0, 0, 0, 1)"
-              : "cubic-bezier(1, 0, 1, 1)",
+              : "cubic-bezier(0.22, 1, 0.36, 1)",
           fill: "both",
         },
       );
