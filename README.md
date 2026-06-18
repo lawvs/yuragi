@@ -47,11 +47,63 @@ export function Title() {
       sharedId="title:dashboard"
       size={56}
       hover="outline"
-      transition={{ enter: "settle", exit: "scatter" }}
+      transition={{
+        enter: "settle",
+        exit: "scatter",
+        enterDuration: 500,
+        exitDuration: 420,
+      }}
     />
   );
 }
 ```
+
+## React API
+
+`ShardedText` is the v1 React entry point:
+
+```tsx
+<ShardedText
+  text="Dashboard"
+  outline={outlines["Dashboard"]}
+  sharedId="title:dashboard"
+  size={56}
+  maxWidth={760}
+  align="start"
+  hover="outline"
+  fallback="text"
+  transition={{
+    enter: "settle",
+    exit: "scatter",
+    enterDuration: 500,
+    exitDuration: 420,
+  }}
+/>
+```
+
+Core props:
+
+- `text`: rendered text. It must match a title compiled by the plugin when an
+  outline is required.
+- `outline`: precompiled glyph shard data, usually from
+  `virtual:type-shards/outlines`.
+- `sharedId`: wraps the rendered title in React Canary `ViewTransition` and
+  uses this value as the shared element name.
+- `size`, `maxWidth`, `align`: layout controls for SVG text wrapping.
+- `hover`: `"outline"` enables the hollow title hover effect.
+- `fallback`: `"text"` renders readable text when `outline` is missing;
+  `"hidden"` renders nothing; `"error"` throws.
+- `transition.enter`: `"settle"` animates shards into place.
+- `transition.exit`: `"scatter"` animates the previous title out when the title
+  changes or unmounts.
+- `transition.enterDuration` and `transition.exitDuration`: animation duration
+  in milliseconds. If omitted, the defaults are `500` for enter and `200` for
+  exit.
+
+Exit scatter is rendered in a fixed viewport overlay so the old title keeps its
+screen position while React View Transition moves the new shared title. Exit
+scatter also staggers shards by x-position and uses an ease-out curve for a
+less abrupt break-apart motion.
 
 ## Playground
 
@@ -68,6 +120,16 @@ TYPE_SHARDS_FONT="/path/to/title-font.otf" pnpm playground:build
 
 `TYPE_SHARDS_FONT` can also be an `http:` or `https:` URL; remote fonts are
 downloaded to the same Vite cache before outline compilation.
+
+Run the playground locally:
+
+```bash
+pnpm dev
+```
+
+The playground includes controls for title size, enter duration, exit duration,
+alignment, and hover outline. The duration sliders drive
+`transition.enterDuration` and `transition.exitDuration` directly.
 
 ## v1 Requirements
 
