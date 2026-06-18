@@ -115,12 +115,12 @@ describe("animateShards", () => {
     expect(Element.prototype.animate).toHaveBeenNthCalledWith(
       1,
       expect.any(Array),
-      expect.objectContaining({ duration: 220, delay: 0 }),
+      expect.objectContaining({ duration: 200, delay: 0 }),
     );
     expect(Element.prototype.animate).toHaveBeenNthCalledWith(
       2,
       expect.any(Array),
-      expect.objectContaining({ duration: 220, delay: 12 }),
+      expect.objectContaining({ duration: 200, delay: 12 }),
     );
   });
 

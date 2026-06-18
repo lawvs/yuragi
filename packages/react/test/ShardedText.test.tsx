@@ -70,11 +70,42 @@ const nextOutline: TextOutline = {
   ],
 };
 
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((nextResolve) => {
+    resolve = nextResolve;
+  });
+  return { promise, resolve };
+}
+
+function rect(
+  left: number,
+  top: number,
+  width: number,
+  height: number,
+): DOMRect {
+  return {
+    left,
+    top,
+    width,
+    height,
+    right: left + width,
+    bottom: top + height,
+    x: left,
+    y: top,
+    toJSON: () => ({}),
+  } as DOMRect;
+}
+
 describe("ShardedText", () => {
   afterEach(async () => {
     cleanup();
     await Promise.resolve();
+    document
+      .querySelectorAll("[data-type-shards-exit]")
+      .forEach((node) => node.remove());
     vi.mocked(animateShards).mockClear();
+    vi.mocked(animateShards).mockImplementation(async () => undefined);
   });
 
   function expectNoScatterCall() {
@@ -180,51 +211,131 @@ describe("ShardedText", () => {
     });
   });
 
-  it("animates previous shards out when outline changes", async () => {
-    const scatterFinished = Promise.resolve();
+  it("animates a fixed viewport clone when outline changes", async () => {
+    const scatterFinished = deferred<void>();
+    let rootRectCalls = 0;
+    const getBoundingClientRect = vi
+      .spyOn(Element.prototype, "getBoundingClientRect")
+      .mockImplementation(function (this: Element) {
+        if (!(this instanceof SVGSVGElement)) return rect(0, 0, 0, 0);
+        rootRectCalls += 1;
+        if (rootRectCalls === 1) return rect(24, 36, 180, 54);
+        if (rootRectCalls === 2) return rect(24, 96, 0, 0);
+        return rect(240, 80, 120, 48);
+      });
     vi.mocked(animateShards).mockImplementation(async (root, options) => {
       if (options.type === "scatter") {
-        await scatterFinished;
+        await scatterFinished.promise;
       }
       void root;
     });
 
-    const { rerender } = render(
+    try {
+      const { rerender } = render(
+        <ShardedText
+          text="A"
+          outline={outline}
+          transition={{ enter: "settle", exit: "scatter" }}
+        />,
+      );
+      const previousSvg = document.querySelector<SVGSVGElement>(
+        "[data-type-shards-root]",
+      );
+      expect(previousSvg).not.toBeNull();
+
+      rerender(
+        <ShardedText
+          text="B"
+          outline={nextOutline}
+          transition={{ enter: "settle", exit: "scatter" }}
+        />,
+      );
+
+      const scatterCall = vi
+        .mocked(animateShards)
+        .mock.calls.find(([, options]) => options.type === "scatter");
+      const exitSvg = scatterCall?.[0] as SVGSVGElement | undefined;
+
+      expect(exitSvg).toBeDefined();
+      expect(exitSvg).not.toBe(previousSvg);
+      expect(exitSvg?.parentElement).toBe(document.body);
+      expect(exitSvg?.dataset.typeShardsExit).toBe("true");
+      expect(exitSvg?.style.position).toBe("fixed");
+      expect(exitSvg?.style.left).toBe("24px");
+      expect(exitSvg?.style.top).toBe("36px");
+      expect(exitSvg?.style.width).toBe("180px");
+      expect(exitSvg?.style.height).toBe("54px");
+      expect(exitSvg?.style.pointerEvents).toBe("none");
+      expect(exitSvg?.style.getPropertyValue("view-transition-name")).toBe(
+        "none",
+      );
+      expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
+        type: "settle",
+        stagger: "by-x",
+      });
+      expect(document.querySelectorAll("[data-type-shards-root]")).toHaveLength(
+        2,
+      );
+      expect(previousSvg?.isConnected).toBe(false);
+
+      scatterFinished.resolve();
+      await scatterFinished.promise;
+      await Promise.resolve();
+
+      expect(document.querySelectorAll("[data-type-shards-root]")).toHaveLength(
+        1,
+      );
+    } finally {
+      getBoundingClientRect.mockRestore();
+    }
+  });
+
+  it("animates a fixed viewport clone when unmounted", async () => {
+    const scatterFinished = deferred<void>();
+    vi.mocked(animateShards).mockImplementation(async (root, options) => {
+      if (options.type === "scatter") {
+        await scatterFinished.promise;
+      }
+      void root;
+    });
+
+    const { unmount } = render(
       <ShardedText
         text="A"
         outline={outline}
-        transition={{ enter: "settle", exit: "scatter" }}
+        transition={{ exit: "scatter" }}
       />,
     );
     const previousSvg = document.querySelector<SVGSVGElement>(
       "[data-type-shards-root]",
     );
-
-    rerender(
-      <ShardedText
-        text="B"
-        outline={nextOutline}
-        transition={{ enter: "settle", exit: "scatter" }}
-      />,
+    expect(previousSvg).not.toBeNull();
+    vi.spyOn(previousSvg!, "getBoundingClientRect").mockReturnValue(
+      rect(12, 18, 90, 40),
     );
 
-    expect(animateShards).toHaveBeenCalledWith(previousSvg, {
-      type: "scatter",
-    });
-    expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
-      type: "settle",
-      stagger: "by-x",
-    });
-    expect(document.querySelectorAll("[data-type-shards-root]")).toHaveLength(
-      2,
-    );
-
-    await scatterFinished;
+    unmount();
     await Promise.resolve();
 
-    expect(document.querySelectorAll("[data-type-shards-root]")).toHaveLength(
-      1,
-    );
+    const scatterCall = vi
+      .mocked(animateShards)
+      .mock.calls.find(([, options]) => options.type === "scatter");
+    const exitSvg = scatterCall?.[0] as SVGSVGElement | undefined;
+
+    expect(exitSvg).toBeDefined();
+    expect(exitSvg).not.toBe(previousSvg);
+    expect(exitSvg?.parentElement).toBe(document.body);
+    expect(exitSvg?.dataset.typeShardsExit).toBe("true");
+    expect(exitSvg?.style.left).toBe("12px");
+    expect(exitSvg?.style.top).toBe("18px");
+    expect(exitSvg?.style.width).toBe("90px");
+    expect(exitSvg?.style.height).toBe("40px");
+
+    scatterFinished.resolve();
+    await scatterFinished.promise;
+    await Promise.resolve();
+
+    expect(exitSvg?.isConnected).toBe(false);
   });
 
   it("does not scatter during StrictMode initial mount", async () => {

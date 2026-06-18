@@ -35,6 +35,8 @@ export function createShardedSvg(
     "viewBox",
     `0 0 ${layout.dimensions.width} ${height}`,
   );
+  svg.setAttribute("width", String(layout.dimensions.width));
+  svg.setAttribute("height", String(height));
   svg.style.setProperty("--ts-size", String(layout.options.size));
   svg.style.setProperty("--ts-em", String(layout.dimensions.unitsPerEm));
   svg.style.setProperty("--ts-line-height", `${layout.options.lineHeight}px`);

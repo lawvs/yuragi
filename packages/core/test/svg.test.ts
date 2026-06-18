@@ -44,11 +44,13 @@ describe("createShardedSvg", () => {
     expect(svg.querySelectorAll("[data-shard]")).toHaveLength(2);
   });
 
-  it("sets size variables, viewbox, and baseline transform", () => {
+  it("sets size attributes, variables, viewbox, and baseline transform", () => {
     const layout = layoutShardedText(outline, { size: 20, maxWidth: 40 });
     const svg = createShardedSvg(layout);
 
     expect(svg.getAttribute("viewBox")).toBe("0 0 10 20");
+    expect(svg.getAttribute("width")).toBe("10");
+    expect(svg.getAttribute("height")).toBe("20");
     expect(svg.querySelector("[data-line]")?.getAttribute("transform")).toBe(
       "translate(0 17.6)",
     );

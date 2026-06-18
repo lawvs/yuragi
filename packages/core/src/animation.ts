@@ -54,7 +54,7 @@ export async function animateShards(
     return undefined;
   }
 
-  const duration = options.duration ?? (options.type === "settle" ? 500 : 220);
+  const duration = options.duration ?? (options.type === "settle" ? 500 : 200);
   const distance = options.distance ?? 100;
 
   const animations = shardMotions.flatMap((shardMotion, index) => {

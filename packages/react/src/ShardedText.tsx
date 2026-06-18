@@ -169,6 +169,7 @@ type RenderedSvgState = {
   size: number;
   maxWidth?: number;
   align?: "start" | "center" | "end";
+  exitSnapshot?: SvgExitSnapshot;
 };
 
 function hasSameSvgLayout(
@@ -186,16 +187,114 @@ function hasSameSvgLayout(
   );
 }
 
-function prepareHostForExitingSvg(host: HTMLElement): void {
-  if (!host.style.position) host.style.position = "relative";
-  if (!host.style.display) host.style.display = "inline-block";
+type SvgExitSnapshot = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  color?: string;
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: string;
+};
+
+function captureSvgExitSnapshot(svg: SVGSVGElement): SvgExitSnapshot {
+  const rect = svg.getBoundingClientRect();
+  const computedStyle = svg.ownerDocument.defaultView?.getComputedStyle(svg);
+
+  return {
+    left: rect.left,
+    top: rect.top,
+    width: rect.width,
+    height: rect.height,
+    color: computedStyle?.getPropertyValue("color"),
+    fill: computedStyle?.getPropertyValue("fill"),
+    stroke: computedStyle?.getPropertyValue("stroke"),
+    strokeWidth: computedStyle?.getPropertyValue("stroke-width"),
+  };
 }
 
-function prepareExitingSvg(svg: SVGSVGElement): void {
-  svg.style.position = "absolute";
-  svg.style.inset = "0";
-  svg.style.pointerEvents = "none";
-  svg.style.zIndex = "1";
+function hasVisibleSvgSnapshot(snapshot: SvgExitSnapshot): boolean {
+  return snapshot.width > 0 && snapshot.height > 0;
+}
+
+function pickSvgExitSnapshot(
+  svg: SVGSVGElement,
+  fallback: SvgExitSnapshot | undefined,
+): SvgExitSnapshot {
+  const snapshot = captureSvgExitSnapshot(svg);
+  return hasVisibleSvgSnapshot(snapshot) || !fallback ? snapshot : fallback;
+}
+
+function refreshRenderedSvgExitSnapshot(
+  state: RenderedSvgState,
+  svg: SVGSVGElement,
+): void {
+  const update = () => {
+    const snapshot = captureSvgExitSnapshot(svg);
+    if (hasVisibleSvgSnapshot(snapshot) || !state.exitSnapshot) {
+      state.exitSnapshot = snapshot;
+    }
+  };
+  update();
+  svg.ownerDocument.defaultView?.requestAnimationFrame(() => {
+    if (svg.isConnected) update();
+  });
+}
+
+function setOptionalStyleProperty(
+  svg: SVGSVGElement,
+  name: string,
+  value: string | undefined,
+): void {
+  if (value) svg.style.setProperty(name, value);
+}
+
+function createSvgExitOverlay(
+  sourceSvg: SVGSVGElement,
+  snapshot: SvgExitSnapshot,
+): SVGSVGElement | null {
+  const body = sourceSvg.ownerDocument.body;
+  if (!body) return null;
+
+  const overlay = sourceSvg.cloneNode(true) as SVGSVGElement;
+  overlay.dataset.typeShardsExit = "true";
+  overlay.setAttribute("aria-hidden", "true");
+  overlay.removeAttribute("aria-label");
+
+  overlay.style.position = "fixed";
+  overlay.style.inset = "auto";
+  overlay.style.left = `${snapshot.left}px`;
+  overlay.style.top = `${snapshot.top}px`;
+  overlay.style.width = `${snapshot.width}px`;
+  overlay.style.height = `${snapshot.height}px`;
+  overlay.style.maxWidth = "none";
+  overlay.style.margin = "0";
+  overlay.style.display = "block";
+  overlay.style.pointerEvents = "none";
+  overlay.style.zIndex = "2147483647";
+  overlay.style.transform = "none";
+  overlay.style.transformOrigin = "0 0";
+  overlay.style.setProperty("view-transition-name", "none");
+  setOptionalStyleProperty(overlay, "color", snapshot.color);
+  setOptionalStyleProperty(overlay, "fill", snapshot.fill);
+  setOptionalStyleProperty(overlay, "stroke", snapshot.stroke);
+  setOptionalStyleProperty(overlay, "stroke-width", snapshot.strokeWidth);
+
+  body.append(overlay);
+  return overlay;
+}
+
+function animateSvgExit(
+  sourceSvg: SVGSVGElement,
+  snapshot = captureSvgExitSnapshot(sourceSvg),
+): void {
+  const overlay = createSvgExitOverlay(sourceSvg, snapshot);
+  const animatedSvg = overlay ?? sourceSvg;
+
+  void animateShards(animatedSvg, { type: "scatter" }).finally(() => {
+    overlay?.remove();
+  });
 }
 
 function ShardedSvg({
@@ -217,6 +316,7 @@ function ShardedSvg({
     if (hasSameSvgLayout(current, props)) {
       if (props.style && current) {
         applySvgStyle(current.svg, props.style);
+        refreshRenderedSvgExitSnapshot(current, current.svg);
       }
       return;
     }
@@ -239,7 +339,7 @@ function ShardedSvg({
       applySvgStyle(svg, props.style);
     }
     svgRef.current = svg;
-    renderedSvgRef.current = {
+    const renderedSvg: RenderedSvgState = {
       svg,
       outline: props.outline,
       text: props.text,
@@ -247,6 +347,7 @@ function ShardedSvg({
       maxWidth: props.maxWidth,
       align: props.align,
     };
+    renderedSvgRef.current = renderedSvg;
 
     const previousSvg = previous?.svg;
     const shouldScatterPrevious =
@@ -254,15 +355,16 @@ function ShardedSvg({
       props.transition?.exit === "scatter";
 
     if (shouldScatterPrevious && previousSvg) {
-      prepareHostForExitingSvg(host);
-      prepareExitingSvg(previousSvg);
-      host.append(svg);
-      void animateShards(previousSvg, { type: "scatter" }).finally(() => {
-        previousSvg.remove();
-      });
+      const exitSnapshot = pickSvgExitSnapshot(
+        previousSvg,
+        previous?.exitSnapshot,
+      );
+      host.replaceChildren(svg);
+      animateSvgExit(previousSvg, exitSnapshot);
     } else {
       host.replaceChildren(svg);
     }
+    refreshRenderedSvgExitSnapshot(renderedSvg, svg);
 
     if (props.transition?.enter === "settle") {
       void animateShards(svg, { type: "settle", stagger: "by-x" });
@@ -276,22 +378,29 @@ function ShardedSvg({
     props.size,
     props.style,
     props.transition?.enter,
+    props.transition?.exit,
+    props.text,
   ]);
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     const pending = pendingScatterRef.current;
     if (pending) pending.cancelled = true;
 
     return () => {
       if (props.transition?.exit !== "scatter") return;
-      const svg = svgRef.current;
+      const renderedSvg = renderedSvgRef.current;
+      const svg = renderedSvg?.svg ?? svgRef.current;
       if (!svg) return;
+      const exitSnapshot = pickSvgExitSnapshot(
+        svg,
+        renderedSvg?.exitSnapshot,
+      );
 
       const nextPending = { cancelled: false };
       pendingScatterRef.current = nextPending;
       queueMicrotask(() => {
         if (!nextPending.cancelled) {
-          void animateShards(svg, { type: "scatter" });
+          animateSvgExit(svg, exitSnapshot);
         }
         if (pendingScatterRef.current === nextPending) {
           pendingScatterRef.current = null;
