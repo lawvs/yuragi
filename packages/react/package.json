@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "type": "module",
   "peerDependencies": {
-    "react": "19.3.0-canary-900ae094-20260605",
-    "react-dom": "19.3.0-canary-900ae094-20260605"
+    "react": "19.3.0-canary-a7cce7b3-20260617",
+    "react-dom": "19.3.0-canary-a7cce7b3-20260617"
   },
   "dependencies": {
     "@type-shards/core": "workspace:*"
@@ -22,13 +22,13 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@testing-library/react": "^16.3.0",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "react": "canary",
-    "react-dom": "canary",
-    "tsup": "^8.3.6",
-    "typescript": "^5.8.3",
-    "vitest": "^3.1.4"
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "react": "19.3.0-canary-a7cce7b3-20260617",
+    "react-dom": "19.3.0-canary-a7cce7b3-20260617",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
   }
 }
