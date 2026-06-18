@@ -131,6 +131,13 @@ export function layoutShardedText(
     (max, line) => Math.max(max, line.x + line.width),
     0,
   );
+  const scale = resolved.size / outline.em;
+  const ascender = outline.ascender * scale;
+  const descender = Math.abs(outline.descender * scale);
+  const height =
+    ascender +
+    descender +
+    Math.max(0, lines.length - 1) * resolved.lineHeight;
 
   return {
     outline,
@@ -138,7 +145,7 @@ export function layoutShardedText(
     lines,
     dimensions: {
       width,
-      height: lines.length * resolved.lineHeight,
+      height,
       lineCount: lines.length,
       unitsPerEm: outline.em,
     },

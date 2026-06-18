@@ -19,11 +19,6 @@ export function createShardedSvg(
 ): SVGSVGElement {
   const scale = layout.options.size / layout.outline.em;
   const ascender = layout.outline.ascender * scale;
-  const descender = Math.abs(layout.outline.descender * scale);
-  const height =
-    ascender +
-    descender +
-    Math.max(0, layout.dimensions.lineCount - 1) * layout.options.lineHeight;
   const svg = svgEl("svg");
   svg.dataset.typeShardsRoot = "true";
   svg.classList.add("ts-root");
@@ -33,10 +28,10 @@ export function createShardedSvg(
 
   svg.setAttribute(
     "viewBox",
-    `0 0 ${layout.dimensions.width} ${height}`,
+    `0 0 ${layout.dimensions.width} ${layout.dimensions.height}`,
   );
   svg.setAttribute("width", String(layout.dimensions.width));
-  svg.setAttribute("height", String(height));
+  svg.setAttribute("height", String(layout.dimensions.height));
   svg.style.setProperty("--ts-size", String(layout.options.size));
   svg.style.setProperty("--ts-em", String(layout.dimensions.unitsPerEm));
   svg.style.setProperty("--ts-line-height", `${layout.options.lineHeight}px`);

@@ -54,12 +54,6 @@ export type OutlineProvider = {
 
 export type Align = "start" | "center" | "end";
 
-export type ShardHoverOptions = {
-  mode: "outline";
-  spread?: number;
-  duration?: number;
-};
-
 export type ShardTransitionOptions = {
   enter?: "none" | "settle";
   exit?: "none" | "scatter";

@@ -36,7 +36,7 @@ describe("layoutShardedText", () => {
 
     expect(layout.lines).toHaveLength(1);
     expect(layout.dimensions.width).toBe(30);
-    expect(layout.dimensions.height).toBe(24);
+    expect(layout.dimensions.height).toBe(20);
     expect(layout.lines[0].groups.map((group) => group.text)).toEqual([
       "A",
       "B",
@@ -58,6 +58,7 @@ describe("layoutShardedText", () => {
       "B",
     ]);
     expect(layout.lines[1].groups.map((group) => group.text)).toEqual(["C"]);
+    expect(layout.dimensions.height).toBe(44);
   });
 
   it("computes centered line offsets", () => {
