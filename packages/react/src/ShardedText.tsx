@@ -285,14 +285,33 @@ function createSvgExitOverlay(
   return overlay;
 }
 
+function createSettleAnimationOptions(duration: number | undefined) {
+  return duration === undefined
+    ? { type: "settle" as const, stagger: "by-x" as const }
+    : { type: "settle" as const, stagger: "by-x" as const, duration };
+}
+
+function createScatterAnimationOptions(duration: number | undefined) {
+  return duration === undefined
+    ? { type: "scatter" as const }
+    : { type: "scatter" as const, duration };
+}
+
 function animateSvgExit(
   sourceSvg: SVGSVGElement,
-  snapshot = captureSvgExitSnapshot(sourceSvg),
+  options: {
+    snapshot?: SvgExitSnapshot;
+    duration?: number;
+  } = {},
 ): void {
+  const snapshot = options.snapshot ?? captureSvgExitSnapshot(sourceSvg);
   const overlay = createSvgExitOverlay(sourceSvg, snapshot);
   const animatedSvg = overlay ?? sourceSvg;
 
-  void animateShards(animatedSvg, { type: "scatter" }).finally(() => {
+  void animateShards(
+    animatedSvg,
+    createScatterAnimationOptions(options.duration),
+  ).finally(() => {
     overlay?.remove();
   });
 }
@@ -307,6 +326,8 @@ function ShardedSvg({
   const svgRef = React.useRef<SVGSVGElement | null>(null);
   const renderedSvgRef = React.useRef<RenderedSvgState | null>(null);
   const pendingScatterRef = React.useRef<{ cancelled: boolean } | null>(null);
+  const latestTransitionRef = React.useRef(props.transition);
+  latestTransitionRef.current = props.transition;
 
   React.useLayoutEffect(() => {
     const host = hostRef.current;
@@ -360,14 +381,20 @@ function ShardedSvg({
         previous?.exitSnapshot,
       );
       host.replaceChildren(svg);
-      animateSvgExit(previousSvg, exitSnapshot);
+      animateSvgExit(previousSvg, {
+        snapshot: exitSnapshot,
+        duration: props.transition?.exitDuration,
+      });
     } else {
       host.replaceChildren(svg);
     }
     refreshRenderedSvgExitSnapshot(renderedSvg, svg);
 
     if (props.transition?.enter === "settle") {
-      void animateShards(svg, { type: "settle", stagger: "by-x" });
+      void animateShards(
+        svg,
+        createSettleAnimationOptions(props.transition.enterDuration),
+      );
     }
   }, [
     props.align,
@@ -387,7 +414,8 @@ function ShardedSvg({
     if (pending) pending.cancelled = true;
 
     return () => {
-      if (props.transition?.exit !== "scatter") return;
+      const transition = latestTransitionRef.current;
+      if (transition?.exit !== "scatter") return;
       const renderedSvg = renderedSvgRef.current;
       const svg = renderedSvg?.svg ?? svgRef.current;
       if (!svg) return;
@@ -400,7 +428,10 @@ function ShardedSvg({
       pendingScatterRef.current = nextPending;
       queueMicrotask(() => {
         if (!nextPending.cancelled) {
-          animateSvgExit(svg, exitSnapshot);
+          animateSvgExit(svg, {
+            snapshot: exitSnapshot,
+            duration: transition.exitDuration,
+          });
         }
         if (pendingScatterRef.current === nextPending) {
           pendingScatterRef.current = null;

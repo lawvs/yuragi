@@ -16,6 +16,8 @@ export function App() {
   const [size, setSize] = useState(88);
   const [align, setAlign] = useState<Align>("start");
   const [hoverOutline, setHoverOutline] = useState(true);
+  const [enterDuration, setEnterDuration] = useState(500);
+  const [exitDuration, setExitDuration] = useState(420);
 
   const selectedPost = useMemo(
     () => demoPosts.find((post) => post.id === selectedId) ?? demoPosts[0],
@@ -97,6 +99,40 @@ export function App() {
                 <output>{size}px</output>
               </label>
 
+              <label className="range-control">
+                <span>Enter</span>
+                <input
+                  aria-label="Enter duration"
+                  type="range"
+                  name="enter-duration"
+                  min="100"
+                  max="1200"
+                  step="20"
+                  value={enterDuration}
+                  onChange={(event) =>
+                    setEnterDuration(Number(event.target.value))
+                  }
+                />
+                <output>{enterDuration}ms</output>
+              </label>
+
+              <label className="range-control">
+                <span>Exit</span>
+                <input
+                  aria-label="Exit duration"
+                  type="range"
+                  name="exit-duration"
+                  min="100"
+                  max="1200"
+                  step="20"
+                  value={exitDuration}
+                  onChange={(event) =>
+                    setExitDuration(Number(event.target.value))
+                  }
+                />
+                <output>{exitDuration}ms</output>
+              </label>
+
               <label className="select-control">
                 <span>Align</span>
                 <select
@@ -136,7 +172,12 @@ export function App() {
                 align={align}
                 fallback="text"
                 hover={hoverOutline ? "outline" : "none"}
-                transition={{ enter: "settle", exit: "scatter" }}
+                transition={{
+                  enter: "settle",
+                  exit: "scatter",
+                  enterDuration,
+                  exitDuration,
+                }}
               />
             </div>
             <p>{selectedPost.summary}</p>

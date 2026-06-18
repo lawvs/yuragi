@@ -194,6 +194,22 @@ describe("ShardedText", () => {
     });
   });
 
+  it("passes custom enter duration to settle animation", () => {
+    render(
+      <ShardedText
+        text="A"
+        outline={outline}
+        transition={{ enter: "settle", enterDuration: 640 }}
+      />,
+    );
+
+    expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
+      type: "settle",
+      stagger: "by-x",
+      duration: 640,
+    });
+  });
+
   it("animates shards with scatter transition on exit", async () => {
     const { unmount } = render(
       <ShardedText
@@ -208,6 +224,24 @@ describe("ShardedText", () => {
 
     expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
       type: "scatter",
+    });
+  });
+
+  it("passes custom exit duration to scatter animation", async () => {
+    const { unmount } = render(
+      <ShardedText
+        text="A"
+        outline={outline}
+        transition={{ exit: "scatter", exitDuration: 560 }}
+      />,
+    );
+
+    unmount();
+    await Promise.resolve();
+
+    expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
+      type: "scatter",
+      duration: 560,
     });
   });
 
@@ -247,7 +281,12 @@ describe("ShardedText", () => {
         <ShardedText
           text="B"
           outline={nextOutline}
-          transition={{ enter: "settle", exit: "scatter" }}
+          transition={{
+            enter: "settle",
+            exit: "scatter",
+            enterDuration: 640,
+            exitDuration: 560,
+          }}
         />,
       );
 
@@ -272,6 +311,11 @@ describe("ShardedText", () => {
       expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
         type: "settle",
         stagger: "by-x",
+        duration: 640,
+      });
+      expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
+        type: "scatter",
+        duration: 560,
       });
       expect(document.querySelectorAll("[data-type-shards-root]")).toHaveLength(
         2,
@@ -380,7 +424,7 @@ describe("ShardedText", () => {
         text="A"
         outline={outline}
         style={{ color: "red" }}
-        transition={{ exit: "scatter" }}
+        transition={{ exit: "scatter", exitDuration: 200 }}
       />,
     );
 
@@ -389,7 +433,7 @@ describe("ShardedText", () => {
         text="A"
         outline={outline}
         style={{ color: "red" }}
-        transition={{ exit: "scatter" }}
+        transition={{ exit: "scatter", exitDuration: 560 }}
       />,
     );
 

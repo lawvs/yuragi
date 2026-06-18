@@ -192,7 +192,7 @@ h1 {
 }
 
 .range-control output {
-  min-width: 42px;
+  min-width: 56px;
   color: #18201d;
   font-variant-numeric: tabular-nums;
   text-align: right;

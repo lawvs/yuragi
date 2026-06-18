@@ -34,7 +34,12 @@ vi.mock("@type-shards/react", () => ({
     text: string;
     sharedId?: string;
     fallback?: string;
-    transition?: { enter?: string; exit?: string };
+    transition?: {
+      enter?: string;
+      exit?: string;
+      enterDuration?: number;
+      exitDuration?: number;
+    };
   }) => (
     <span
       data-fallback={fallback}
@@ -42,6 +47,8 @@ vi.mock("@type-shards/react", () => ({
       data-shared-id={sharedId}
       data-transition-enter={transition?.enter}
       data-transition-exit={transition?.exit}
+      data-transition-enter-duration={transition?.enterDuration}
+      data-transition-exit-duration={transition?.exitDuration}
     >
       {text}
     </span>
@@ -62,6 +69,15 @@ describe("App", () => {
     act(() => {
       createRoot(host).render(<App />);
     });
+  }
+
+  function setInputValue(input: HTMLInputElement, value: string) {
+    const setter = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value",
+    )?.set;
+    setter?.call(input, value);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
   }
 
   it("renders selectable demo posts with shared title ids and fallback support", () => {
@@ -88,6 +104,8 @@ describe("App", () => {
     });
 
     expect(host.querySelector('input[type="range"]')).not.toBeNull();
+    expect(host.querySelector('input[name="enter-duration"]')).not.toBeNull();
+    expect(host.querySelector('input[name="exit-duration"]')).not.toBeNull();
     expect(host.querySelector('select[name="align"]')).not.toBeNull();
     expect(host.querySelector('input[name="hover"]')).not.toBeNull();
 
@@ -97,7 +115,33 @@ describe("App", () => {
     expect(title?.getAttribute("data-shared-id")).toBe("title:settings");
     expect(title?.getAttribute("data-transition-enter")).toBe("settle");
     expect(title?.getAttribute("data-transition-exit")).toBe("scatter");
+    expect(title?.getAttribute("data-transition-enter-duration")).toBe("500");
+    expect(title?.getAttribute("data-transition-exit-duration")).toBe("420");
     expect(reactMocks.startTransition).toHaveBeenCalledTimes(1);
+  });
+
+  it("updates enter and exit durations from the playground controls", () => {
+    renderApp();
+
+    const enterDuration = host.querySelector<HTMLInputElement>(
+      'input[name="enter-duration"]',
+    );
+    const exitDuration = host.querySelector<HTMLInputElement>(
+      'input[name="exit-duration"]',
+    );
+    expect(enterDuration).not.toBeNull();
+    expect(exitDuration).not.toBeNull();
+
+    act(() => {
+      setInputValue(enterDuration!, "640");
+      setInputValue(exitDuration!, "560");
+    });
+
+    const title = host.querySelector(
+      '.preview-title [data-sharded-text="Dashboard"]',
+    );
+    expect(title?.getAttribute("data-transition-enter-duration")).toBe("640");
+    expect(title?.getAttribute("data-transition-exit-duration")).toBe("560");
   });
 
   it("constrains list shard SVG width for mobile cards", () => {

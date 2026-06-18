@@ -63,4 +63,6 @@ export type ShardHoverOptions = {
 export type ShardTransitionOptions = {
   enter?: "none" | "settle";
   exit?: "none" | "scatter";
+  enterDuration?: number;
+  exitDuration?: number;
 };
