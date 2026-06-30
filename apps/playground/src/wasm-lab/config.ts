@@ -23,6 +23,22 @@ export const FONT_PRESETS: FontPreset[] = [
     axes: DEFAULT_AXES,
   },
   {
+    id: "noto-sans-sc",
+    label: "Noto Sans SC",
+    url:
+      "https://raw.githubusercontent.com/google/fonts/main/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf",
+    sampleText: "复杂分层",
+    axes: DEFAULT_AXES,
+  },
+  {
+    id: "noto-serif-sc",
+    label: "Noto Serif SC",
+    url:
+      "https://raw.githubusercontent.com/google/fonts/main/ofl/notoserifsc/NotoSerifSC%5Bwght%5D.ttf",
+    sampleText: "复杂分层",
+    axes: DEFAULT_AXES,
+  },
+  {
     id: "ma-shan-zheng",
     label: "Ma Shan Zheng",
     url:

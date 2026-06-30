@@ -90,12 +90,36 @@ describe("App", () => {
   it("renders selectable demo posts with shared title ids and fallback support", () => {
     renderApp();
 
-    const dashboard = host.querySelector('[data-sharded-text="Dashboard"]');
+    const dashboard = host.querySelector(
+      '.preview-title [data-sharded-text="Dashboard"]',
+    );
     const missing = host.querySelector('[data-sharded-text="Missing Outline"]');
 
     expect(dashboard?.getAttribute("data-shared-id")).toBe("title:dashboard");
     expect(missing?.getAttribute("data-shared-id")).toBe("title:missing");
     expect(missing?.getAttribute("data-fallback")).toBe("text");
+  });
+
+  it("does not mount duplicate shared title ids in the demo view", () => {
+    renderApp();
+
+    const sharedIds = Array.from(host.querySelectorAll("[data-shared-id]"))
+      .map((node) => node.getAttribute("data-shared-id"))
+      .filter((value): value is string => Boolean(value));
+
+    expect(sharedIds).toEqual(Array.from(new Set(sharedIds)));
+
+    act(() => {
+      host
+        .querySelector<HTMLButtonElement>('button[data-post-id="settings"]')
+        ?.click();
+    });
+
+    const nextSharedIds = Array.from(host.querySelectorAll("[data-shared-id]"))
+      .map((node) => node.getAttribute("data-shared-id"))
+      .filter((value): value is string => Boolean(value));
+
+    expect(nextSharedIds).toEqual(Array.from(new Set(nextSharedIds)));
   });
 
   it("opens a detail view with controls and enter/exit shard animation settings", () => {

@@ -14,10 +14,14 @@ describe("WASM Lab font presets", () => {
   it("includes Chinese and Latin comparison presets before custom URL", () => {
     expect(FONT_PRESETS.map((preset) => preset.id)).toEqual([
       "source-han-serif-sc",
+      "noto-sans-sc",
+      "noto-serif-sc",
       "ma-shan-zheng",
       "inter",
       "custom",
     ]);
+    expect(findFontPreset("noto-sans-sc").url).toContain("NotoSansSC");
+    expect(findFontPreset("noto-serif-sc").url).toContain("NotoSerifSC");
     expect(findFontPreset("ma-shan-zheng").sampleText).toBe("复杂分层");
     expect(findFontPreset("inter").sampleText).toBe("Dashboard");
     expect(findFontPreset("custom").url).toBe("");

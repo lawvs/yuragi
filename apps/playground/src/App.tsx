@@ -85,7 +85,7 @@ export function App() {
                     <ShardedText
                       text={post.title}
                       outline={outlines[post.title]}
-                      sharedId={titleSharedId(post)}
+                      sharedId={selected ? undefined : titleSharedId(post)}
                       size={30}
                       maxWidth={320}
                       fallback="text"
