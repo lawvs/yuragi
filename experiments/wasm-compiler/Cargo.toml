@@ -1,0 +1,19 @@
+[package]
+name = "type-shards-wasm-compiler"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+anyhow = "1.0.98"
+itertools = "0.14.0"
+lyon_algorithms = "1.0.5"
+lyon_path = "1.0.6"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+ttf-parser = { version = "0.25.1", features = ["variable-fonts"] }
+unicode-linebreak = "0.1.5"
+unicode-segmentation = "1.12.0"

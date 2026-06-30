@@ -78,6 +78,15 @@ describe("App", () => {
     input.dispatchEvent(new Event("input", { bubbles: true }));
   }
 
+  function setSelectValue(select: HTMLSelectElement, value: string) {
+    const setter = Object.getOwnPropertyDescriptor(
+      HTMLSelectElement.prototype,
+      "value",
+    )?.set;
+    setter?.call(select, value);
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
   it("renders selectable demo posts with shared title ids and fallback support", () => {
     renderApp();
 
@@ -132,6 +141,52 @@ describe("App", () => {
       '.preview-title [data-sharded-text="Dashboard"]',
     );
     expect(title?.getAttribute("data-transition-speed")).toBe("0.8");
+  });
+
+  it("keeps the experimental WASM lab behind an explicit playground tab", () => {
+    renderApp();
+
+    expect(host.querySelector(".workspace")).not.toBeNull();
+    expect(host.querySelector(".wasm-lab")).toBeNull();
+
+    const labTab = host.querySelector<HTMLButtonElement>(
+      'button[data-view="wasm-lab"]',
+    );
+    expect(labTab).not.toBeNull();
+
+    act(() => {
+      labTab?.click();
+    });
+
+    expect(host.querySelector(".workspace")).toBeNull();
+    expect(host.querySelector(".wasm-lab")).not.toBeNull();
+    expect(host.textContent).toContain("WASM Lab");
+    expect(host.textContent).toContain("Compile title");
+  });
+
+  it("switches WASM Lab font presets with matching sample text and URL", () => {
+    renderApp();
+
+    act(() => {
+      host.querySelector<HTMLButtonElement>('button[data-view="wasm-lab"]')?.click();
+    });
+
+    const preset = host.querySelector<HTMLSelectElement>(
+      'select[name="wasm-font-preset"]',
+    );
+    const title = host.querySelector<HTMLInputElement>('input[name="wasm-title"]');
+    const url = host.querySelector<HTMLInputElement>('input[name="wasm-font-url"]');
+
+    expect(preset).not.toBeNull();
+    expect(title?.value).toBe("复杂分层");
+    expect(url?.value).toContain("SourceHanSerifSC-VF.otf");
+
+    act(() => {
+      setSelectValue(preset!, "inter");
+    });
+
+    expect(title?.value).toBe("Dashboard");
+    expect(url?.value).toContain("Inter%5Bopsz,wght%5D.ttf");
   });
 
   it("constrains list shard SVG width for mobile cards", () => {

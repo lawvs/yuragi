@@ -8,7 +8,8 @@
     "test": "vitest run",
     "typecheck": "pnpm -r --filter './packages/*' typecheck && pnpm --filter @type-shards/playground typecheck",
     "dev": "pnpm --filter @type-shards/playground dev",
-    "playground:build": "pnpm --filter @type-shards/playground build"
+    "playground:build": "pnpm --filter @type-shards/playground build",
+    "wasm-lab:build": "pnpm --filter @type-shards/playground wasm-lab:build"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",
