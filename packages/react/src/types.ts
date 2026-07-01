@@ -4,7 +4,7 @@ import type { ShardTransitionOptions, TextOutline } from "@type-shards/core";
 export type ShardedTextProps = {
   text: string;
   outline?: TextOutline;
-  sharedId?: string;
+  sharedId?: string | false;
   size?: number;
   maxWidth?: number;
   align?: "start" | "center" | "end";

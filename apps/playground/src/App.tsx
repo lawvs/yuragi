@@ -19,6 +19,7 @@ export function App() {
   const [size, setSize] = useState(88);
   const [align, setAlign] = useState<Align>("start");
   const [hoverOutline, setHoverOutline] = useState(true);
+  const [sharedTitleMotion, setSharedTitleMotion] = useState(true);
   const [transitionSpeed, setTransitionSpeed] = useState(1);
 
   const selectedPost = useMemo(
@@ -71,6 +72,7 @@ export function App() {
           <aside className="post-list" aria-label="Demo posts">
             {demoPosts.map((post) => {
               const selected = post.id === selectedPost.id;
+              const shouldShare = sharedTitleMotion && !selected;
 
               return (
                 <button
@@ -85,7 +87,7 @@ export function App() {
                     <ShardedText
                       text={post.title}
                       outline={outlines[post.title]}
-                      sharedId={selected ? undefined : titleSharedId(post)}
+                      sharedId={shouldShare ? titleSharedId(post) : false}
                       size={30}
                       maxWidth={320}
                       fallback="text"
@@ -164,6 +166,18 @@ export function App() {
                   />
                   <span>Hover outline</span>
                 </label>
+
+                <label className="toggle-control">
+                  <input
+                    type="checkbox"
+                    name="shared-title-motion"
+                    checked={sharedTitleMotion}
+                    onChange={(event) =>
+                      setSharedTitleMotion(event.target.checked)
+                    }
+                  />
+                  <span>Shared title motion</span>
+                </label>
               </div>
             </div>
 
@@ -172,7 +186,9 @@ export function App() {
                 <ShardedText
                   text={selectedPost.title}
                   outline={outlines[selectedPost.title]}
-                  sharedId={titleSharedId(selectedPost)}
+                  sharedId={
+                    sharedTitleMotion ? titleSharedId(selectedPost) : false
+                  }
                   size={size}
                   maxWidth={760}
                   align={align}

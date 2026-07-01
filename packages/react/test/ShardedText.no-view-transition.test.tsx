@@ -21,4 +21,10 @@ describe("ShardedText without ViewTransition", () => {
       "type-shards v1 requires React Canary ViewTransition when sharedId is set",
     );
   });
+
+  it("does not require ViewTransition when sharedId is false", () => {
+    expect(() =>
+      render(<ShardedText text="Missing" sharedId={false} />),
+    ).not.toThrow();
+  });
 });

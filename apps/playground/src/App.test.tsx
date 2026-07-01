@@ -32,7 +32,7 @@ vi.mock("@type-shards/react", () => ({
     transition,
   }: {
     text: string;
-    sharedId?: string;
+    sharedId?: string | false;
     fallback?: string;
     transition?: {
       enter?: string;
@@ -43,7 +43,7 @@ vi.mock("@type-shards/react", () => ({
     <span
       data-fallback={fallback}
       data-sharded-text={text}
-      data-shared-id={sharedId}
+      data-shared-id={sharedId || undefined}
       data-transition-enter={transition?.enter}
       data-transition-exit={transition?.exit}
       data-transition-speed={transition?.speed}
@@ -165,6 +165,23 @@ describe("App", () => {
       '.preview-title [data-sharded-text="Dashboard"]',
     );
     expect(title?.getAttribute("data-transition-speed")).toBe("0.8");
+  });
+
+  it("can disable shared title motion from the demo controls", () => {
+    renderApp();
+
+    expect(host.querySelector("[data-shared-id]")).not.toBeNull();
+
+    const sharedTitleMotion = host.querySelector<HTMLInputElement>(
+      'input[name="shared-title-motion"]',
+    );
+    expect(sharedTitleMotion).not.toBeNull();
+
+    act(() => {
+      sharedTitleMotion?.click();
+    });
+
+    expect(host.querySelector("[data-shared-id]")).toBeNull();
   });
 
   it("keeps the experimental WASM lab behind an explicit playground tab", () => {
