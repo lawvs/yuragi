@@ -41,6 +41,9 @@ importers:
       '@type-shards/unplugin':
         specifier: workspace:*
         version: link:../../packages/unplugin
+      '@type-shards/wasm':
+        specifier: workspace:*
+        version: link:../../packages/wasm
       '@vitejs/plugin-react':
         specifier: ^6.0.2
         version: 6.0.2(vite@8.0.16(@types/node@25.9.3)(esbuild@0.27.7))
@@ -100,6 +103,9 @@ importers:
       '@type-shards/core':
         specifier: workspace:*
         version: link:../core
+      '@type-shards/wasm':
+        specifier: workspace:*
+        version: link:../wasm
     devDependencies:
       '@testing-library/react':
         specifier: ^16.3.2
@@ -137,6 +143,22 @@ importers:
       unplugin:
         specifier: ^3.0.0
         version: 3.0.0
+    devDependencies:
+      tsup:
+        specifier: ^8.5.1
+        version: 8.5.1(postcss@8.5.15)(typescript@6.0.3)
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^4.1.9
+        version: 4.1.9(@types/node@25.9.3)(jsdom@29.1.1)(vite@8.0.16(@types/node@25.9.3)(esbuild@0.27.7))
+
+  packages/wasm:
+    dependencies:
+      '@type-shards/core':
+        specifier: workspace:*
+        version: link:../core
     devDependencies:
       tsup:
         specifier: ^8.5.1

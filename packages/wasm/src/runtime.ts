@@ -4,7 +4,11 @@ type WasmExports = {
   memory: WebAssembly.Memory;
   type_shards_alloc(len: number): number;
   type_shards_free(ptr: number, len: number): void;
-  type_shards_set_font(fontPtr: number, fontLen: number, outLenPtr: number): number;
+  type_shards_set_font(
+    fontPtr: number,
+    fontLen: number,
+    outLenPtr: number,
+  ): number;
   type_shards_compile_title(
     textPtr: number,
     textLen: number,
@@ -20,9 +24,14 @@ type ApiResponse<T> = {
   error: string | null;
 };
 
-type FontLoadInfo = {
+export type TypeShardsFontInfo = {
   bytes: number;
   unitsPerEm: number;
+};
+
+export type TypeShardsRuntime = {
+  setFont(fontBytes: ArrayBuffer): TypeShardsFontInfo;
+  compileTitle(text: string, axes: Record<string, number>): TextOutline;
 };
 
 const encoder = new TextEncoder();
@@ -75,7 +84,7 @@ function callWithResponse<T>(
   }
 }
 
-export class TypeShardsWasmRuntime {
+export class TypeShardsWasmRuntime implements TypeShardsRuntime {
   #exports: WasmExports;
 
   private constructor(instance: WebAssembly.Instance) {
@@ -92,7 +101,7 @@ export class TypeShardsWasmRuntime {
     const ptr = copyInput(this.#exports, input);
 
     try {
-      return callWithResponse<FontLoadInfo>(this.#exports, (outLenPtr) =>
+      return callWithResponse<TypeShardsFontInfo>(this.#exports, (outLenPtr) =>
         this.#exports.type_shards_set_font(ptr, input.byteLength, outLenPtr),
       );
     } finally {

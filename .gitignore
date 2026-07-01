@@ -11,3 +11,4 @@ Cargo.lock
 docs/superpowers
 apps/playground/public/type-shards-wasm
 experiments/wasm-compiler/target
+packages/wasm/wasm

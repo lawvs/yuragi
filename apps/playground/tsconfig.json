@@ -1,4 +1,12 @@
 {
   "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "paths": {
+      "@type-shards/react": ["../../packages/react/src/index.ts"],
+      "@type-shards/react/wasm": ["../../packages/react/src/wasm.tsx"],
+      "@type-shards/wasm": ["../../packages/wasm/src/index.ts"],
+      "@type-shards/wasm/runtime": ["../../packages/wasm/src/runtime.ts"]
+    }
+  },
   "include": ["src", "vite.config.ts", "vitest.config.ts"]
 }

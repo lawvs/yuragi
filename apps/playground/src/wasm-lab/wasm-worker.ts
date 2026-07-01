@@ -1,4 +1,4 @@
-import { TypeShardsWasmRuntime } from "./wasm-runtime";
+import { TypeShardsWasmRuntime } from "@type-shards/wasm/runtime";
 
 type LoadWasmMessage = {
   type: "load-wasm";

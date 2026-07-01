@@ -85,8 +85,9 @@ Core props:
   outline is required.
 - `outline`: precompiled glyph shard data, usually from
   `virtual:type-shards/outlines`.
-- `sharedId`: wraps the rendered title in React Canary `ViewTransition` and
-  uses this value as the shared element name.
+- `sharedId`: a string wraps the rendered title in React Canary
+  `ViewTransition` and uses this value as the shared element name. `false`
+  explicitly disables the shared transition for that instance.
 - `size`, `maxWidth`, `align`: layout controls for SVG text wrapping.
 - `hover`: `"outline"` enables the hollow title hover effect.
 - `fallback`: `"text"` renders readable text when `outline` is missing;
@@ -105,6 +106,61 @@ right. The wave is based on each shard's visual x position, so wider titles get
 a wider left-to-right timing spread. Enter and exit also share the same base
 playback envelope, and `speed` scales that whole model; it is not a strict
 millisecond duration.
+
+## Runtime WASM API
+
+Runtime compilation is available through the experimental WASM entry points.
+Use this when titles are not known at build time or when users can provide their
+own text.
+
+```bash
+pnpm add @type-shards/wasm
+```
+
+```tsx
+import {
+  TypeShardsFontProvider,
+  ShardedText,
+} from "@type-shards/react/wasm";
+import "@type-shards/core/style.css";
+
+export function RuntimeTitle({ title }: { title: string }) {
+  return (
+    <TypeShardsFontProvider
+      font="/fonts/NotoSerifSC[wght].ttf"
+      axes={{ wght: 900 }}
+      preload={[title]}
+    >
+      <ShardedText
+        text={title}
+        sharedId={`title:${title}`}
+        size={88}
+        fallback="text"
+        hover="outline"
+        transition={{ enter: "settle", exit: "scatter", speed: 1 }}
+      />
+    </TypeShardsFontProvider>
+  );
+}
+```
+
+The provider owns the shared font compiler, caches compiled outlines in memory,
+and renders readable fallback text until an outline is ready.
+
+For non-React usage or advanced control:
+
+```ts
+import { createTypeShardsFont } from "@type-shards/wasm";
+
+const font = await createTypeShardsFont({
+  font: "/fonts/NotoSerifSC[wght].ttf",
+  axes: { wght: 900 },
+  preload: ["复杂分层"],
+});
+
+const outline = await font.compile("复杂分层");
+font.dispose();
+```
 
 ## Playground
 
@@ -137,11 +193,11 @@ and hover outline. The speed slider drives `transition.speed` directly.
 - Browser support for the View Transition API for shared element motion.
 - All sharded strings must be listed in `titles`.
 - Rust and Cargo on `PATH` for the v1 native compiler wrapper.
-- Runtime font parsing is not included in v1.
+- Runtime font parsing uses the experimental `@type-shards/wasm` entry point.
 
 ## v1 Non-goals
 
-- Runtime WASM font parsing.
+- Automatic runtime source scanning.
 - Stable React fallback.
 - Source scanning.
 - Markdown presets.

@@ -13,6 +13,7 @@
     "@type-shards/core": "workspace:*",
     "@type-shards/react": "workspace:*",
     "@type-shards/unplugin": "workspace:*",
+    "@type-shards/wasm": "workspace:*",
     "@vitejs/plugin-react": "^6.0.2",
     "react": "19.3.0-canary-a7cce7b3-20260617",
     "react-dom": "19.3.0-canary-a7cce7b3-20260617",
