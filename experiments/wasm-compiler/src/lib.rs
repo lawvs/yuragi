@@ -123,7 +123,7 @@ fn compile_title(text: &str, axes_input: &str) -> anyhow::Result<font::TextOutli
 }
 
 #[no_mangle]
-pub extern "C" fn type_shards_alloc(len: usize) -> *mut u8 {
+pub extern "C" fn yuragi_alloc(len: usize) -> *mut u8 {
     let mut bytes = Vec::<u8>::with_capacity(len);
     let ptr = bytes.as_mut_ptr();
     std::mem::forget(bytes);
@@ -131,7 +131,7 @@ pub extern "C" fn type_shards_alloc(len: usize) -> *mut u8 {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn type_shards_free(ptr: *mut u8, len: usize) {
+pub unsafe extern "C" fn yuragi_free(ptr: *mut u8, len: usize) {
     if ptr.is_null() {
         return;
     }
@@ -140,7 +140,7 @@ pub unsafe extern "C" fn type_shards_free(ptr: *mut u8, len: usize) {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn type_shards_set_font(
+pub unsafe extern "C" fn yuragi_set_font(
     font_ptr: *const u8,
     font_len: usize,
     out_len: *mut usize,
@@ -149,7 +149,7 @@ pub unsafe extern "C" fn type_shards_set_font(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn type_shards_compile_title(
+pub unsafe extern "C" fn yuragi_compile_title(
     text_ptr: *const u8,
     text_len: usize,
     axes_ptr: *const u8,

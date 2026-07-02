@@ -182,21 +182,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d2df906b07856748fa3f6e0ad0cbaa047052d4a7dd609e231c4f72cee8c36f31"
 
 [[package]]
-name = "type-shards-wasm-compiler"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "itertools",
- "lyon_algorithms",
- "lyon_path",
- "serde",
- "serde_json",
- "ttf-parser",
- "unicode-linebreak",
- "unicode-segmentation",
-]
-
-[[package]]
 name = "unicode-ident"
 version = "1.0.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -213,6 +198,21 @@ name = "unicode-segmentation"
 version = "1.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c6f5d3c3b1bf09027a88a6bc961fc00497d651009560b5463668dc81b0fa87a8"
+
+[[package]]
+name = "yuragi-wasm-compiler"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "itertools",
+ "lyon_algorithms",
+ "lyon_path",
+ "serde",
+ "serde_json",
+ "ttf-parser",
+ "unicode-linebreak",
+ "unicode-segmentation",
+]
 
 [[package]]
 name = "zmij"

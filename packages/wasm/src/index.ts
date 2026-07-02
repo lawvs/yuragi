@@ -36,7 +36,7 @@ export type CreateTypeShardsFontOptions = {
 };
 
 const DEFAULT_WASM_SOURCE = new URL(
-  "./type_shards_wasm_compiler.wasm",
+  "./yuragi_wasm_compiler.wasm",
   import.meta.url,
 );
 

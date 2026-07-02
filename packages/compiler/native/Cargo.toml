@@ -1,5 +1,5 @@
 [package]
-name = "type-shards-compiler"
+name = "yuragi-compiler"
 version = "0.0.0"
 edition = "2024"
 

@@ -2,14 +2,14 @@ import type { TextOutline } from "@type-shards/core";
 
 type WasmExports = {
   memory: WebAssembly.Memory;
-  type_shards_alloc(len: number): number;
-  type_shards_free(ptr: number, len: number): void;
-  type_shards_set_font(
+  yuragi_alloc(len: number): number;
+  yuragi_free(ptr: number, len: number): void;
+  yuragi_set_font(
     fontPtr: number,
     fontLen: number,
     outLenPtr: number,
   ): number;
-  type_shards_compile_title(
+  yuragi_compile_title(
     textPtr: number,
     textLen: number,
     axesPtr: number,
@@ -46,14 +46,14 @@ function heap(exports: WasmExports) {
 }
 
 function copyInput(exports: WasmExports, bytes: Uint8Array) {
-  const ptr = exports.type_shards_alloc(bytes.byteLength);
+  const ptr = exports.yuragi_alloc(bytes.byteLength);
   heap(exports).set(bytes, ptr);
   return ptr;
 }
 
 function readResponse<T>(exports: WasmExports, ptr: number, len: number) {
   const bytes = heap(exports).slice(ptr, ptr + len);
-  exports.type_shards_free(ptr, len);
+  exports.yuragi_free(ptr, len);
   const response = JSON.parse(decoder.decode(bytes)) as ApiResponse<T>;
 
   if (!response.ok) {
@@ -71,7 +71,7 @@ function callWithResponse<T>(
   exports: WasmExports,
   callback: (outLenPtr: number) => number,
 ) {
-  const outLenPtr = exports.type_shards_alloc(4);
+  const outLenPtr = exports.yuragi_alloc(4);
   try {
     const resultPtr = callback(outLenPtr);
     const length = new DataView(exports.memory.buffer).getUint32(
@@ -80,7 +80,7 @@ function callWithResponse<T>(
     );
     return readResponse<T>(exports, resultPtr, length);
   } finally {
-    exports.type_shards_free(outLenPtr, 4);
+    exports.yuragi_free(outLenPtr, 4);
   }
 }
 
@@ -102,10 +102,10 @@ export class TypeShardsWasmRuntime implements TypeShardsRuntime {
 
     try {
       return callWithResponse<TypeShardsFontInfo>(this.#exports, (outLenPtr) =>
-        this.#exports.type_shards_set_font(ptr, input.byteLength, outLenPtr),
+        this.#exports.yuragi_set_font(ptr, input.byteLength, outLenPtr),
       );
     } finally {
-      this.#exports.type_shards_free(ptr, input.byteLength);
+      this.#exports.yuragi_free(ptr, input.byteLength);
     }
   }
 
@@ -117,7 +117,7 @@ export class TypeShardsWasmRuntime implements TypeShardsRuntime {
 
     try {
       return callWithResponse<TextOutline>(this.#exports, (outLenPtr) =>
-        this.#exports.type_shards_compile_title(
+        this.#exports.yuragi_compile_title(
           textPtr,
           textBytes.byteLength,
           axesPtr,
@@ -126,8 +126,8 @@ export class TypeShardsWasmRuntime implements TypeShardsRuntime {
         ),
       );
     } finally {
-      this.#exports.type_shards_free(textPtr, textBytes.byteLength);
-      this.#exports.type_shards_free(axesPtr, axesBytes.byteLength);
+      this.#exports.yuragi_free(textPtr, textBytes.byteLength);
+      this.#exports.yuragi_free(axesPtr, axesBytes.byteLength);
     }
   }
 }

@@ -11,10 +11,10 @@ const manifestPath = resolve(experimentDir, "Cargo.toml");
 const targetDir = resolve(experimentDir, "target");
 const wasmSource = resolve(
   targetDir,
-  "wasm32-unknown-unknown/release/type_shards_wasm_compiler.wasm",
+  "wasm32-unknown-unknown/release/yuragi_wasm_compiler.wasm",
 );
 const publicDir = resolve(playgroundDir, "public/type-shards-wasm");
-const wasmDestination = resolve(publicDir, "type_shards_wasm_compiler.wasm");
+const wasmDestination = resolve(publicDir, "yuragi_wasm_compiler.wasm");
 
 function run(command, args, options = {}) {
   return new Promise((resolveRun, reject) => {

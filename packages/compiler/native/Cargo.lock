@@ -373,23 +373,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d2df906b07856748fa3f6e0ad0cbaa047052d4a7dd609e231c4f72cee8c36f31"
 
 [[package]]
-name = "type-shards-compiler"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "clap",
- "itertools",
- "lyon_algorithms",
- "lyon_path",
- "serde",
- "serde_json",
- "sha2",
- "ttf-parser",
- "unicode-linebreak",
- "unicode-segmentation",
-]
-
-[[package]]
 name = "typenum"
 version = "1.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -438,6 +421,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ae137229bcbd6cdf0f7b80a31df61766145077ddf49416a728b02cb3921ff3fc"
 dependencies = [
  "windows-link",
+]
+
+[[package]]
+name = "yuragi-compiler"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "itertools",
+ "lyon_algorithms",
+ "lyon_path",
+ "serde",
+ "serde_json",
+ "sha2",
+ "ttf-parser",
+ "unicode-linebreak",
+ "unicode-segmentation",
 ]
 
 [[package]]

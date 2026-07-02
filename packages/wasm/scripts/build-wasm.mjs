@@ -11,10 +11,10 @@ const manifestPath = resolve(experimentDir, "Cargo.toml");
 const targetDir = resolve(experimentDir, "target");
 const wasmSource = resolve(
   targetDir,
-  "wasm32-unknown-unknown/release/type_shards_wasm_compiler.wasm",
+  "wasm32-unknown-unknown/release/yuragi_wasm_compiler.wasm",
 );
 const wasmDir = resolve(packageDir, "wasm");
-const wasmDestination = resolve(wasmDir, "type_shards_wasm_compiler.wasm");
+const wasmDestination = resolve(wasmDir, "yuragi_wasm_compiler.wasm");
 
 function run(command, args, options = {}) {
   return new Promise((resolveRun, reject) => {
@@ -88,7 +88,7 @@ async function main() {
   await copyFile(wasmSource, wasmDestination);
 
   const { size } = await stat(wasmDestination);
-  console.log(`[type-shards wasm] wrote ${wasmDestination} (${size} bytes)`);
+  console.log(`[yuragi wasm] wrote ${wasmDestination} (${size} bytes)`);
 }
 
 main().catch((error) => {
