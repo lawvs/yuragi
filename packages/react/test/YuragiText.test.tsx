@@ -456,7 +456,7 @@ describe("YuragiText", () => {
             fillOpacity: 0.5,
             strokeOpacity: 0.25,
             strokeWidth: 2,
-            "--ts-test": 4,
+            "--yuragi-test": 4,
           } as React.CSSProperties
         }
       />,
@@ -470,6 +470,6 @@ describe("YuragiText", () => {
     expect(svg?.style.fillOpacity).toBe("0.5");
     expect(svg?.style.strokeOpacity).toBe("0.25");
     expect(svg?.style.strokeWidth).toBe("2");
-    expect(svg?.style.getPropertyValue("--ts-test")).toBe("4");
+    expect(svg?.style.getPropertyValue("--yuragi-test")).toBe("4");
   });
 });

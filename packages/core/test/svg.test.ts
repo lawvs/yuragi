@@ -34,7 +34,7 @@ describe("createShardedSvg", () => {
 
     expect(svg.tagName.toLowerCase()).toBe("svg");
     expect(svg.dataset.yuragiRoot).toBe("true");
-    expect(svg.classList.contains("ts-root")).toBe(true);
+    expect(svg.classList.contains("yuragi-root")).toBe(true);
     expect(svg.classList.contains("sample")).toBe(true);
     expect(svg.querySelectorAll("[data-line]")).toHaveLength(1);
     expect(svg.querySelectorAll("[data-group]")).toHaveLength(1);
@@ -54,8 +54,8 @@ describe("createShardedSvg", () => {
     expect(svg.querySelector("[data-line]")?.getAttribute("transform")).toBe(
       "translate(0 17.6)",
     );
-    expect(svg.style.getPropertyValue("--ts-size")).toBe("20");
-    expect(svg.style.getPropertyValue("--ts-em")).toBe("1000");
+    expect(svg.style.getPropertyValue("--yuragi-size")).toBe("20");
+    expect(svg.style.getPropertyValue("--yuragi-em")).toBe("1000");
   });
 
   it("uses layout line y for baseline positioning", () => {

@@ -21,7 +21,7 @@ export function createShardedSvg(
   const ascender = layout.outline.ascender * scale;
   const svg = svgEl("svg");
   svg.dataset.yuragiRoot = "true";
-  svg.classList.add("ts-root");
+  svg.classList.add("yuragi-root");
   const classNames = options.className?.trim().split(/\s+/).filter(Boolean);
   if (classNames?.length) svg.classList.add(...classNames);
   if (options.hover === "outline") svg.dataset.hover = "outline";
@@ -32,16 +32,16 @@ export function createShardedSvg(
   );
   svg.setAttribute("width", String(layout.dimensions.width));
   svg.setAttribute("height", String(layout.dimensions.height));
-  svg.style.setProperty("--ts-size", String(layout.options.size));
-  svg.style.setProperty("--ts-em", String(layout.dimensions.unitsPerEm));
-  svg.style.setProperty("--ts-line-height", `${layout.options.lineHeight}px`);
+  svg.style.setProperty("--yuragi-size", String(layout.options.size));
+  svg.style.setProperty("--yuragi-em", String(layout.dimensions.unitsPerEm));
+  svg.style.setProperty("--yuragi-line-height", `${layout.options.lineHeight}px`);
 
   for (const line of layout.lines) {
     const baselineY = ascender + line.y;
     const lineEl = svgEl("g");
     lineEl.dataset.line = String(line.index);
-    lineEl.style.setProperty("--ts-line-x", `${line.x}px`);
-    lineEl.style.setProperty("--ts-line-y", `${baselineY}px`);
+    lineEl.style.setProperty("--yuragi-line-x", `${line.x}px`);
+    lineEl.style.setProperty("--yuragi-line-y", `${baselineY}px`);
     lineEl.setAttribute("transform", `translate(${line.x} ${baselineY})`);
     svg.append(lineEl);
 
@@ -49,7 +49,7 @@ export function createShardedSvg(
       const groupEl = svgEl("g");
       groupEl.dataset.group = group.text;
       groupEl.dataset.groupIndex = String(group.groupIndex);
-      groupEl.style.setProperty("--ts-group-x", `${group.x}px`);
+      groupEl.style.setProperty("--yuragi-group-x", `${group.x}px`);
       groupEl.setAttribute("transform", `translate(${group.x} 0)`);
       lineEl.append(groupEl);
 
@@ -61,7 +61,7 @@ export function createShardedSvg(
       for (const glyph of group.glyphs) {
         const glyphEl = svgEl("g");
         glyphEl.dataset.glyph = glyph.char;
-        glyphEl.style.setProperty("--ts-glyph-x", `${glyphX}px`);
+        glyphEl.style.setProperty("--yuragi-glyph-x", `${glyphX}px`);
         glyphEl.setAttribute("transform", `translate(${glyphX} 0)`);
         motionEl.append(glyphEl);
 
