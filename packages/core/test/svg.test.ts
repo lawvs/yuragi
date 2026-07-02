@@ -33,7 +33,7 @@ describe("createShardedSvg", () => {
     const svg = createShardedSvg(layout, { className: "sample" });
 
     expect(svg.tagName.toLowerCase()).toBe("svg");
-    expect(svg.dataset.typeShardsRoot).toBe("true");
+    expect(svg.dataset.yuragiRoot).toBe("true");
     expect(svg.classList.contains("ts-root")).toBe(true);
     expect(svg.classList.contains("sample")).toBe(true);
     expect(svg.querySelectorAll("[data-line]")).toHaveLength(1);

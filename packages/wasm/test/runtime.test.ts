@@ -1,4 +1,4 @@
-import type { TextOutline } from "@type-shards/core";
+import type { TextOutline } from "@yuragi/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TypeShardsWasmRuntime } from "../src/runtime";
 

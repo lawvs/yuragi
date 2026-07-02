@@ -85,7 +85,7 @@ describe("runNativeCompiler", () => {
 
     expect(options.cwd).toEqual(expect.stringContaining("packages/compiler"));
     expect(options.env.CARGO_TARGET_DIR).toEqual(
-      expect.stringContaining(resolve(tmpdir(), "type-shards-cargo-target-")),
+      expect.stringContaining(resolve(tmpdir(), "yuragi-cargo-target-")),
     );
     expect(options.env.CARGO_TARGET_DIR).not.toContain("packages/compiler");
   });

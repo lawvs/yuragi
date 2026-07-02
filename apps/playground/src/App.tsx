@@ -1,6 +1,6 @@
 import { startTransition, useMemo, useState } from "react";
-import { ShardedText } from "@type-shards/react";
-import outlines from "virtual:type-shards/outlines";
+import { ShardedText } from "@yuragi/react";
+import outlines from "virtual:yuragi/outlines";
 import { demoPosts, type DemoPost } from "./data";
 import { WasmLab } from "./wasm-lab/WasmLab";
 
@@ -37,7 +37,7 @@ export function App() {
     <main className="playground-shell">
       <header className="topbar">
         <div>
-          <p className="eyebrow">type-shards v1</p>
+          <p className="eyebrow">yuragi v1</p>
           <h1>Playground</h1>
         </div>
         <div className="status-strip" aria-label="Pipeline">

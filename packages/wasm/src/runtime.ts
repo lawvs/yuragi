@@ -1,4 +1,4 @@
-import type { TextOutline } from "@type-shards/core";
+import type { TextOutline } from "@yuragi/core";
 
 type WasmExports = {
   memory: WebAssembly.Memory;

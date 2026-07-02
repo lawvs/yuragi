@@ -1,7 +1,7 @@
-export const TYPE_SHARDS_BUNDLE_VERSION = 1 as const;
+export const YURAGI_BUNDLE_VERSION = 1 as const;
 
 export type TextOutlineBundle = {
-  version: typeof TYPE_SHARDS_BUNDLE_VERSION;
+  version: typeof YURAGI_BUNDLE_VERSION;
   font: {
     source: string;
     axes?: Record<string, number>;

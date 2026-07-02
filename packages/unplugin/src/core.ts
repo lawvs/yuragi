@@ -1,16 +1,16 @@
-import { compileOutlines } from "@type-shards/compiler";
-import type { TextOutlineBundle } from "@type-shards/core";
+import { compileOutlines } from "@yuragi/compiler";
+import type { TextOutlineBundle } from "@yuragi/core";
 import { createUnplugin } from "unplugin";
 import type { TypeShardsPluginOptions } from "./types";
 
-export const VIRTUAL_MODULE_ID = "virtual:type-shards/outlines";
+export const VIRTUAL_MODULE_ID = "virtual:yuragi/outlines";
 export const RESOLVED_VIRTUAL_MODULE_ID = "\0" + VIRTUAL_MODULE_ID;
 
 export function createVirtualModuleCode(bundle: TextOutlineBundle): string {
   const serialized = JSON.stringify(bundle);
 
   return [
-    `import { createStaticOutlineProvider } from "@type-shards/core";`,
+    `import { createStaticOutlineProvider } from "@yuragi/core";`,
     `const bundle = JSON.parse(${JSON.stringify(serialized)});`,
     `export { bundle };`,
     `export default bundle.outlines;`,
@@ -25,7 +25,7 @@ export const TypeShardsUnplugin = createUnplugin<TypeShardsPluginOptions>(
     let codePromise: Promise<string> | undefined;
 
     return {
-      name: "type-shards",
+      name: "yuragi",
       async buildStart() {
         codePromise = compileOutlines(options).then(createVirtualModuleCode);
         code = await codePromise;
@@ -38,7 +38,7 @@ export const TypeShardsUnplugin = createUnplugin<TypeShardsPluginOptions>(
         if (id === RESOLVED_VIRTUAL_MODULE_ID) {
           if (codePromise === undefined) {
             throw new Error(
-              "[type-shards] virtual outlines requested before buildStart completed",
+              "[yuragi] virtual outlines requested before buildStart completed",
             );
           }
 

@@ -1,15 +1,15 @@
 {
-  "name": "type-shards",
+  "name": "yuragi",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@9.15.4",
   "scripts": {
     "build": "pnpm -r --filter './packages/*' build",
     "test": "vitest run",
-    "typecheck": "pnpm -r --filter './packages/*' typecheck && pnpm --filter @type-shards/playground typecheck",
-    "dev": "pnpm --filter @type-shards/playground dev",
-    "playground:build": "pnpm --filter @type-shards/playground build",
-    "wasm-lab:build": "pnpm --filter @type-shards/playground wasm-lab:build"
+    "typecheck": "pnpm -r --filter './packages/*' typecheck && pnpm --filter @yuragi/playground typecheck",
+    "dev": "pnpm --filter @yuragi/playground dev",
+    "playground:build": "pnpm --filter @yuragi/playground build",
+    "wasm-lab:build": "pnpm --filter @yuragi/playground wasm-lab:build"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",

@@ -2,8 +2,8 @@ import React from "react";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TypeShardsFontProvider, ShardedText } from "../src/wasm";
-import { createTypeShardsFont } from "@type-shards/wasm";
-import type { TextOutline } from "@type-shards/core";
+import { createTypeShardsFont } from "@yuragi/wasm";
+import type { TextOutline } from "@yuragi/core";
 
 const outline: TextOutline = {
   em: 1000,
@@ -12,7 +12,7 @@ const outline: TextOutline = {
   groups: [],
 };
 
-vi.mock("@type-shards/wasm", () => ({
+vi.mock("@yuragi/wasm", () => ({
   createTypeShardsFont: vi.fn(),
 }));
 
@@ -39,7 +39,7 @@ vi.mock("../src/ShardedText", () => ({
   ),
 }));
 
-describe("@type-shards/react/wasm", () => {
+describe("@yuragi/react/wasm", () => {
   afterEach(() => {
     cleanup();
     vi.mocked(createTypeShardsFont).mockReset();
@@ -95,7 +95,7 @@ describe("@type-shards/react/wasm", () => {
 
   it("throws when ShardedText is rendered without a TypeShardsFontProvider", () => {
     expect(() => render(<ShardedText text="Missing Provider" />)).toThrow(
-      "ShardedText from @type-shards/react/wasm requires TypeShardsFontProvider",
+      "ShardedText from @yuragi/react/wasm requires TypeShardsFontProvider",
     );
   });
 });

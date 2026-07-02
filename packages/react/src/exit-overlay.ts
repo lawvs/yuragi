@@ -1,4 +1,4 @@
-import { animateShards } from "@type-shards/core";
+import { animateShards } from "@yuragi/core";
 import { createScatterAnimationOptions } from "./animation-options";
 
 export type SvgExitSnapshot = {
@@ -72,7 +72,7 @@ function createSvgExitOverlay(
   if (!body) return null;
 
   const overlay = sourceSvg.cloneNode(true) as SVGSVGElement;
-  overlay.dataset.typeShardsExit = "true";
+  overlay.dataset.yuragiExit = "true";
   overlay.setAttribute("aria-hidden", "true");
   overlay.removeAttribute("aria-label");
 

@@ -13,7 +13,7 @@ export function createStaticOutlineProvider(
     async resolve(text) {
       const outline = outlines[text];
       if (!outline) {
-        throw new Error(`No type-shards outline found for "${text}"`);
+        throw new Error(`No yuragi outline found for "${text}"`);
       }
       return outline;
     },

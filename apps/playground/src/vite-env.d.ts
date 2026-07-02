@@ -1,2 +1,2 @@
 /// <reference types="vite/client" />
-/// <reference types="@type-shards/unplugin/client" />
+/// <reference path="../../../packages/unplugin/src/client.d.ts" />

@@ -1,5 +1,5 @@
 export const DEFAULT_WASM_URL =
-  "/type-shards-wasm/yuragi_wasm_compiler.wasm";
+  "/yuragi-wasm/yuragi_wasm_compiler.wasm";
 
 export const DEFAULT_FONT_URL =
   "https://raw.githubusercontent.com/adobe-fonts/source-han-serif/release/Variable/OTF/SourceHanSerifSC-VF.otf";

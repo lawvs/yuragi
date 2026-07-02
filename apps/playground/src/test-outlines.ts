@@ -1,4 +1,4 @@
-import type { OutlineMap } from "@type-shards/core";
+import type { OutlineMap } from "@yuragi/core";
 
 const outlines = {
   Dashboard: { em: 1000, ascender: 800, descender: -200, groups: [] },

@@ -18,7 +18,7 @@ describe("ShardedText without ViewTransition", () => {
     expect(() =>
       render(<ShardedText text="Missing" sharedId="title:missing" />),
     ).toThrow(
-      "type-shards v1 requires React Canary ViewTransition when sharedId is set",
+      "yuragi v1 requires React Canary ViewTransition when sharedId is set",
     );
   });
 

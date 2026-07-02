@@ -1,5 +1,5 @@
 {
-  "name": "@type-shards/react",
+  "name": "@yuragi/react",
   "version": "0.0.0",
   "type": "module",
   "peerDependencies": {
@@ -7,8 +7,8 @@
     "react-dom": "19.3.0-canary-a7cce7b3-20260617"
   },
   "dependencies": {
-    "@type-shards/core": "workspace:*",
-    "@type-shards/wasm": "workspace:*"
+    "@yuragi/core": "workspace:*",
+    "@yuragi/wasm": "workspace:*"
   },
   "exports": {
     ".": {

@@ -23,7 +23,7 @@ export function ShardedText(input: ShardedTextProps) {
 
   if (props.sharedId && !ViewTransition) {
     throw new Error(
-      "type-shards v1 requires React Canary ViewTransition when sharedId is set",
+      "yuragi v1 requires React Canary ViewTransition when sharedId is set",
     );
   }
 
@@ -32,7 +32,7 @@ export function ShardedText(input: ShardedTextProps) {
   if (!props.outline) {
     if (props.fallback === "hidden") return null;
     if (props.fallback === "error") {
-      throw new Error(`Missing type-shards outline for "${props.text}"`);
+      throw new Error(`Missing yuragi outline for "${props.text}"`);
     }
     content = (
       <span className={props.className} style={createTextFallbackStyle(props)}>

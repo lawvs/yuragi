@@ -1,4 +1,4 @@
-import type { AnimateShardsOptions } from "@type-shards/core";
+import type { AnimateShardsOptions } from "@yuragi/core";
 
 export function createSettleAnimationOptions(
   speed: number | undefined,

@@ -24,7 +24,7 @@ vi.mock("react", async () => {
   };
 });
 
-vi.mock("@type-shards/react", () => ({
+vi.mock("@yuragi/react", () => ({
   ShardedText: ({
     text,
     sharedId,
@@ -237,7 +237,7 @@ describe("App", () => {
     );
 
     expect(styles).toMatch(
-      /\.post-title\s+\[data-type-shards-root\]\s*{[^}]*width:\s*min\(100%,\s*300px\)/s,
+      /\.post-title\s+\[data-yuragi-root\]\s*{[^}]*width:\s*min\(100%,\s*300px\)/s,
     );
     expect(styles).toMatch(/width:\s*min\(calc\(100vw - 24px\),\s*720px\)/);
     expect(styles).toMatch(/width:\s*min\(calc\(100vw - 24px\),\s*366px\)/);

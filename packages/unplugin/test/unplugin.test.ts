@@ -6,19 +6,19 @@ import { dirname, resolve } from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { compileOutlines } from "@type-shards/compiler";
+import { compileOutlines } from "@yuragi/compiler";
 import {
   createVirtualModuleCode,
   RESOLVED_VIRTUAL_MODULE_ID,
   TypeShardsUnplugin,
   VIRTUAL_MODULE_ID,
 } from "../src/core";
-import type { TextOutlineBundle } from "@type-shards/core";
+import type { TextOutlineBundle } from "@yuragi/core";
 
 const packageDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const execFile = promisify(execFileCallback);
 
-vi.mock("@type-shards/compiler", () => ({
+vi.mock("@yuragi/compiler", () => ({
   compileOutlines: vi.fn(async () => bundle),
 }));
 
@@ -96,7 +96,7 @@ function evaluateVirtualModule(code: string): EvaluatedVirtualModule {
   });
   const transformed = code
     .replace(
-      `import { createStaticOutlineProvider } from "@type-shards/core";`,
+      `import { createStaticOutlineProvider } from "@yuragi/core";`,
       "",
     )
     .replace("export { bundle };", "")
@@ -123,7 +123,7 @@ describe("createVirtualModuleCode", () => {
   });
 
   it("uses the expected virtual module id", () => {
-    expect(VIRTUAL_MODULE_ID).toBe("virtual:type-shards/outlines");
+    expect(VIRTUAL_MODULE_ID).toBe("virtual:yuragi/outlines");
   });
 
   it("preserves an own __proto__ outline key as data", () => {
@@ -180,7 +180,7 @@ describe("TypeShardsUnplugin", () => {
 
     expect(plugin.resolveId?.(VIRTUAL_MODULE_ID)).toBe(RESOLVED_VIRTUAL_MODULE_ID);
     expect(() => plugin.load?.(RESOLVED_VIRTUAL_MODULE_ID)).toThrow(
-      "[type-shards] virtual outlines requested before buildStart completed",
+      "[yuragi] virtual outlines requested before buildStart completed",
     );
 
     await plugin.buildStart?.call(
@@ -210,7 +210,7 @@ describe("TypeShardsUnplugin", () => {
 
 describe("package declarations", () => {
   it("packs client virtual module types", async () => {
-    const packDir = await mkdtemp(resolve(tmpdir(), "type-shards-unplugin-pack-"));
+    const packDir = await mkdtemp(resolve(tmpdir(), "yuragi-unplugin-pack-"));
 
     try {
       await execFile("pnpm", ["pack", "--pack-destination", packDir], {

@@ -20,7 +20,7 @@ export function createShardedSvg(
   const scale = layout.options.size / layout.outline.em;
   const ascender = layout.outline.ascender * scale;
   const svg = svgEl("svg");
-  svg.dataset.typeShardsRoot = "true";
+  svg.dataset.yuragiRoot = "true";
   svg.classList.add("ts-root");
   const classNames = options.className?.trim().split(/\s+/).filter(Boolean);
   if (classNames?.length) svg.classList.add(...classNames);

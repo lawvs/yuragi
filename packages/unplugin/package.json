@@ -1,5 +1,5 @@
 {
-  "name": "@type-shards/unplugin",
+  "name": "@yuragi/unplugin",
   "version": "0.0.0",
   "type": "module",
   "exports": {
@@ -38,8 +38,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@type-shards/core": "workspace:*",
-    "@type-shards/compiler": "workspace:*",
+    "@yuragi/core": "workspace:*",
+    "@yuragi/compiler": "workspace:*",
     "unplugin": "^3.0.0"
   },
   "devDependencies": {

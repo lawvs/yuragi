@@ -13,7 +13,7 @@ const wasmSource = resolve(
   targetDir,
   "wasm32-unknown-unknown/release/yuragi_wasm_compiler.wasm",
 );
-const publicDir = resolve(playgroundDir, "public/type-shards-wasm");
+const publicDir = resolve(playgroundDir, "public/yuragi-wasm");
 const wasmDestination = resolve(publicDir, "yuragi_wasm_compiler.wasm");
 
 function run(command, args, options = {}) {
@@ -94,7 +94,7 @@ async function main() {
 
   const { size } = await stat(wasmDestination);
   console.log(
-    `[type-shards wasm lab] wrote ${wasmDestination} (${size} bytes)`,
+    `[yuragi wasm lab] wrote ${wasmDestination} (${size} bytes)`,
   );
 }
 

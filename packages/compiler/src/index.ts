@@ -1,5 +1,5 @@
 import { runNativeCompiler } from "./native";
-import type { TextOutlineBundle } from "@type-shards/core";
+import type { TextOutlineBundle } from "@yuragi/core";
 import type { CompileOutlinesOptions } from "./types";
 
 export type { CompileOutlinesOptions };
@@ -16,7 +16,7 @@ export async function compileOutlines(
 ): Promise<TextOutlineBundle> {
   const titles = await normalizeTitles(options.titles);
   if (titles.length === 0) {
-    console.warn("[type-shards] titles is empty; emitting an empty bundle");
+    console.warn("[yuragi] titles is empty; emitting an empty bundle");
   }
   return runNativeCompiler({
     font: options.font,

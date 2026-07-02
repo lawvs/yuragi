@@ -1,4 +1,4 @@
-import type { TextOutline } from "@type-shards/core";
+import type { TextOutline } from "@yuragi/core";
 import {
   TypeShardsWasmRuntime,
   type TypeShardsFontInfo,
@@ -69,7 +69,7 @@ async function resolveBinarySource(
     const response = await fetchImpl(resolved);
     if (!response.ok) {
       throw new Error(
-        `Failed to load type-shards asset: ${response.status} ${response.statusText}`,
+        `Failed to load yuragi asset: ${response.status} ${response.statusText}`,
       );
     }
 

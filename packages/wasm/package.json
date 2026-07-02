@@ -1,5 +1,5 @@
 {
-  "name": "@type-shards/wasm",
+  "name": "@yuragi/wasm",
   "version": "0.0.0",
   "type": "module",
   "exports": {
@@ -20,7 +20,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@type-shards/core": "workspace:*"
+    "@yuragi/core": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.5.1",

@@ -1,5 +1,5 @@
 {
-  "name": "@type-shards/core",
+  "name": "@yuragi/core",
   "version": "0.0.0",
   "type": "module",
   "sideEffects": ["./dist/style.css"],

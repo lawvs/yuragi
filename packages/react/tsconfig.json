@@ -2,7 +2,8 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "paths": {
-      "@type-shards/wasm": ["../wasm/src/index.ts"]
+      "@yuragi/core": ["../core/src/index.ts"],
+      "@yuragi/wasm": ["../wasm/src/index.ts"]
     }
   },
   "include": ["src", "test", "vitest.config.ts"]

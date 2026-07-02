@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { TextOutline } from "@type-shards/core";
-import { ShardedText } from "@type-shards/react";
+import type { TextOutline } from "@yuragi/core";
+import { ShardedText } from "@yuragi/react";
 import {
   DEFAULT_FONT_PRESET_ID,
   DEFAULT_WASM_URL,
@@ -198,7 +198,7 @@ export function WasmLab() {
     <section className="wasm-lab" aria-label="WASM Lab">
       <div className="wasm-lab-header">
         <div>
-          <p className="eyebrow">type-shards experiment</p>
+          <p className="eyebrow">yuragi experiment</p>
           <h2>WASM Lab</h2>
         </div>
         <div className="wasm-lab-actions">

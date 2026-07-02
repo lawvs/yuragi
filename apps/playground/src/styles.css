@@ -266,13 +266,13 @@ h1 {
   overflow-wrap: anywhere;
 }
 
-.preview-title [data-type-shards-root],
-.post-title [data-type-shards-root] {
+.preview-title [data-yuragi-root],
+.post-title [data-yuragi-root] {
   max-width: 100%;
   height: auto;
 }
 
-.post-title [data-type-shards-root] {
+.post-title [data-yuragi-root] {
   display: block;
   width: min(100%, 300px);
 }
@@ -391,7 +391,7 @@ h1 {
   overflow-wrap: anywhere;
 }
 
-.wasm-lab-preview [data-type-shards-root] {
+.wasm-lab-preview [data-yuragi-root] {
   max-width: 100%;
   height: auto;
 }

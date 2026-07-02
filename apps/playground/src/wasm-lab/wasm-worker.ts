@@ -1,4 +1,4 @@
-import { TypeShardsWasmRuntime } from "@type-shards/wasm/runtime";
+import { TypeShardsWasmRuntime } from "@yuragi/wasm/runtime";
 
 type LoadWasmMessage = {
   type: "load-wasm";

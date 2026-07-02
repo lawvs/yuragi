@@ -32,21 +32,21 @@ importers:
 
   apps/playground:
     dependencies:
-      '@type-shards/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@type-shards/react':
-        specifier: workspace:*
-        version: link:../../packages/react
-      '@type-shards/unplugin':
-        specifier: workspace:*
-        version: link:../../packages/unplugin
-      '@type-shards/wasm':
-        specifier: workspace:*
-        version: link:../../packages/wasm
       '@vitejs/plugin-react':
         specifier: ^6.0.2
         version: 6.0.2(vite@8.0.16(@types/node@25.9.3)(esbuild@0.27.7))
+      '@yuragi/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@yuragi/react':
+        specifier: workspace:*
+        version: link:../../packages/react
+      '@yuragi/unplugin':
+        specifier: workspace:*
+        version: link:../../packages/unplugin
+      '@yuragi/wasm':
+        specifier: workspace:*
+        version: link:../../packages/wasm
       react:
         specifier: 19.3.0-canary-a7cce7b3-20260617
         version: 19.3.0-canary-a7cce7b3-20260617
@@ -72,7 +72,7 @@ importers:
 
   packages/compiler:
     dependencies:
-      '@type-shards/core':
+      '@yuragi/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -100,10 +100,10 @@ importers:
 
   packages/react:
     dependencies:
-      '@type-shards/core':
+      '@yuragi/core':
         specifier: workspace:*
         version: link:../core
-      '@type-shards/wasm':
+      '@yuragi/wasm':
         specifier: workspace:*
         version: link:../wasm
     devDependencies:
@@ -134,10 +134,10 @@ importers:
 
   packages/unplugin:
     dependencies:
-      '@type-shards/compiler':
+      '@yuragi/compiler':
         specifier: workspace:*
         version: link:../compiler
-      '@type-shards/core':
+      '@yuragi/core':
         specifier: workspace:*
         version: link:../core
       unplugin:
@@ -156,7 +156,7 @@ importers:
 
   packages/wasm:
     dependencies:
-      '@type-shards/core':
+      '@yuragi/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:

@@ -1,4 +1,4 @@
-# @type-shards/compiler
+# @yuragi/compiler
 
 Build-time compiler wrapper for Type Shards text outlines.
 

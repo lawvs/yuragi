@@ -12,7 +12,7 @@ import {
 const tempDirs: string[] = [];
 
 async function makeTempDir() {
-  const dir = await mkdtemp(join(tmpdir(), "type-shards-font-test-"));
+  const dir = await mkdtemp(join(tmpdir(), "yuragi-font-test-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -42,26 +42,26 @@ describe("resolvePlaygroundFont", () => {
     expect(downloadedUrl).toBe(DEFAULT_PLAYGROUND_FONT_URL);
   });
 
-  it("allows TYPE_SHARDS_FONT to load from a local file without caching", async () => {
+  it("allows YURAGI_FONT to load from a local file without caching", async () => {
     const dir = await makeTempDir();
     const localFont = join(dir, "local.otf");
     await writeFile(localFont, "local-font");
 
     const font = await resolvePlaygroundFont({
-      TYPE_SHARDS_FONT: localFont,
+      YURAGI_FONT: localFont,
     });
 
     expect(font).toBe(localFont);
   });
 
-  it("resolves relative TYPE_SHARDS_FONT paths from a local base directory", async () => {
+  it("resolves relative YURAGI_FONT paths from a local base directory", async () => {
     const baseDir = await makeTempDir();
     await mkdir(join(baseDir, "fonts"));
     await writeFile(join(baseDir, "fonts", "local.otf"), "relative-local-font");
 
     const font = await resolvePlaygroundFont(
       {
-        TYPE_SHARDS_FONT: "fonts/local.otf",
+        YURAGI_FONT: "fonts/local.otf",
       },
       { localBaseDir: baseDir },
     );
@@ -69,11 +69,11 @@ describe("resolvePlaygroundFont", () => {
     expect(font).toBe(resolve(baseDir, "fonts/local.otf"));
   });
 
-  it("allows TYPE_SHARDS_FONT to load from a URL into the Vite cache", async () => {
+  it("allows YURAGI_FONT to load from a URL into the Vite cache", async () => {
     const cacheDir = await makeTempDir();
     const font = await resolvePlaygroundFont(
       {
-        TYPE_SHARDS_FONT: "https://example.test/title.otf",
+        YURAGI_FONT: "https://example.test/title.otf",
       },
       {
         cacheDir,

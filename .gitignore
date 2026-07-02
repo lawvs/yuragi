@@ -9,6 +9,6 @@ Cargo.lock
 !packages/compiler/native/Cargo.lock
 !experiments/wasm-compiler/Cargo.lock
 docs/superpowers
-apps/playground/public/type-shards-wasm
+apps/playground/public/yuragi-wasm
 experiments/wasm-compiler/target
 packages/wasm/wasm

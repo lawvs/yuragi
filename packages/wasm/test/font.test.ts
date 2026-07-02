@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTypeShardsFont } from "../src/index";
-import type { TextOutline } from "@type-shards/core";
+import type { TextOutline } from "@yuragi/core";
 
 const outline: TextOutline = {
   em: 1000,

@@ -4,7 +4,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { TextOutlineBundle } from "@type-shards/core";
+import type { TextOutlineBundle } from "@yuragi/core";
 
 type NativeCompilerOptions = {
   font: string;
@@ -25,7 +25,7 @@ function packageRoot(): string {
 
 function cargoTargetDir(manifestPath: string): string {
   const hash = createHash("sha256").update(manifestPath).digest("hex").slice(0, 12);
-  return resolve(tmpdir(), `type-shards-cargo-target-${hash}`);
+  return resolve(tmpdir(), `yuragi-cargo-target-${hash}`);
 }
 
 function runCargo(args: string[], manifestPath: string): Promise<string> {
@@ -66,7 +66,7 @@ function runCargo(args: string[], manifestPath: string): Promise<string> {
 export async function runNativeCompiler(
   options: NativeCompilerOptions,
 ): Promise<TextOutlineBundle> {
-  const tempDir = await mkdtemp(resolve(tmpdir(), "type-shards-"));
+  const tempDir = await mkdtemp(resolve(tmpdir(), "yuragi-"));
   const titlesPath = resolve(tempDir, "titles.json");
   const manifestPath = resolve(packageRoot(), "native", "Cargo.toml");
 

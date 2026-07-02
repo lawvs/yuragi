@@ -28,7 +28,7 @@ describe("createStaticOutlineProvider", () => {
     const provider = createStaticOutlineProvider({});
 
     await expect(provider.resolve("Missing")).rejects.toThrow(
-      'No type-shards outline found for "Missing"',
+      'No yuragi outline found for "Missing"',
     );
   });
 

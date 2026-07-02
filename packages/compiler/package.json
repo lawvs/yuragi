@@ -1,5 +1,5 @@
 {
-  "name": "@type-shards/compiler",
+  "name": "@yuragi/compiler",
   "version": "0.0.0",
   "type": "module",
   "exports": {
@@ -22,7 +22,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@type-shards/core": "workspace:*"
+    "@yuragi/core": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.5.1",

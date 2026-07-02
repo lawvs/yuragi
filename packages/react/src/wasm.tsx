@@ -3,7 +3,7 @@ import {
   createTypeShardsFont,
   type BinarySource,
   type TypeShardsFont,
-} from "@type-shards/wasm";
+} from "@yuragi/wasm";
 import { ShardedText as StaticShardedText } from "./ShardedText";
 import type { ShardedTextProps } from "./types";
 
@@ -132,7 +132,7 @@ export function useTypeShardsFont() {
   const context = React.useContext(TypeShardsFontContext);
   if (!context) {
     throw new Error(
-      "ShardedText from @type-shards/react/wasm requires TypeShardsFontProvider",
+      "ShardedText from @yuragi/react/wasm requires TypeShardsFontProvider",
     );
   }
 

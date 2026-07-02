@@ -11,7 +11,7 @@ const execFile = promisify(execFileCallback);
 
 describe("package packlist", () => {
   it("excludes Cargo target build artifacts", async () => {
-    const packDir = await mkdtemp(resolve(tmpdir(), "type-shards-pack-test-"));
+    const packDir = await mkdtemp(resolve(tmpdir(), "yuragi-pack-test-"));
 
     try {
       await execFile("pnpm", ["pack", "--json", "--pack-destination", packDir], {

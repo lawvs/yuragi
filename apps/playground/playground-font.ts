@@ -31,7 +31,7 @@ export type ResolvePlaygroundFontOptions = {
 
 const playgroundDir = fileURLToPath(new URL(".", import.meta.url));
 const defaultCacheDir = fileURLToPath(
-  new URL("./node_modules/.vite/type-shards/fonts/", import.meta.url),
+  new URL("./node_modules/.vite/yuragi/fonts/", import.meta.url),
 );
 
 async function fileExists(path: string) {
@@ -81,7 +81,7 @@ async function resolveLocalFont(
     if (await fileExists(candidates)) return candidates;
 
     throw new Error(
-      `[type-shards playground] font file not found: ${candidates}`,
+      `[yuragi playground] font file not found: ${candidates}`,
     );
   }
 
@@ -90,7 +90,7 @@ async function resolveLocalFont(
   }
 
   throw new Error(
-    `[type-shards playground] font file not found. Tried: ${candidates.join(", ")}`,
+    `[yuragi playground] font file not found. Tried: ${candidates.join(", ")}`,
   );
 }
 
@@ -108,7 +108,7 @@ async function defaultDownloadFont({ url, destination }: {
 
   if (!response.ok) {
     throw new Error(
-      `[type-shards playground] failed to download font: ${response.status} ${response.statusText}`,
+      `[yuragi playground] failed to download font: ${response.status} ${response.statusText}`,
     );
   }
 
@@ -151,7 +151,7 @@ async function resolveRemoteFont(
       const actualSha256 = await sha256(temporaryDestination);
       if (actualSha256 !== expectedSha256) {
         throw new Error(
-          `[type-shards playground] downloaded font checksum mismatch: expected ${expectedSha256}, got ${actualSha256}`,
+          `[yuragi playground] downloaded font checksum mismatch: expected ${expectedSha256}, got ${actualSha256}`,
         );
       }
     }
@@ -165,10 +165,10 @@ async function resolveRemoteFont(
 }
 
 export async function resolvePlaygroundFont(
-  env: { TYPE_SHARDS_FONT?: string } = process.env,
+  env: { YURAGI_FONT?: string } = process.env,
   options: ResolvePlaygroundFontOptions = {},
 ) {
-  const source = env.TYPE_SHARDS_FONT ?? DEFAULT_PLAYGROUND_FONT_URL;
+  const source = env.YURAGI_FONT ?? DEFAULT_PLAYGROUND_FONT_URL;
 
   if (isRemoteFont(source)) {
     return resolveRemoteFont(source, options);

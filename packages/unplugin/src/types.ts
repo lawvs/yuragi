@@ -1,3 +1,3 @@
-import type { CompileOutlinesOptions } from "@type-shards/compiler";
+import type { CompileOutlinesOptions } from "@yuragi/compiler";
 
 export type TypeShardsPluginOptions = CompileOutlinesOptions;

@@ -1,9 +1,9 @@
-declare module "virtual:type-shards/outlines" {
+declare module "virtual:yuragi/outlines" {
   import type {
     OutlineMap,
     OutlineProvider,
     TextOutlineBundle,
-  } from "@type-shards/core";
+  } from "@yuragi/core";
 
   export const bundle: TextOutlineBundle;
   export const provider: OutlineProvider;

@@ -2,7 +2,7 @@ import React from "react";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ShardedText } from "../src/ShardedText";
-import { animateShards, type TextOutline } from "@type-shards/core";
+import { animateShards, type TextOutline } from "@yuragi/core";
 
 vi.mock("react", async () => {
   const actual = await vi.importActual<typeof React>("react");
@@ -18,9 +18,9 @@ vi.mock("react", async () => {
   };
 });
 
-vi.mock("@type-shards/core", async () => {
-  const actual = await vi.importActual<typeof import("@type-shards/core")>(
-    "@type-shards/core",
+vi.mock("@yuragi/core", async () => {
+  const actual = await vi.importActual<typeof import("@yuragi/core")>(
+    "@yuragi/core",
   );
   return {
     ...actual,
@@ -102,7 +102,7 @@ describe("ShardedText", () => {
     cleanup();
     await Promise.resolve();
     document
-      .querySelectorAll("[data-type-shards-exit]")
+      .querySelectorAll("[data-yuragi-exit]")
       .forEach((node) => node.remove());
     vi.mocked(animateShards).mockClear();
     vi.mocked(animateShards).mockImplementation(async () => undefined);
@@ -119,7 +119,7 @@ describe("ShardedText", () => {
   it("renders SVG when outline exists", () => {
     render(<ShardedText text="A" outline={outline} size={24} />);
 
-    expect(document.querySelector("[data-type-shards-root]")).not.toBeNull();
+    expect(document.querySelector("[data-yuragi-root]")).not.toBeNull();
   });
 
   it("renders text fallback by default when outline is missing", () => {
@@ -153,7 +153,7 @@ describe("ShardedText", () => {
   it("throws when fallback is error and outline is missing", () => {
     expect(() =>
       render(<ShardedText text="Missing" fallback="error" />),
-    ).toThrow('Missing type-shards outline for "Missing"');
+    ).toThrow('Missing yuragi outline for "Missing"');
   });
 
   it("wraps with ViewTransition when sharedId is provided", () => {
@@ -277,7 +277,7 @@ describe("ShardedText", () => {
         />,
       );
       const previousSvg = document.querySelector<SVGSVGElement>(
-        "[data-type-shards-root]",
+        "[data-yuragi-root]",
       );
       expect(previousSvg).not.toBeNull();
 
@@ -301,7 +301,7 @@ describe("ShardedText", () => {
       expect(exitSvg).toBeDefined();
       expect(exitSvg).not.toBe(previousSvg);
       expect(exitSvg?.parentElement).toBe(document.body);
-      expect(exitSvg?.dataset.typeShardsExit).toBe("true");
+      expect(exitSvg?.dataset.yuragiExit).toBe("true");
       expect(exitSvg?.style.position).toBe("fixed");
       expect(exitSvg?.style.left).toBe("24px");
       expect(exitSvg?.style.top).toBe("36px");
@@ -321,7 +321,7 @@ describe("ShardedText", () => {
         stagger: "by-x",
         speed: 0.8,
       });
-      expect(document.querySelectorAll("[data-type-shards-root]")).toHaveLength(
+      expect(document.querySelectorAll("[data-yuragi-root]")).toHaveLength(
         2,
       );
       expect(previousSvg?.isConnected).toBe(false);
@@ -330,7 +330,7 @@ describe("ShardedText", () => {
       await scatterFinished.promise;
       await Promise.resolve();
 
-      expect(document.querySelectorAll("[data-type-shards-root]")).toHaveLength(
+      expect(document.querySelectorAll("[data-yuragi-root]")).toHaveLength(
         1,
       );
     } finally {
@@ -355,7 +355,7 @@ describe("ShardedText", () => {
       />,
     );
     const previousSvg = document.querySelector<SVGSVGElement>(
-      "[data-type-shards-root]",
+      "[data-yuragi-root]",
     );
     expect(previousSvg).not.toBeNull();
     vi.spyOn(previousSvg!, "getBoundingClientRect").mockReturnValue(
@@ -373,7 +373,7 @@ describe("ShardedText", () => {
     expect(exitSvg).toBeDefined();
     expect(exitSvg).not.toBe(previousSvg);
     expect(exitSvg?.parentElement).toBe(document.body);
-    expect(exitSvg?.dataset.typeShardsExit).toBe("true");
+    expect(exitSvg?.dataset.yuragiExit).toBe("true");
     expect(exitSvg?.style.left).toBe("12px");
     expect(exitSvg?.style.top).toBe("18px");
     expect(exitSvg?.style.width).toBe("90px");
@@ -463,7 +463,7 @@ describe("ShardedText", () => {
     );
 
     const svg = document.querySelector<SVGSVGElement>(
-      "[data-type-shards-root]",
+      "[data-yuragi-root]",
     );
     expect(svg?.style.width).toBe("10px");
     expect(svg?.style.opacity).toBe("0.5");
