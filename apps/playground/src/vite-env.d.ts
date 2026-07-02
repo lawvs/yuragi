@@ -1,2 +1,2 @@
 /// <reference types="vite/client" />
-/// <reference path="../../../packages/unplugin/src/client.d.ts" />
+/// <reference types="@yuragi/unplugin/client" />
