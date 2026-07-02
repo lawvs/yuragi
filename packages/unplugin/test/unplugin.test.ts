@@ -10,7 +10,7 @@ import { compileOutlines } from "@yuragi/compiler";
 import {
   createVirtualModuleCode,
   RESOLVED_VIRTUAL_MODULE_ID,
-  TypeShardsUnplugin,
+  YuragiUnplugin,
   VIRTUAL_MODULE_ID,
 } from "../src/core";
 import type { TextOutlineBundle } from "@yuragi/core";
@@ -65,7 +65,7 @@ function deferred<T>() {
 }
 
 function createTestPlugin(): TestRawPlugin {
-  return TypeShardsUnplugin.raw(
+  return YuragiUnplugin.raw(
     {
       font: "font.otf",
       titles: ["Dashboard"],
@@ -174,7 +174,7 @@ describe("createVirtualModuleCode", () => {
   });
 });
 
-describe("TypeShardsUnplugin", () => {
+describe("YuragiUnplugin", () => {
   it("resolves and loads the virtual module after buildStart", async () => {
     const plugin = createTestPlugin();
 

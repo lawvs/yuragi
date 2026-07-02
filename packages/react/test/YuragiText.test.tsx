@@ -1,7 +1,7 @@
 import React from "react";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ShardedText } from "../src/ShardedText";
+import { YuragiText } from "../src/YuragiText";
 import { animateShards, type TextOutline } from "@yuragi/core";
 
 vi.mock("react", async () => {
@@ -97,7 +97,7 @@ function rect(
   } as DOMRect;
 }
 
-describe("ShardedText", () => {
+describe("YuragiText", () => {
   afterEach(async () => {
     cleanup();
     await Promise.resolve();
@@ -117,20 +117,20 @@ describe("ShardedText", () => {
   }
 
   it("renders SVG when outline exists", () => {
-    render(<ShardedText text="A" outline={outline} size={24} />);
+    render(<YuragiText text="A" outline={outline} size={24} />);
 
     expect(document.querySelector("[data-yuragi-root]")).not.toBeNull();
   });
 
   it("renders text fallback by default when outline is missing", () => {
-    render(<ShardedText text="Missing" />);
+    render(<YuragiText text="Missing" />);
 
     expect(screen.getByText("Missing")).not.toBeNull();
   });
 
   it("styles text fallback with the same layout inputs as sharded text", () => {
     render(
-      <ShardedText
+      <YuragiText
         text="Missing"
         size={88}
         maxWidth={360}
@@ -152,13 +152,13 @@ describe("ShardedText", () => {
 
   it("throws when fallback is error and outline is missing", () => {
     expect(() =>
-      render(<ShardedText text="Missing" fallback="error" />),
+      render(<YuragiText text="Missing" fallback="error" />),
     ).toThrow('Missing yuragi outline for "Missing"');
   });
 
   it("wraps with ViewTransition when sharedId is provided", () => {
     render(
-      <ShardedText
+      <YuragiText
         text="A"
         outline={outline}
         sharedId="title:a"
@@ -172,7 +172,7 @@ describe("ShardedText", () => {
   });
 
   it("wraps text fallback with ViewTransition when sharedId is provided", () => {
-    render(<ShardedText text="Missing" sharedId="title:missing" />);
+    render(<YuragiText text="Missing" sharedId="title:missing" />);
 
     const transition = document.querySelector(
       '[data-view-transition="title:missing"]',
@@ -183,7 +183,7 @@ describe("ShardedText", () => {
 
   it("animates shards with settle transition on enter", () => {
     render(
-      <ShardedText
+      <YuragiText
         text="A"
         outline={outline}
         transition={{ enter: "settle" }}
@@ -198,7 +198,7 @@ describe("ShardedText", () => {
 
   it("passes transition speed to settle animation", () => {
     render(
-      <ShardedText
+      <YuragiText
         text="A"
         outline={outline}
         transition={{ enter: "settle", speed: 0.8 }}
@@ -214,7 +214,7 @@ describe("ShardedText", () => {
 
   it("animates shards with scatter transition on exit", async () => {
     const { unmount } = render(
-      <ShardedText
+      <YuragiText
         text="A"
         outline={outline}
         transition={{ exit: "scatter" }}
@@ -232,7 +232,7 @@ describe("ShardedText", () => {
 
   it("passes transition speed to scatter animation", async () => {
     const { unmount } = render(
-      <ShardedText
+      <YuragiText
         text="A"
         outline={outline}
         transition={{ exit: "scatter", speed: 0.8 }}
@@ -270,7 +270,7 @@ describe("ShardedText", () => {
 
     try {
       const { rerender } = render(
-        <ShardedText
+        <YuragiText
           text="A"
           outline={outline}
           transition={{ enter: "settle", exit: "scatter" }}
@@ -282,7 +282,7 @@ describe("ShardedText", () => {
       expect(previousSvg).not.toBeNull();
 
       rerender(
-        <ShardedText
+        <YuragiText
           text="B"
           outline={nextOutline}
           transition={{
@@ -348,7 +348,7 @@ describe("ShardedText", () => {
     });
 
     const { unmount } = render(
-      <ShardedText
+      <YuragiText
         text="A"
         outline={outline}
         transition={{ exit: "scatter" }}
@@ -389,7 +389,7 @@ describe("ShardedText", () => {
   it("does not scatter during StrictMode initial mount", async () => {
     render(
       <React.StrictMode>
-        <ShardedText
+        <YuragiText
           text="A"
           outline={outline}
           transition={{ enter: "settle", exit: "scatter" }}
@@ -403,7 +403,7 @@ describe("ShardedText", () => {
 
   it("does not scatter when exit transition changes to none", async () => {
     const { rerender } = render(
-      <ShardedText
+      <YuragiText
         text="A"
         outline={outline}
         transition={{ exit: "scatter" }}
@@ -411,7 +411,7 @@ describe("ShardedText", () => {
     );
 
     rerender(
-      <ShardedText
+      <YuragiText
         text="A"
         outline={outline}
         transition={{ exit: "none" }}
@@ -424,7 +424,7 @@ describe("ShardedText", () => {
 
   it("does not scatter when rerendering with a new object prop identity", () => {
     const { rerender } = render(
-      <ShardedText
+      <YuragiText
         text="A"
         outline={outline}
         style={{ color: "red" }}
@@ -433,7 +433,7 @@ describe("ShardedText", () => {
     );
 
     rerender(
-      <ShardedText
+      <YuragiText
         text="A"
         outline={outline}
         style={{ color: "red" }}
@@ -446,7 +446,7 @@ describe("ShardedText", () => {
 
   it("serializes numeric SVG styles like React", () => {
     render(
-      <ShardedText
+      <YuragiText
         text="A"
         outline={outline}
         style={

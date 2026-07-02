@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTypeShardsFont } from "../src/index";
+import { createYuragiFont } from "../src/index";
 import type { TextOutline } from "@yuragi/core";
 
 const outline: TextOutline = {
@@ -9,14 +9,14 @@ const outline: TextOutline = {
   groups: [],
 };
 
-describe("createTypeShardsFont", () => {
+describe("createYuragiFont", () => {
   it("loads the font bytes and compiles cached outlines with configured axes", async () => {
     const runtime = {
       setFont: vi.fn(() => ({ bytes: 3, unitsPerEm: 1000 })),
       compileTitle: vi.fn(() => outline),
     };
 
-    const font = await createTypeShardsFont({
+    const font = await createYuragiFont({
       font: new Uint8Array([1, 2, 3]),
       axes: { wght: 900 },
       runtime,
@@ -38,7 +38,7 @@ describe("createTypeShardsFont", () => {
       compileTitle: vi.fn(() => outline),
     };
 
-    const font = await createTypeShardsFont({
+    const font = await createYuragiFont({
       font: () => Promise.resolve(new Uint8Array([7, 8])),
       axes: { wght: 700 },
       runtime,

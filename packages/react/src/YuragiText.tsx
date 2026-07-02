@@ -1,12 +1,12 @@
 import * as React from "react";
 import { ShardedSvg } from "./ShardedSvg";
 import { createTextFallbackStyle } from "./style";
-import type { ResolvedShardedTextProps, ShardedTextProps } from "./types";
+import type { ResolvedYuragiTextProps, YuragiTextProps } from "./types";
 
-export type { ShardedTextProps } from "./types";
+export type { YuragiTextProps } from "./types";
 
-export function ShardedText(input: ShardedTextProps) {
-  const props: ResolvedShardedTextProps = {
+export function YuragiText(input: YuragiTextProps) {
+  const props: ResolvedYuragiTextProps = {
     size: 48,
     fallback: "text",
     ...input,

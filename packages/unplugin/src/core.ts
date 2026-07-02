@@ -1,7 +1,7 @@
 import { compileOutlines } from "@yuragi/compiler";
 import type { TextOutlineBundle } from "@yuragi/core";
 import { createUnplugin } from "unplugin";
-import type { TypeShardsPluginOptions } from "./types";
+import type { YuragiPluginOptions } from "./types";
 
 export const VIRTUAL_MODULE_ID = "virtual:yuragi/outlines";
 export const RESOLVED_VIRTUAL_MODULE_ID = "\0" + VIRTUAL_MODULE_ID;
@@ -19,7 +19,7 @@ export function createVirtualModuleCode(bundle: TextOutlineBundle): string {
   ].join("\n");
 }
 
-export const TypeShardsUnplugin = createUnplugin<TypeShardsPluginOptions>(
+export const YuragiUnplugin = createUnplugin<YuragiPluginOptions>(
   (options) => {
     let code: string | undefined;
     let codePromise: Promise<string> | undefined;

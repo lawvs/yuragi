@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { ShardedTextProps } from "./types";
+import type { YuragiTextProps } from "./types";
 
 const unitlessStyleProperties = new Set([
   "animationIterationCount",
@@ -131,8 +131,8 @@ export function applySvgStyle(
 }
 
 export function createTextFallbackStyle(
-  props: Required<Pick<ShardedTextProps, "size">> &
-    Pick<ShardedTextProps, "align" | "maxWidth" | "style">,
+  props: Required<Pick<YuragiTextProps, "size">> &
+    Pick<YuragiTextProps, "align" | "maxWidth" | "style">,
 ): CSSProperties {
   return {
     display: "block",

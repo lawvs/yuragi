@@ -1,9 +1,9 @@
-import { TypeShardsUnplugin } from "./core";
-import type { TypeShardsPluginOptions } from "./types";
+import { YuragiUnplugin } from "./core";
+import type { YuragiPluginOptions } from "./types";
 import type { EsbuildPlugin } from "unplugin";
 
-const plugin: (options: TypeShardsPluginOptions) => EsbuildPlugin =
-  TypeShardsUnplugin.esbuild;
+const plugin: (options: YuragiPluginOptions) => EsbuildPlugin =
+  YuragiUnplugin.esbuild;
 
 export default plugin;
 export type * from "./types";

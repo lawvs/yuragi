@@ -25,7 +25,7 @@ vi.mock("react", async () => {
 });
 
 vi.mock("@yuragi/react", () => ({
-  ShardedText: ({
+  YuragiText: ({
     text,
     sharedId,
     fallback,

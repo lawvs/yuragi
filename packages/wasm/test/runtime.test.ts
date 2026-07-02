@@ -1,6 +1,6 @@
 import type { TextOutline } from "@yuragi/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { TypeShardsWasmRuntime } from "../src/runtime";
+import { YuragiWasmRuntime } from "../src/runtime";
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -15,7 +15,7 @@ function bytes(values: number[]) {
   return buffer;
 }
 
-describe("TypeShardsWasmRuntime", () => {
+describe("YuragiWasmRuntime", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
@@ -104,7 +104,7 @@ describe("TypeShardsWasmRuntime", () => {
       instantiate,
     });
 
-    const runtime = await TypeShardsWasmRuntime.load(bytes([0]));
+    const runtime = await YuragiWasmRuntime.load(bytes([0]));
 
     expect(instantiate).toHaveBeenCalledWith(expect.any(ArrayBuffer), {});
     expect(runtime.setFont(bytes([1, 2, 3]))).toEqual(fontInfo);

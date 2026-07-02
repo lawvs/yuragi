@@ -1,1 +1,1 @@
-export * from "./ShardedText";
+export * from "./YuragiText";

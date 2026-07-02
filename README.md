@@ -13,11 +13,11 @@ pnpm add -D @yuragi/unplugin @yuragi/compiler
 ## Configure the plugin
 
 ```ts
-import TypeShards from "@yuragi/unplugin/vite";
+import Yuragi from "@yuragi/unplugin/vite";
 
 export default {
   plugins: [
-    TypeShards({
+    Yuragi({
       font: "./fonts/title.otf",
       axes: { wght: 900 },
       titles: ["Dashboard", "Settings"],
@@ -35,13 +35,13 @@ Add the virtual module types to your Vite env file:
 ```
 
 ```tsx
-import { ShardedText } from "@yuragi/react";
+import { YuragiText } from "@yuragi/react";
 import outlines from "virtual:yuragi/outlines";
 import "@yuragi/core/style.css";
 
 export function Title() {
   return (
-    <ShardedText
+    <YuragiText
       text="Dashboard"
       outline={outlines["Dashboard"]}
       sharedId="title:dashboard"
@@ -59,10 +59,10 @@ export function Title() {
 
 ## React API
 
-`ShardedText` is the v1 React entry point:
+`YuragiText` is the v1 React entry point:
 
 ```tsx
-<ShardedText
+<YuragiText
   text="Dashboard"
   outline={outlines["Dashboard"]}
   sharedId="title:dashboard"
@@ -119,19 +119,19 @@ pnpm add @yuragi/wasm
 
 ```tsx
 import {
-  TypeShardsFontProvider,
-  ShardedText,
+  YuragiFontProvider,
+  YuragiText,
 } from "@yuragi/react/wasm";
 import "@yuragi/core/style.css";
 
 export function RuntimeTitle({ title }: { title: string }) {
   return (
-    <TypeShardsFontProvider
+    <YuragiFontProvider
       font="/fonts/NotoSerifSC[wght].ttf"
       axes={{ wght: 900 }}
       preload={[title]}
     >
-      <ShardedText
+      <YuragiText
         text={title}
         sharedId={`title:${title}`}
         size={88}
@@ -139,7 +139,7 @@ export function RuntimeTitle({ title }: { title: string }) {
         hover="outline"
         transition={{ enter: "settle", exit: "scatter", speed: 1 }}
       />
-    </TypeShardsFontProvider>
+    </YuragiFontProvider>
   );
 }
 ```
@@ -150,9 +150,9 @@ and renders readable fallback text until an outline is ready.
 For non-React usage or advanced control:
 
 ```ts
-import { createTypeShardsFont } from "@yuragi/wasm";
+import { createYuragiFont } from "@yuragi/wasm";
 
-const font = await createTypeShardsFont({
+const font = await createYuragiFont({
   font: "/fonts/NotoSerifSC[wght].ttf",
   axes: { wght: 900 },
   preload: ["复杂分层"],

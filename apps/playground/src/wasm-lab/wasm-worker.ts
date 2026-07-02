@@ -1,4 +1,4 @@
-import { TypeShardsWasmRuntime } from "@yuragi/wasm/runtime";
+import { YuragiWasmRuntime } from "@yuragi/wasm/runtime";
 
 type LoadWasmMessage = {
   type: "load-wasm";
@@ -27,7 +27,7 @@ type IncomingMessage =
   | LoadLocalFontMessage
   | CompileMessage;
 
-let runtime: TypeShardsWasmRuntime | undefined;
+let runtime: YuragiWasmRuntime | undefined;
 let wasmBytes = 0;
 let fontBytes = 0;
 
@@ -50,7 +50,7 @@ async function loadWasm(wasmUrl: string) {
   }
 
   const bytes = await response.arrayBuffer();
-  runtime = await TypeShardsWasmRuntime.load(bytes);
+  runtime = await YuragiWasmRuntime.load(bytes);
   wasmBytes = bytes.byteLength;
   post("wasm-ready", {
     wasmBytes,

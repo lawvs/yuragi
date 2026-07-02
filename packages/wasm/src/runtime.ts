@@ -24,13 +24,13 @@ type ApiResponse<T> = {
   error: string | null;
 };
 
-export type TypeShardsFontInfo = {
+export type YuragiFontInfo = {
   bytes: number;
   unitsPerEm: number;
 };
 
-export type TypeShardsRuntime = {
-  setFont(fontBytes: ArrayBuffer): TypeShardsFontInfo;
+export type YuragiRuntime = {
+  setFont(fontBytes: ArrayBuffer): YuragiFontInfo;
   compileTitle(text: string, axes: Record<string, number>): TextOutline;
 };
 
@@ -84,7 +84,7 @@ function callWithResponse<T>(
   }
 }
 
-export class TypeShardsWasmRuntime implements TypeShardsRuntime {
+export class YuragiWasmRuntime implements YuragiRuntime {
   #exports: WasmExports;
 
   private constructor(instance: WebAssembly.Instance) {
@@ -93,7 +93,7 @@ export class TypeShardsWasmRuntime implements TypeShardsRuntime {
 
   static async load(wasmBytes: ArrayBuffer) {
     const source = await WebAssembly.instantiate(wasmBytes, {});
-    return new TypeShardsWasmRuntime(source.instance);
+    return new YuragiWasmRuntime(source.instance);
   }
 
   setFont(fontBytes: ArrayBuffer) {
@@ -101,7 +101,7 @@ export class TypeShardsWasmRuntime implements TypeShardsRuntime {
     const ptr = copyInput(this.#exports, input);
 
     try {
-      return callWithResponse<TypeShardsFontInfo>(this.#exports, (outLenPtr) =>
+      return callWithResponse<YuragiFontInfo>(this.#exports, (outLenPtr) =>
         this.#exports.yuragi_set_font(ptr, input.byteLength, outLenPtr),
       );
     } finally {

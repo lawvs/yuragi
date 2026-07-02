@@ -1,12 +1,12 @@
 import type { TextOutline } from "@yuragi/core";
 import {
-  TypeShardsWasmRuntime,
-  type TypeShardsFontInfo,
-  type TypeShardsRuntime,
+  YuragiWasmRuntime,
+  type YuragiFontInfo,
+  type YuragiRuntime,
 } from "./runtime";
 
-export { TypeShardsWasmRuntime };
-export type { TypeShardsFontInfo, TypeShardsRuntime };
+export { YuragiWasmRuntime };
+export type { YuragiFontInfo, YuragiRuntime };
 
 export type BinarySource =
   | string
@@ -19,20 +19,20 @@ export type CompileOptions = {
   axes?: Record<string, number>;
 };
 
-export type TypeShardsFont = {
-  readonly info: TypeShardsFontInfo;
+export type YuragiFont = {
+  readonly info: YuragiFontInfo;
   compile(text: string, options?: CompileOptions): Promise<TextOutline>;
   preload(texts?: readonly string[]): Promise<void>;
   dispose(): void;
 };
 
-export type CreateTypeShardsFontOptions = {
+export type CreateYuragiFontOptions = {
   font: BinarySource;
   axes?: Record<string, number>;
   wasm?: BinarySource;
   preload?: readonly string[];
   fetch?: typeof fetch;
-  runtime?: TypeShardsRuntime;
+  runtime?: YuragiRuntime;
 };
 
 const DEFAULT_WASM_SOURCE = new URL(
@@ -89,15 +89,15 @@ function stableAxesKey(axes: Record<string, number>) {
   );
 }
 
-class RuntimeTypeShardsFont implements TypeShardsFont {
-  readonly info: TypeShardsFontInfo;
-  #runtime: TypeShardsRuntime | null;
+class RuntimeYuragiFont implements YuragiFont {
+  readonly info: YuragiFontInfo;
+  #runtime: YuragiRuntime | null;
   #axes: Record<string, number>;
   #cache = new Map<string, Promise<TextOutline>>();
 
   constructor(
-    runtime: TypeShardsRuntime,
-    info: TypeShardsFontInfo,
+    runtime: YuragiRuntime,
+    info: YuragiFontInfo,
     axes: Record<string, number>,
   ) {
     this.#runtime = runtime;
@@ -108,7 +108,7 @@ class RuntimeTypeShardsFont implements TypeShardsFont {
   async compile(text: string, options: CompileOptions = {}) {
     const runtime = this.#runtime;
     if (!runtime) {
-      throw new Error("Cannot compile after TypeShardsFont has been disposed");
+      throw new Error("Cannot compile after YuragiFont has been disposed");
     }
 
     const axes = options.axes ?? this.#axes;
@@ -131,19 +131,19 @@ class RuntimeTypeShardsFont implements TypeShardsFont {
   }
 }
 
-export async function createTypeShardsFont(
-  options: CreateTypeShardsFontOptions,
-): Promise<TypeShardsFont> {
+export async function createYuragiFont(
+  options: CreateYuragiFontOptions,
+): Promise<YuragiFont> {
   const fetchImpl = options.fetch ?? globalThis.fetch?.bind(globalThis);
   const axes = options.axes ?? {};
   const runtime =
     options.runtime ??
-    (await TypeShardsWasmRuntime.load(
+    (await YuragiWasmRuntime.load(
       await resolveBinarySource(options.wasm ?? DEFAULT_WASM_SOURCE, fetchImpl),
     ));
   const fontBytes = await resolveBinarySource(options.font, fetchImpl);
   const info = runtime.setFont(fontBytes);
-  const font = new RuntimeTypeShardsFont(runtime, info, axes);
+  const font = new RuntimeYuragiFont(runtime, info, axes);
 
   if (options.preload) {
     await font.preload(options.preload);

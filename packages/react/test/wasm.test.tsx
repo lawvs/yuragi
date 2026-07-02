@@ -1,8 +1,8 @@
 import React from "react";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { TypeShardsFontProvider, ShardedText } from "../src/wasm";
-import { createTypeShardsFont } from "@yuragi/wasm";
+import { YuragiFontProvider, YuragiText } from "../src/wasm";
+import { createYuragiFont } from "@yuragi/wasm";
 import type { TextOutline } from "@yuragi/core";
 
 const outline: TextOutline = {
@@ -13,11 +13,11 @@ const outline: TextOutline = {
 };
 
 vi.mock("@yuragi/wasm", () => ({
-  createTypeShardsFont: vi.fn(),
+  createYuragiFont: vi.fn(),
 }));
 
-vi.mock("../src/ShardedText", () => ({
-  ShardedText: ({
+vi.mock("../src/YuragiText", () => ({
+  YuragiText: ({
     text,
     outline,
     fallback,
@@ -42,30 +42,30 @@ vi.mock("../src/ShardedText", () => ({
 describe("@yuragi/react/wasm", () => {
   afterEach(() => {
     cleanup();
-    vi.mocked(createTypeShardsFont).mockReset();
+    vi.mocked(createYuragiFont).mockReset();
   });
 
-  it("loads a font provider and resolves outlines for ShardedText", async () => {
+  it("loads a font provider and resolves outlines for YuragiText", async () => {
     const font = {
       info: { bytes: 3, unitsPerEm: 1000 },
       compile: vi.fn(async () => outline),
       preload: vi.fn(async () => undefined),
       dispose: vi.fn(),
     };
-    vi.mocked(createTypeShardsFont).mockResolvedValue(font);
+    vi.mocked(createYuragiFont).mockResolvedValue(font);
 
     render(
-      <TypeShardsFontProvider
+      <YuragiFontProvider
         font={new Uint8Array([1, 2, 3])}
         axes={{ wght: 900 }}
         preload={["复杂分层"]}
       >
-        <ShardedText
+        <YuragiText
           text="复杂分层"
           fallback="text"
           sharedId="title:runtime"
         />
-      </TypeShardsFontProvider>,
+      </YuragiFontProvider>,
     );
 
     expect(screen.getByText("复杂分层").dataset.hasOutline).toBe("no");
@@ -77,7 +77,7 @@ describe("@yuragi/react/wasm", () => {
       await Promise.resolve();
     });
 
-    expect(createTypeShardsFont).toHaveBeenCalledWith({
+    expect(createYuragiFont).toHaveBeenCalledWith({
       font: expect.any(Uint8Array),
       axes: { wght: 900 },
       wasm: undefined,
@@ -93,9 +93,9 @@ describe("@yuragi/react/wasm", () => {
     expect(font.dispose).toHaveBeenCalled();
   });
 
-  it("throws when ShardedText is rendered without a TypeShardsFontProvider", () => {
-    expect(() => render(<ShardedText text="Missing Provider" />)).toThrow(
-      "ShardedText from @yuragi/react/wasm requires TypeShardsFontProvider",
+  it("throws when YuragiText is rendered without a YuragiFontProvider", () => {
+    expect(() => render(<YuragiText text="Missing Provider" />)).toThrow(
+      "YuragiText from @yuragi/react/wasm requires YuragiFontProvider",
     );
   });
 });

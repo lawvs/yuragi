@@ -13,7 +13,7 @@ import {
   type SvgExitSnapshot,
 } from "./exit-overlay";
 import { applySvgStyle } from "./style";
-import type { ResolvedShardedTextProps } from "./types";
+import type { ResolvedYuragiTextProps } from "./types";
 
 type RenderedSvgState = {
   svg: SVGSVGElement;
@@ -27,7 +27,7 @@ type RenderedSvgState = {
 
 function hasSameSvgLayout(
   previous: RenderedSvgState | null,
-  props: ResolvedShardedTextProps,
+  props: ResolvedYuragiTextProps,
 ): boolean {
   return (
     previous !== null &&
@@ -39,7 +39,7 @@ function hasSameSvgLayout(
   );
 }
 
-export function ShardedSvg({ props }: { props: ResolvedShardedTextProps }) {
+export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
   const hostRef = React.useRef<HTMLSpanElement>(null);
   const svgRef = React.useRef<SVGSVGElement | null>(null);
   const renderedSvgRef = React.useRef<RenderedSvgState | null>(null);

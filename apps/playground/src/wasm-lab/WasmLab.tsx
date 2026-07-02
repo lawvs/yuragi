@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { TextOutline } from "@yuragi/core";
-import { ShardedText } from "@yuragi/react";
+import { YuragiText } from "@yuragi/react";
 import {
   DEFAULT_FONT_PRESET_ID,
   DEFAULT_WASM_URL,
@@ -276,7 +276,7 @@ export function WasmLab() {
         </section>
 
         <section className="wasm-lab-preview" aria-label="Runtime preview">
-          <ShardedText
+          <YuragiText
             text={text}
             outline={outline}
             sharedId="wasm-lab:title"

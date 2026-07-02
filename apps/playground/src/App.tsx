@@ -1,5 +1,5 @@
 import { startTransition, useMemo, useState } from "react";
-import { ShardedText } from "@yuragi/react";
+import { YuragiText } from "@yuragi/react";
 import outlines from "virtual:yuragi/outlines";
 import { demoPosts, type DemoPost } from "./data";
 import { WasmLab } from "./wasm-lab/WasmLab";
@@ -84,7 +84,7 @@ export function App() {
                   onClick={() => selectPost(post.id)}
                 >
                   <span className="post-title">
-                    <ShardedText
+                    <YuragiText
                       text={post.title}
                       outline={outlines[post.title]}
                       sharedId={shouldShare ? titleSharedId(post) : false}
@@ -183,7 +183,7 @@ export function App() {
 
             <article className="preview-surface">
               <div className="preview-title">
-                <ShardedText
+                <YuragiText
                   text={selectedPost.title}
                   outline={outlines[selectedPost.title]}
                   sharedId={

@@ -1,31 +1,31 @@
 import * as React from "react";
 import {
-  createTypeShardsFont,
+  createYuragiFont,
   type BinarySource,
-  type TypeShardsFont,
+  type YuragiFont,
 } from "@yuragi/wasm";
-import { ShardedText as StaticShardedText } from "./ShardedText";
-import type { ShardedTextProps } from "./types";
+import { YuragiText as StaticYuragiText } from "./YuragiText";
+import type { YuragiTextProps } from "./types";
 
-type TypeShardsFontContextValue = {
-  font: TypeShardsFont | null;
+type YuragiFontContextValue = {
+  font: YuragiFont | null;
   error: Error | null;
 };
 
-export type TypeShardsFontProviderProps = {
+export type YuragiFontProviderProps = {
   children: React.ReactNode;
-  font: BinarySource | TypeShardsFont;
+  font: BinarySource | YuragiFont;
   axes?: Record<string, number>;
   wasm?: BinarySource;
   preload?: boolean | readonly string[];
 };
 
-export type RuntimeShardedTextProps = Omit<ShardedTextProps, "outline">;
+export type RuntimeYuragiTextProps = Omit<YuragiTextProps, "outline">;
 
-const TypeShardsFontContext =
-  React.createContext<TypeShardsFontContextValue | null>(null);
+const YuragiFontContext =
+  React.createContext<YuragiFontContextValue | null>(null);
 
-function isTypeShardsFont(value: BinarySource | TypeShardsFont): value is TypeShardsFont {
+function isYuragiFont(value: BinarySource | YuragiFont): value is YuragiFont {
   return (
     typeof value === "object" &&
     value !== null &&
@@ -54,15 +54,15 @@ function stablePreloadKey(preload: boolean | readonly string[] | undefined) {
   return String(preload ?? false);
 }
 
-export function TypeShardsFontProvider({
+export function YuragiFontProvider({
   axes,
   children,
   font,
   preload,
   wasm,
-}: TypeShardsFontProviderProps) {
-  const [value, setValue] = React.useState<TypeShardsFontContextValue>({
-    font: isTypeShardsFont(font) ? font : null,
+}: YuragiFontProviderProps) {
+  const [value, setValue] = React.useState<YuragiFontContextValue>({
+    font: isYuragiFont(font) ? font : null,
     error: null,
   });
   const axesKey = stableRecordKey(axes);
@@ -70,9 +70,9 @@ export function TypeShardsFontProvider({
 
   React.useEffect(() => {
     let cancelled = false;
-    let ownedFont: TypeShardsFont | null = null;
+    let ownedFont: YuragiFont | null = null;
 
-    if (isTypeShardsFont(font)) {
+    if (isYuragiFont(font)) {
       setValue({ font, error: null });
       if (Array.isArray(preload)) {
         void font.preload(preload).catch((error: unknown) => {
@@ -91,7 +91,7 @@ export function TypeShardsFontProvider({
     }
 
     setValue({ font: null, error: null });
-    void createTypeShardsFont({
+    void createYuragiFont({
       font,
       axes,
       wasm,
@@ -122,26 +122,26 @@ export function TypeShardsFontProvider({
   }, [axesKey, font, preloadKey, wasm]);
 
   return (
-    <TypeShardsFontContext.Provider value={value}>
+    <YuragiFontContext.Provider value={value}>
       {children}
-    </TypeShardsFontContext.Provider>
+    </YuragiFontContext.Provider>
   );
 }
 
-export function useTypeShardsFont() {
-  const context = React.useContext(TypeShardsFontContext);
+export function useYuragiFont() {
+  const context = React.useContext(YuragiFontContext);
   if (!context) {
     throw new Error(
-      "ShardedText from @yuragi/react/wasm requires TypeShardsFontProvider",
+      "YuragiText from @yuragi/react/wasm requires YuragiFontProvider",
     );
   }
 
   return context;
 }
 
-export function ShardedText(props: RuntimeShardedTextProps) {
-  const { error, font } = useTypeShardsFont();
-  const [outline, setOutline] = React.useState<ShardedTextProps["outline"]>();
+export function YuragiText(props: RuntimeYuragiTextProps) {
+  const { error, font } = useYuragiFont();
+  const [outline, setOutline] = React.useState<YuragiTextProps["outline"]>();
 
   React.useEffect(() => {
     let cancelled = false;
@@ -167,5 +167,5 @@ export function ShardedText(props: RuntimeShardedTextProps) {
     };
   }, [error, font, props.text]);
 
-  return <StaticShardedText {...props} outline={outline} />;
+  return <StaticYuragiText {...props} outline={outline} />;
 }

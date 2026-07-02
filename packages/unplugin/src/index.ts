@@ -1,5 +1,5 @@
-import { TypeShardsUnplugin } from "./core";
+import { YuragiUnplugin } from "./core";
 
-export default TypeShardsUnplugin;
+export default YuragiUnplugin;
 export * from "./core";
 export type * from "./types";

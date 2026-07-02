@@ -1,5 +1,5 @@
 import react from "@vitejs/plugin-react";
-import TypeShards from "@yuragi/unplugin/vite";
+import Yuragi from "@yuragi/unplugin/vite";
 import { defineConfig } from "vite";
 import { resolvePlaygroundFont } from "./playground-font";
 import { outlineTitles } from "./src/data";
@@ -29,7 +29,7 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    TypeShards({
+    Yuragi({
       font,
       axes: { wght: 900 },
       titles: outlineTitles,
