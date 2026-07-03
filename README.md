@@ -3,6 +3,29 @@
 `yuragi` renders text as SVG glyph fragments and animates those fragments
 with hover outline, settle, and scatter effects.
 
+> Credits: Yuragi's original interaction study is inspired by the title
+> animation in [Layered](https://github.com/CircuitCoder/layered), including
+> the hollow hover treatment and scattered title transition. Special thanks to
+> [喵喵](https://github.com/CircuitCoder) for the source of that visual idea.
+
+## Why "yuragi"?
+
+Yuragi is named after the Japanese word `揺らぎ`, meaning gentle swaying,
+fluctuation, or flicker. It keeps the candle-flame feeling behind `摇曳`,
+without using pinyin, and it also describes how this library works: title
+strokes are split into shards and animated with small variations that feel
+alive rather than mechanical.
+
+## Packages
+
+| Package | Purpose |
+| --- | --- |
+| `@yuragi/react` | React Canary components for static and runtime sharded text. |
+| `@yuragi/core` | Shared outline types, layout helpers, SVG helpers, and CSS. |
+| `@yuragi/unplugin` | Vite/Rollup/Webpack/esbuild/Rspack build-time outline plugin. |
+| `@yuragi/compiler` | Native Rust-backed build-time outline compiler wrapper. |
+| `@yuragi/wasm` | Experimental runtime WASM compiler for dynamic text. |
+
 ## Install
 
 ```bash
@@ -10,7 +33,12 @@ pnpm add @yuragi/react @yuragi/core
 pnpm add -D @yuragi/unplugin @yuragi/compiler
 ```
 
-## Configure the plugin
+Add `@yuragi/wasm` when you need runtime compilation for text that is not
+known at build time.
+
+## Quick Start
+
+Configure the build-time plugin with a font and the titles you want to shard:
 
 ```ts
 import Yuragi from "@yuragi/unplugin/vite";
@@ -26,13 +54,13 @@ export default {
 };
 ```
 
-## Use React Canary
-
 Add the virtual module types to your Vite env file:
 
 ```ts
 /// <reference types="@yuragi/unplugin/client" />
 ```
+
+Render a title with React Canary:
 
 ```tsx
 import { YuragiText } from "@yuragi/react";
@@ -47,120 +75,26 @@ export function Title() {
       sharedId="title:dashboard"
       size={56}
       hover="outline"
-      transition={{
-        enter: "settle",
-        exit: "scatter",
-        speed: 1,
-      }}
+      transition={{ enter: "settle", exit: "scatter", speed: 1 }}
     />
   );
 }
 ```
 
-## React API
+For package-specific options and lower-level APIs, see the package READMEs:
 
-`YuragiText` is the v1 React entry point:
+- [`@yuragi/react`](packages/react/README.md)
+- [`@yuragi/unplugin`](packages/unplugin/README.md)
+- [`@yuragi/core`](packages/core/README.md)
+- [`@yuragi/compiler`](packages/compiler/README.md)
+- [`@yuragi/wasm`](packages/wasm/README.md)
 
-```tsx
-<YuragiText
-  text="Dashboard"
-  outline={outlines["Dashboard"]}
-  sharedId="title:dashboard"
-  size={56}
-  maxWidth={760}
-  align="start"
-  hover="outline"
-  fallback="text"
-  transition={{
-    enter: "settle",
-    exit: "scatter",
-    speed: 1,
-  }}
-/>
-```
+## Requirements
 
-Core props:
-
-- `text`: rendered text. It must match a title compiled by the plugin when an
-  outline is required.
-- `outline`: precompiled glyph shard data, usually from
-  `virtual:yuragi/outlines`.
-- `sharedId`: a string wraps the rendered title in React Canary
-  `ViewTransition` and uses this value as the shared element name. `false`
-  explicitly disables the shared transition for that instance.
-- `size`, `maxWidth`, `align`: layout controls for SVG text wrapping.
-- `hover`: `"outline"` enables the hollow title hover effect.
-- `fallback`: `"text"` renders readable text when `outline` is missing;
-  `"hidden"` renders nothing; `"error"` throws.
-- `transition.enter`: `"settle"` animates shards into place.
-- `transition.exit`: `"scatter"` animates the previous title out when the title
-  changes or unmounts.
-- `transition.speed`: playback speed multiplier for both enter and exit. `1`
-  is the default, values below `1` are slower, and values above `1` are faster.
-
-Exit scatter is rendered in a fixed viewport overlay so the old title keeps its
-screen position while React View Transition moves the new shared title. Exit
-scatter and enter settle share the same x-position wave timing, so when a title
-changes the outgoing and incoming shard waves visually line up from left to
-right. The wave is based on each shard's visual x position, so wider titles get
-a wider left-to-right timing spread. Enter and exit also share the same base
-playback envelope, and `speed` scales that whole model; it is not a strict
-millisecond duration.
-
-## Runtime WASM API
-
-Runtime compilation is available through the experimental WASM entry points.
-Use this when titles are not known at build time or when users can provide their
-own text.
-
-```bash
-pnpm add @yuragi/wasm
-```
-
-```tsx
-import {
-  YuragiFontProvider,
-  YuragiText,
-} from "@yuragi/react/wasm";
-import "@yuragi/core/style.css";
-
-export function RuntimeTitle({ title }: { title: string }) {
-  return (
-    <YuragiFontProvider
-      font="/fonts/NotoSerifSC[wght].ttf"
-      axes={{ wght: 900 }}
-      preload={[title]}
-    >
-      <YuragiText
-        text={title}
-        sharedId={`title:${title}`}
-        size={88}
-        fallback="text"
-        hover="outline"
-        transition={{ enter: "settle", exit: "scatter", speed: 1 }}
-      />
-    </YuragiFontProvider>
-  );
-}
-```
-
-The provider owns the shared font compiler, caches compiled outlines in memory,
-and renders readable fallback text until an outline is ready.
-
-For non-React usage or advanced control:
-
-```ts
-import { createYuragiFont } from "@yuragi/wasm";
-
-const font = await createYuragiFont({
-  font: "/fonts/NotoSerifSC[wght].ttf",
-  axes: { wght: 900 },
-  preload: ["复杂分层"],
-});
-
-const outline = await font.compile("复杂分层");
-font.dispose();
-```
+- React Canary for `@yuragi/react`.
+- Browser support for the View Transition API when using shared element motion.
+- Rust and Cargo on `PATH` when using the build-time compiler wrapper.
+- A font file that can be loaded by the compiler.
 
 ## Playground
 
@@ -183,22 +117,3 @@ Run the playground locally:
 ```bash
 pnpm dev
 ```
-
-The playground includes controls for title size, transition speed, alignment,
-and hover outline. The speed slider drives `transition.speed` directly.
-
-## v1 Requirements
-
-- React Canary with `ViewTransition`.
-- Browser support for the View Transition API for shared element motion.
-- All sharded strings must be listed in `titles`.
-- Rust and Cargo on `PATH` for the v1 native compiler wrapper.
-- Runtime font parsing uses the experimental `@yuragi/wasm` entry point.
-
-## v1 Non-goals
-
-- Automatic runtime source scanning.
-- Stable React fallback.
-- Source scanning.
-- Markdown presets.
-- Web Components.
