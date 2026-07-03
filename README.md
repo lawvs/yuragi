@@ -3,18 +3,13 @@
 `yuragi` renders text as SVG glyph fragments and animates those fragments
 with hover outline, settle, and scatter effects.
 
+The name comes from Japanese `揺らぎ`, a gentle swaying or flicker that echoes
+`摇曳` and the subtle variation of the shard animation.
+
 > Credits: Yuragi's original interaction study is inspired by the title
 > animation in [Layered](https://github.com/CircuitCoder/layered), including
 > the hollow hover treatment and scattered title transition. Special thanks to
 > [喵喵](https://github.com/CircuitCoder) for the source of that visual idea.
-
-## Why "yuragi"?
-
-Yuragi is named after the Japanese word `揺らぎ`, meaning gentle swaying,
-fluctuation, or flicker. It keeps the candle-flame feeling behind `摇曳`,
-without using pinyin, and it also describes how this library works: title
-strokes are split into shards and animated with small variations that feel
-alive rather than mechanical.
 
 ## Packages
 
