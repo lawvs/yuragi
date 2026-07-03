@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Prepare Rust
+        run: |
+          rustup toolchain install 1.85.0 --profile minimal --target wasm32-unknown-unknown
+          cargo +1.85.0 fetch --locked --manifest-path experiments/wasm-compiler/Cargo.toml --target wasm32-unknown-unknown
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build playground
+        run: pnpm playground:build
+
+      - name: Build wasm lab asset
+        run: pnpm wasm-lab:build
