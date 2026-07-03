@@ -40,7 +40,7 @@
   "dependencies": {
     "@yuragi/core": "workspace:*",
     "@yuragi/compiler": "workspace:*",
-    "unplugin": "^3.0.0"
+    "unplugin": "^3.3.0"
   },
   "devDependencies": {
     "tsup": "^8.5.1",

@@ -70,7 +70,7 @@ function createTestPlugin(): TestRawPlugin {
       font: "font.otf",
       titles: ["Dashboard"],
     },
-    { framework: "rollup" },
+    { framework: "rollup", versions: {} },
   ) as unknown as TestRawPlugin;
 }
 

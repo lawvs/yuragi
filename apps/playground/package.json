@@ -14,10 +14,10 @@
     "@yuragi/react": "workspace:*",
     "@yuragi/unplugin": "workspace:*",
     "@yuragi/wasm": "workspace:*",
-    "@vitejs/plugin-react": "^6.0.2",
-    "react": "19.3.0-canary-a7cce7b3-20260617",
-    "react-dom": "19.3.0-canary-a7cce7b3-20260617",
-    "vite": "^8.0.16"
+    "@vitejs/plugin-react": "^6.0.3",
+    "react": "19.3.0-canary-e71a6393-20260702",
+    "react-dom": "19.3.0-canary-e71a6393-20260702",
+    "vite": "^8.1.3"
   },
   "devDependencies": {
     "@types/react": "^19.2.17",
