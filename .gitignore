@@ -4,6 +4,7 @@ coverage
 .turbo
 .DS_Store
 .vite
+.worktrees
 target
 Cargo.lock
 !packages/compiler/native/Cargo.lock
