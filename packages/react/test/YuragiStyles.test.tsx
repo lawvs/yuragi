@@ -1,0 +1,33 @@
+import React from "react";
+import { cleanup, render } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
+import { YURAGI_STYLE_TEXT } from "@yuragi/core";
+import { YuragiStyles } from "../src/YuragiStyles";
+
+describe("YuragiStyles", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("renders the core yuragi stylesheet as a React style element", () => {
+    render(<YuragiStyles />);
+
+    const style = document.querySelector("style[data-yuragi-style]");
+    expect(style).not.toBeNull();
+    expect(style?.textContent).toBe(YURAGI_STYLE_TEXT);
+  });
+
+  it("passes a nonce to the style element", () => {
+    render(<YuragiStyles nonce="nonce-123" />);
+
+    const style = document.querySelector("style[data-yuragi-style]");
+    expect(style?.getAttribute("nonce")).toBe("nonce-123");
+  });
+
+  it("renders nothing when disabled", () => {
+    const { container } = render(<YuragiStyles disabled />);
+
+    expect(container.firstChild).toBeNull();
+    expect(document.querySelector("style[data-yuragi-style]")).toBeNull();
+  });
+});
