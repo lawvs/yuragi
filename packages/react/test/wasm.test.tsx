@@ -93,6 +93,60 @@ describe("@yuragi/react/wasm", () => {
     expect(font.dispose).toHaveBeenCalled();
   });
 
+  it("includes YuragiStyles by default", () => {
+    const font = {
+      info: { bytes: 3, unitsPerEm: 1000 },
+      compile: vi.fn(async () => outline),
+      preload: vi.fn(async () => undefined),
+      dispose: vi.fn(),
+    };
+
+    render(
+      <YuragiFontProvider font={font}>
+        <span>Runtime child</span>
+      </YuragiFontProvider>,
+    );
+
+    expect(document.querySelector("style[data-yuragi-style]")).not.toBeNull();
+    expect(screen.getByText("Runtime child")).not.toBeNull();
+  });
+
+  it("can disable provider styles when CSS is imported manually", () => {
+    const font = {
+      info: { bytes: 3, unitsPerEm: 1000 },
+      compile: vi.fn(async () => outline),
+      preload: vi.fn(async () => undefined),
+      dispose: vi.fn(),
+    };
+
+    render(
+      <YuragiFontProvider font={font} includeStyles={false}>
+        <span>Runtime child</span>
+      </YuragiFontProvider>,
+    );
+
+    expect(document.querySelector("style[data-yuragi-style]")).toBeNull();
+    expect(screen.getByText("Runtime child")).not.toBeNull();
+  });
+
+  it("passes styleNonce to provider styles", () => {
+    const font = {
+      info: { bytes: 3, unitsPerEm: 1000 },
+      compile: vi.fn(async () => outline),
+      preload: vi.fn(async () => undefined),
+      dispose: vi.fn(),
+    };
+
+    render(
+      <YuragiFontProvider font={font} styleNonce="nonce-123">
+        <span>Runtime child</span>
+      </YuragiFontProvider>,
+    );
+
+    const style = document.querySelector("style[data-yuragi-style]");
+    expect(style?.getAttribute("nonce")).toBe("nonce-123");
+  });
+
   it("throws when YuragiText is rendered without a YuragiFontProvider", () => {
     expect(() => render(<YuragiText text="Missing Provider" />)).toThrow(
       "YuragiText from @yuragi/react/wasm requires YuragiFontProvider",

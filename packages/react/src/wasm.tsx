@@ -4,6 +4,7 @@ import {
   type BinarySource,
   type YuragiFont,
 } from "@yuragi/wasm";
+import { YuragiStyles } from "./YuragiStyles";
 import { YuragiText as StaticYuragiText } from "./YuragiText";
 import type { YuragiTextProps } from "./types";
 
@@ -18,6 +19,8 @@ export type YuragiFontProviderProps = {
   axes?: Record<string, number>;
   wasm?: BinarySource;
   preload?: boolean | readonly string[];
+  includeStyles?: boolean;
+  styleNonce?: string;
 };
 
 export type RuntimeYuragiTextProps = Omit<YuragiTextProps, "outline">;
@@ -58,7 +61,9 @@ export function YuragiFontProvider({
   axes,
   children,
   font,
+  includeStyles = true,
   preload,
+  styleNonce,
   wasm,
 }: YuragiFontProviderProps) {
   const [value, setValue] = React.useState<YuragiFontContextValue>({
@@ -122,9 +127,12 @@ export function YuragiFontProvider({
   }, [axesKey, font, preloadKey, wasm]);
 
   return (
-    <YuragiFontContext.Provider value={value}>
-      {children}
-    </YuragiFontContext.Provider>
+    <>
+      <YuragiStyles disabled={!includeStyles} nonce={styleNonce} />
+      <YuragiFontContext.Provider value={value}>
+        {children}
+      </YuragiFontContext.Provider>
+    </>
   );
 }
 
