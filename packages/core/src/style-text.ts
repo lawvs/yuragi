@@ -1,0 +1,41 @@
+export const YURAGI_STYLE_TEXT = `.yuragi-root {
+  overflow: visible;
+  fill: currentColor;
+  stroke: transparent;
+  stroke-width: 20px;
+}
+
+.yuragi-root [data-group-motion] {
+  transform-origin: 0 0;
+  transition: transform 200ms ease;
+}
+
+.yuragi-root[data-hover="outline"] {
+  transition:
+    fill 200ms ease,
+    stroke 200ms ease;
+}
+
+.yuragi-root[data-hover="outline"]:hover {
+  fill: color-mix(in srgb, currentColor 25%, transparent);
+  stroke: currentColor;
+}
+
+.yuragi-root[data-hover="outline"]:hover [data-group-motion] {
+  transform: translate(
+    var(--yuragi-hover-x, 0px),
+    var(--yuragi-hover-y, 0px)
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yuragi-root,
+  .yuragi-root [data-group-motion] {
+    transition-duration: 0ms;
+  }
+
+  .yuragi-root[data-hover="outline"]:hover [data-group-motion] {
+    transform: translate(0, 0);
+  }
+}
+`;
