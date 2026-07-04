@@ -8,26 +8,40 @@ from the experimental runtime WASM compiler.
 Use the build-time plugin to compile titles, then render with `YuragiText`:
 
 ```tsx
-import { YuragiText } from "@yuragi/react";
+import { YuragiStyles, YuragiText } from "@yuragi/react";
 import outlines from "virtual:yuragi/outlines";
-import "@yuragi/core/style.css";
 
 export function Title() {
   return (
-    <YuragiText
-      text="Dashboard"
-      outline={outlines["Dashboard"]}
-      sharedId="title:dashboard"
-      size={56}
-      maxWidth={760}
-      align="start"
-      hover="outline"
-      fallback="text"
-      transition={{ enter: "settle", exit: "scatter", speed: 1 }}
-    />
+    <>
+      <YuragiStyles />
+      <YuragiText
+        text="Dashboard"
+        outline={outlines["Dashboard"]}
+        sharedId="title:dashboard"
+        size={56}
+        maxWidth={760}
+        align="start"
+        hover="outline"
+        fallback="text"
+        transition={{ enter: "settle", exit: "scatter", speed: 1 }}
+      />
+    </>
   );
 }
 ```
+
+## `YuragiStyles`
+
+`YuragiStyles` renders Yuragi's small stylesheet as a React `<style>` element.
+Render it once near your app root when using the static entry.
+
+```tsx
+<YuragiStyles nonce={nonce} />
+```
+
+If your app imports `@yuragi/core/style.css` directly, do not render
+`YuragiStyles`.
 
 ## `YuragiText` Props
 
@@ -63,7 +77,6 @@ import {
   YuragiFontProvider,
   YuragiText,
 } from "@yuragi/react/wasm";
-import "@yuragi/core/style.css";
 
 export function RuntimeTitle({ title }: { title: string }) {
   return (
@@ -88,9 +101,15 @@ export function RuntimeTitle({ title }: { title: string }) {
 The provider owns the shared font compiler, caches compiled outlines in memory,
 and renders fallback text until an outline is ready.
 
+`YuragiFontProvider` includes `YuragiStyles` by default. Pass
+`includeStyles={false}` if your app imports `@yuragi/core/style.css` manually,
+and pass `styleNonce` when your CSP requires a style nonce.
+
 ## Requirements
 
 - React Canary and React DOM Canary.
 - Browser support for React's `ViewTransition` integration when `sharedId` is
   used.
-- `@yuragi/core/style.css` imported once by the app.
+- `YuragiStyles` rendered once for the static entry, or
+  `@yuragi/core/style.css` imported manually. The runtime provider includes
+  styles by default.

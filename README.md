@@ -58,23 +58,29 @@ Add the virtual module types to your Vite env file:
 Render a title with React Canary:
 
 ```tsx
-import { YuragiText } from "@yuragi/react";
+import { YuragiStyles, YuragiText } from "@yuragi/react";
 import outlines from "virtual:yuragi/outlines";
-import "@yuragi/core/style.css";
 
 export function Title() {
   return (
-    <YuragiText
-      text="Dashboard"
-      outline={outlines["Dashboard"]}
-      sharedId="title:dashboard"
-      size={56}
-      hover="outline"
-      transition={{ enter: "settle", exit: "scatter", speed: 1 }}
-    />
+    <>
+      <YuragiStyles />
+      <YuragiText
+        text="Dashboard"
+        outline={outlines["Dashboard"]}
+        sharedId="title:dashboard"
+        size={56}
+        hover="outline"
+        transition={{ enter: "settle", exit: "scatter", speed: 1 }}
+      />
+    </>
   );
 }
 ```
+
+`YuragiStyles` renders the small stylesheet Yuragi needs for hover and
+reduced-motion behavior. If your app already imports `@yuragi/core/style.css`,
+you do not need to render `YuragiStyles`.
 
 For package-specific options and lower-level APIs, see the package READMEs:
 
