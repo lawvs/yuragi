@@ -1,6 +1,6 @@
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { YuragiFontProvider, YuragiText } from "../src/wasm";
+import { YuragiFontProvider, YuragiText } from "../src/index";
 import { createYuragiFont } from "@yuragi/wasm";
 import type { TextOutline } from "@yuragi/core";
 
