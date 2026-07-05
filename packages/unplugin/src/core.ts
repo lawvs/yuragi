@@ -10,12 +10,9 @@ export function createVirtualModuleCode(bundle: TextOutlineBundle): string {
   const serialized = JSON.stringify(bundle);
 
   return [
-    `import { createStaticOutlineProvider } from "@yuragi/core";`,
     `const bundle = JSON.parse(${JSON.stringify(serialized)});`,
     `export { bundle };`,
     `export default bundle.outlines;`,
-    `export const provider = createStaticOutlineProvider(bundle.outlines);`,
-    `export { createStaticOutlineProvider };`,
   ].join("\n");
 }
 

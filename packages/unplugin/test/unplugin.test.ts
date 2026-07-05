@@ -42,9 +42,6 @@ const bundle: TextOutlineBundle = {
 type EvaluatedVirtualModule = {
   bundle: TextOutlineBundle;
   defaultExport: TextOutlineBundle["outlines"];
-  provider: {
-    get(text: string): unknown;
-  };
 };
 
 type TestRawPlugin = {
@@ -89,23 +86,12 @@ const buildContext = {
 };
 
 function evaluateVirtualModule(code: string): EvaluatedVirtualModule {
-  const createStaticOutlineProvider = (outlines: TextOutlineBundle["outlines"]) => ({
-    get(text: string) {
-      return outlines[text];
-    },
-  });
   const transformed = code
-    .replace(
-      `import { createStaticOutlineProvider } from "@yuragi/core";`,
-      "",
-    )
     .replace("export { bundle };", "")
     .replace("export default bundle.outlines;", "const defaultExport = bundle.outlines;")
-    .replace("export const provider =", "const provider =")
-    .replace("export { createStaticOutlineProvider };", "")
-    .concat("\n({ bundle, defaultExport, provider });");
+    .concat("\n({ bundle, defaultExport });");
 
-  return vm.runInNewContext(transformed, { createStaticOutlineProvider }) as EvaluatedVirtualModule;
+  return vm.runInNewContext(transformed) as EvaluatedVirtualModule;
 }
 
 beforeEach(() => {
@@ -113,13 +99,14 @@ beforeEach(() => {
 });
 
 describe("createVirtualModuleCode", () => {
-  it("exports bundle, outlines, provider, and createStaticOutlineProvider", () => {
+  it("exports bundle and outlines without provider wrappers", () => {
     const code = createVirtualModuleCode(bundle);
 
     expect(code).toContain("const bundle =");
+    expect(code).toContain("export { bundle }");
     expect(code).toContain("export default bundle.outlines");
-    expect(code).toContain("export const provider =");
-    expect(code).toContain("export { createStaticOutlineProvider }");
+    expect(code).not.toContain("provider");
+    expect(code).not.toContain("createStaticOutlineProvider");
   });
 
   it("uses the expected virtual module id", () => {
@@ -156,7 +143,6 @@ describe("createVirtualModuleCode", () => {
 
     expect(Object.hasOwn(evaluated.bundle.outlines, "__proto__")).toBe(true);
     expect(evaluated.defaultExport.__proto__).toEqual(protoBundle.outlines.__proto__);
-    expect(evaluated.provider.get("__proto__")).toEqual(protoBundle.outlines.__proto__);
   });
 
   it("treats hostile strings as serialized data", () => {

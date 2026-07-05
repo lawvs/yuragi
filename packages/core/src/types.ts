@@ -46,12 +46,6 @@ export type Shard = {
   direction: readonly [number, number];
 };
 
-export type OutlineProvider = {
-  preload(texts?: string[]): Promise<void>;
-  get(text: string): TextOutline | undefined;
-  resolve(text: string): Promise<TextOutline>;
-};
-
 export type Align = "start" | "center" | "end";
 
 export type ShardTransitionOptions = {

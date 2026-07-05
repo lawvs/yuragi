@@ -28,17 +28,12 @@ Add the virtual module types to your Vite env file:
 Then import outlines from the virtual module:
 
 ```ts
-import outlines, {
-  bundle,
-  provider,
-} from "virtual:yuragi/outlines";
+import outlines, { bundle } from "virtual:yuragi/outlines";
 ```
 
 The default export is the outline map. The named exports are:
 
 - `bundle`: compiled font metadata and outline map.
-- `provider`: `createStaticOutlineProvider(bundle.outlines)`.
-- `createStaticOutlineProvider`: re-export from `@yuragi/core`.
 
 ## Options
 
