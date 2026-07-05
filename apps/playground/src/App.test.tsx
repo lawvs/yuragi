@@ -166,6 +166,43 @@ describe("App", () => {
     expect(title?.getAttribute("data-transition-speed")).toBe("0.8");
   });
 
+  it("preserves static demo state across playground tab switches", () => {
+    renderApp();
+
+    act(() => {
+      host
+        .querySelector<HTMLButtonElement>('button[data-post-id="settings"]')
+        ?.click();
+    });
+
+    const transitionSpeed = host.querySelector<HTMLInputElement>(
+      'input[name="transition-speed"]',
+    );
+    expect(transitionSpeed).not.toBeNull();
+
+    act(() => {
+      setInputValue(transitionSpeed!, "0.8");
+    });
+
+    act(() => {
+      host
+        .querySelector<HTMLButtonElement>('button[data-view="wasm-lab"]')
+        ?.click();
+    });
+
+    act(() => {
+      host
+        .querySelector<HTMLButtonElement>('button[data-view="demo"]')
+        ?.click();
+    });
+
+    const title = host.querySelector(
+      '.preview-title [data-sharded-text="Settings"]',
+    );
+    expect(title).not.toBeNull();
+    expect(title?.getAttribute("data-transition-speed")).toBe("0.8");
+  });
+
   it("can disable shared title motion from the demo controls", () => {
     renderApp();
 

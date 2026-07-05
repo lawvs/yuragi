@@ -1,11 +1,15 @@
 import { useState } from "react";
-import { StaticDemo } from "./static-demo/StaticDemo";
+import {
+  StaticDemo,
+  useStaticDemoState,
+} from "./static-demo/StaticDemo";
 import { WasmLab } from "./wasm-lab/WasmLab";
 
 type PlaygroundView = "demo" | "wasm-lab";
 
 export function App() {
   const [view, setView] = useState<PlaygroundView>("demo");
+  const staticDemo = useStaticDemoState();
 
   return (
     <main className="playground-shell">
@@ -39,7 +43,7 @@ export function App() {
         </nav>
       </header>
 
-      {view === "wasm-lab" ? <WasmLab /> : <StaticDemo />}
+      {view === "wasm-lab" ? <WasmLab /> : <StaticDemo state={staticDemo} />}
     </main>
   );
 }

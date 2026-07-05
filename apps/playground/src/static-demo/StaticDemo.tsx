@@ -8,7 +8,7 @@ import {
   type Align,
 } from "../demo-options";
 
-export function StaticDemo() {
+export function useStaticDemoState() {
   const [selectedId, setSelectedId] = useState(demoPosts[0]?.id ?? "");
   const [size, setSize] = useState(88);
   const [align, setAlign] = useState<Align>("start");
@@ -20,6 +20,46 @@ export function StaticDemo() {
     () => demoPosts.find((post) => post.id === selectedId) ?? demoPosts[0],
     [selectedId],
   );
+
+  return {
+    selectedId,
+    setSelectedId,
+    selectedPost,
+    size,
+    setSize,
+    align,
+    setAlign,
+    hoverOutline,
+    setHoverOutline,
+    sharedTitleMotion,
+    setSharedTitleMotion,
+    transitionSpeed,
+    setTransitionSpeed,
+  };
+}
+
+export type StaticDemoState = ReturnType<typeof useStaticDemoState>;
+
+type StaticDemoProps = {
+  state: StaticDemoState;
+};
+
+export function StaticDemo({ state }: StaticDemoProps) {
+  const {
+    selectedId,
+    selectedPost,
+    setSelectedId,
+    size,
+    setSize,
+    align,
+    setAlign,
+    hoverOutline,
+    setHoverOutline,
+    sharedTitleMotion,
+    setSharedTitleMotion,
+    transitionSpeed,
+    setTransitionSpeed,
+  } = state;
 
   function selectPost(id: string) {
     startTransition(() => {
@@ -35,7 +75,7 @@ export function StaticDemo() {
     >
       <aside className="post-list" aria-label="Demo posts">
         {demoPosts.map((post) => {
-          const selected = post.id === selectedPost.id;
+          const selected = post.id === selectedId;
           const shouldShare = sharedTitleMotion && !selected;
 
           return (
