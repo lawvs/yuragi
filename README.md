@@ -40,7 +40,6 @@ export function Title() {
     <YuragiFontProvider
       font="/fonts/NotoSerifSC[wght].ttf"
       axes={{ wght: 900 }}
-      preload={["Dashboard"]}
     >
       <YuragiText
         text="Dashboard"

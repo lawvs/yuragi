@@ -24,7 +24,7 @@ export type YuragiFontProviderProps = {
   font: BinarySource | YuragiFont;
   axes?: Record<string, number>;
   wasm?: BinarySource;
-  preload?: boolean | readonly string[];
+  preload?: readonly string[];
   includeStyles?: boolean;
   styleNonce?: string;
 };
@@ -43,10 +43,6 @@ function isYuragiFont(value: BinarySource | YuragiFont): value is YuragiFont {
   );
 }
 
-function preloadTitles(preload: boolean | readonly string[] | undefined) {
-  return Array.isArray(preload) ? preload : undefined;
-}
-
 function stableRecordKey(record: Record<string, number> | undefined) {
   return JSON.stringify(
     Object.fromEntries(
@@ -57,9 +53,8 @@ function stableRecordKey(record: Record<string, number> | undefined) {
   );
 }
 
-function stablePreloadKey(preload: boolean | readonly string[] | undefined) {
-  if (Array.isArray(preload)) return JSON.stringify(preload);
-  return String(preload ?? false);
+function stablePreloadKey(preload: readonly string[] | undefined) {
+  return JSON.stringify(preload ?? []);
 }
 
 export function YuragiFontProvider({
@@ -84,7 +79,7 @@ export function YuragiFontProvider({
 
     if (isYuragiFont(font)) {
       setValue({ font, error: null });
-      if (Array.isArray(preload)) {
+      if (preload) {
         void font.preload(preload).catch((error: unknown) => {
           if (!cancelled) {
             setValue({
@@ -105,7 +100,7 @@ export function YuragiFontProvider({
       font,
       axes,
       wasm,
-      preload: preloadTitles(preload),
+      preload,
     })
       .then((createdFont) => {
         if (cancelled) {

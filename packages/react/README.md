@@ -16,7 +16,6 @@ export function RuntimeTitle({ title }: { title: string }) {
     <YuragiFontProvider
       font="/fonts/NotoSerifSC[wght].ttf"
       axes={{ wght: 900 }}
-      preload={[title]}
     >
       <YuragiText
         text={title}
@@ -37,6 +36,28 @@ Yuragi's required styles by default.
 
 Pass `includeStyles={false}` if your app imports `@yuragi/core/style.css`
 manually, and pass `styleNonce` when your CSP requires a style nonce.
+
+## Preloading Titles
+
+`preload` is optional. `YuragiText` compiles text on demand and renders fallback
+text until the outline is ready.
+
+Use `preload` only when you already know specific titles that should be compiled
+as soon as the provider is ready:
+
+```tsx
+<YuragiFontProvider
+  font="/fonts/NotoSerifSC[wght].ttf"
+  axes={{ wght: 900 }}
+  preload={["Dashboard", "Settings"]}
+>
+  <YuragiText text="Dashboard" />
+</YuragiFontProvider>
+```
+
+This warms Yuragi's in-memory outline cache. It does not preload the font file
+itself; use browser preload links or your framework's asset loading tools for
+that.
 
 ## Installed Local Fonts
 
