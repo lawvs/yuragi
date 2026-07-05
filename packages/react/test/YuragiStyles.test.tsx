@@ -23,10 +23,12 @@ describe("YuragiStyles", () => {
     expect(style?.getAttribute("nonce")).toBe("nonce-123");
   });
 
-  it("renders nothing when disabled", () => {
-    const { container } = render(<YuragiStyles disabled />);
+  it("does not accept disabled props", () => {
+    const element = (
+      // @ts-expect-error callers should omit YuragiStyles instead.
+      <YuragiStyles disabled />
+    );
 
-    expect(container.firstChild).toBeNull();
-    expect(document.querySelector("style[data-yuragi-style]")).toBeNull();
+    expect(element).toBeDefined();
   });
 });

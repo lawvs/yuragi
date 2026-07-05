@@ -128,7 +128,7 @@ export function YuragiFontProvider({
 
   return (
     <>
-      <YuragiStyles disabled={!includeStyles} nonce={styleNonce} />
+      {includeStyles ? <YuragiStyles nonce={styleNonce} /> : null}
       <YuragiFontContext.Provider value={value}>
         {children}
       </YuragiFontContext.Provider>
