@@ -15,23 +15,59 @@ The name comes from Japanese `揺らぎ`, a gentle swaying or flicker that echoe
 
 | Package | Purpose |
 | --- | --- |
-| `@yuragi/react` | React Canary components for static and runtime sharded text. |
+| `@yuragi/react` | React Canary runtime text components and static escape hatch. |
 | `@yuragi/core` | Shared outline types, layout helpers, SVG helpers, and CSS. |
 | `@yuragi/unplugin` | Vite/Rollup/Webpack/esbuild/Rspack build-time outline plugin. |
 | `@yuragi/compiler` | Native Rust-backed build-time outline compiler wrapper. |
-| `@yuragi/wasm` | Experimental runtime WASM compiler for dynamic text. |
+| `@yuragi/wasm` | Lower-level runtime WASM compiler used by the React provider. |
 
 ## Install
 
 ```bash
-pnpm add @yuragi/react @yuragi/core
-pnpm add -D @yuragi/unplugin @yuragi/compiler
+pnpm add @yuragi/react
 ```
 
-Add `@yuragi/wasm` when you need runtime compilation for text that is not
-known at build time.
-
 ## Quick Start
+
+Use the runtime React entry when titles are dynamic or you want the simplest
+setup:
+
+```tsx
+import { YuragiFontProvider, YuragiText } from "@yuragi/react";
+
+export function Title() {
+  return (
+    <YuragiFontProvider
+      font="/fonts/NotoSerifSC[wght].ttf"
+      axes={{ wght: 900 }}
+      preload={["Dashboard"]}
+    >
+      <YuragiText
+        text="Dashboard"
+        sharedId="title:dashboard"
+        size={56}
+        hover="outline"
+        transition={{ enter: "settle", exit: "scatter", speed: 1 }}
+      />
+    </YuragiFontProvider>
+  );
+}
+```
+
+`YuragiFontProvider` loads the font and runtime compiler, caches compiled
+outlines in memory, and renders fallback text until the outline is ready. It
+also includes Yuragi's required styles by default.
+
+## Static Precompile Escape Hatch
+
+Use static precompiled outlines when an app needs lower runtime cost,
+deterministic generated assets, or stricter resource control.
+
+Install the build-time compiler and plugin:
+
+```bash
+pnpm add -D @yuragi/unplugin @yuragi/compiler
+```
 
 Configure the build-time plugin with a font and the titles you want to shard:
 
@@ -58,7 +94,7 @@ Add the virtual module types to your Vite env file:
 Render a title with React Canary:
 
 ```tsx
-import { YuragiStyles, YuragiText } from "@yuragi/react";
+import { YuragiStyles, YuragiText } from "@yuragi/react/static";
 import outlines from "virtual:yuragi/outlines";
 
 export function Title() {
@@ -94,8 +130,8 @@ For package-specific options and lower-level APIs, see the package READMEs:
 
 - React Canary for `@yuragi/react`.
 - Browser support for the View Transition API when using shared element motion.
-- Rust and Cargo on `PATH` when using the build-time compiler wrapper.
 - A font file that can be loaded by the compiler.
+- Rust and Cargo on `PATH` when using the static build-time compiler wrapper.
 
 ## Playground
 

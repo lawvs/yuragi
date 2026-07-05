@@ -54,5 +54,6 @@ const info = runtime.setFont(fontBytes);
 const outline = runtime.compileTitle("Dashboard", { wght: 900 });
 ```
 
-Most applications should use `createYuragiFont` or the React provider from
-`@yuragi/react/wasm` instead.
+Most applications should use `createYuragiFont` directly only for custom
+runtime integrations. React applications should use the provider from
+`@yuragi/react`.
