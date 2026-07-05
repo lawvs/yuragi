@@ -1,5 +1,5 @@
 import { startTransition, useMemo, useState } from "react";
-import { YuragiText } from "@yuragi/react";
+import { YuragiText } from "@yuragi/react/static";
 import outlines from "virtual:yuragi/outlines";
 import { demoPosts, type DemoPost } from "./data";
 import { WasmLab } from "./wasm-lab/WasmLab";

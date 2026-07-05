@@ -38,7 +38,7 @@ vi.mock("../src/YuragiText", () => ({
   ),
 }));
 
-describe("@yuragi/react/wasm", () => {
+describe("@yuragi/react runtime", () => {
   afterEach(() => {
     cleanup();
     vi.mocked(createYuragiFont).mockReset();
@@ -148,7 +148,7 @@ describe("@yuragi/react/wasm", () => {
 
   it("throws when YuragiText is rendered without a YuragiFontProvider", () => {
     expect(() => render(<YuragiText text="Missing Provider" />)).toThrow(
-      "YuragiText from @yuragi/react/wasm requires YuragiFontProvider",
+      "YuragiText from @yuragi/react requires YuragiFontProvider",
     );
   });
 });

@@ -145,7 +145,7 @@ export function useYuragiFont() {
   const context = useContext(YuragiFontContext);
   if (!context) {
     throw new Error(
-      "YuragiText from @yuragi/react/wasm requires YuragiFontProvider",
+      "YuragiText from @yuragi/react requires YuragiFontProvider",
     );
   }
 

@@ -4,7 +4,7 @@
     "types": ["react/canary"],
     "paths": {
       "@yuragi/react": ["../../packages/react/src/index.ts"],
-      "@yuragi/react/wasm": ["../../packages/react/src/wasm.tsx"],
+      "@yuragi/react/static": ["../../packages/react/src/static.ts"],
       "@yuragi/wasm": ["../../packages/wasm/src/index.ts"],
       "@yuragi/wasm/runtime": ["../../packages/wasm/src/runtime.ts"]
     }

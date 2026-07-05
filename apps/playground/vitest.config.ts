@@ -3,8 +3,8 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   resolve: {
     alias: {
-      "@yuragi/react/wasm": new URL(
-        "../../packages/react/src/wasm.tsx",
+      "@yuragi/react/static": new URL(
+        "../../packages/react/src/static.ts",
         import.meta.url,
       ).pathname,
       "@yuragi/react": new URL(
