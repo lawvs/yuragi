@@ -1,14 +1,21 @@
 import { useState } from "react";
+import { RuntimeDemo } from "./runtime-demo/RuntimeDemo";
 import {
   StaticDemo,
   useStaticDemoState,
 } from "./static-demo/StaticDemo";
 import { WasmLab } from "./wasm-lab/WasmLab";
 
-type PlaygroundView = "demo" | "wasm-lab";
+type PlaygroundView = "runtime-demo" | "static-demo" | "wasm-lab";
+
+const viewPipelines: Record<PlaygroundView, string[]> = {
+  "runtime-demo": ["@yuragi/react", "runtime WASM", "ViewTransition"],
+  "static-demo": ["unplugin", "static outlines", "ViewTransition"],
+  "wasm-lab": ["worker", "runtime compiler", "metrics"],
+};
 
 export function App() {
-  const [view, setView] = useState<PlaygroundView>("demo");
+  const [view, setView] = useState<PlaygroundView>("runtime-demo");
   const staticDemo = useStaticDemoState();
 
   return (
@@ -19,18 +26,26 @@ export function App() {
           <h1>Playground</h1>
         </div>
         <div className="status-strip" aria-label="Pipeline">
-          <span>unplugin</span>
-          <span>ViewTransition</span>
-          <span>core CSS</span>
+          {viewPipelines[view].map((label) => (
+            <span key={label}>{label}</span>
+          ))}
         </div>
         <nav className="view-tabs" aria-label="Playground views">
           <button
             type="button"
-            data-view="demo"
-            aria-pressed={view === "demo"}
-            onClick={() => setView("demo")}
+            data-view="runtime-demo"
+            aria-pressed={view === "runtime-demo"}
+            onClick={() => setView("runtime-demo")}
           >
-            Demo
+            Runtime Demo
+          </button>
+          <button
+            type="button"
+            data-view="static-demo"
+            aria-pressed={view === "static-demo"}
+            onClick={() => setView("static-demo")}
+          >
+            Static Demo
           </button>
           <button
             type="button"
@@ -43,7 +58,9 @@ export function App() {
         </nav>
       </header>
 
-      {view === "wasm-lab" ? <WasmLab /> : <StaticDemo state={staticDemo} />}
+      {view === "runtime-demo" ? <RuntimeDemo /> : null}
+      {view === "static-demo" ? <StaticDemo state={staticDemo} /> : null}
+      {view === "wasm-lab" ? <WasmLab /> : null}
     </main>
   );
 }
