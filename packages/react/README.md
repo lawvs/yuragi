@@ -38,6 +38,46 @@ Yuragi's required styles by default.
 Pass `includeStyles={false}` if your app imports `@yuragi/core/style.css`
 manually, and pass `styleNonce` when your CSP requires a style nonce.
 
+## Installed Local Fonts
+
+Yuragi needs font bytes so the runtime compiler can read glyph outlines. CSS
+local fonts such as `font-family` or `@font-face src: local(...)` can render
+text in the browser, but they do not expose the underlying font bytes to
+JavaScript.
+
+If your app wants to use installed fonts, load them with the browser's Local
+Font Access API and pass the bytes to `YuragiFontProvider`:
+
+```tsx
+async function loadInstalledFont(postscriptName: string) {
+  if (!("queryLocalFonts" in window)) {
+    throw new Error("Local Font Access API is not supported");
+  }
+
+  const fonts = await window.queryLocalFonts({
+    postscriptNames: [postscriptName],
+  });
+  const font = fonts[0];
+
+  if (!font) {
+    throw new Error(`Local font not found: ${postscriptName}`);
+  }
+
+  return await (await font.blob()).arrayBuffer();
+}
+
+<YuragiFontProvider
+  font={() => loadInstalledFont("SourceHanSerifSC-Bold")}
+  axes={{ wght: 900 }}
+>
+  <YuragiText text="Dashboard" />
+</YuragiFontProvider>;
+```
+
+This requires a secure context and user permission, and browser support is
+limited. For most production apps, a URL font from `/public` or a CDN is more
+reliable.
+
 ## Runtime Props
 
 - `text`: rendered string.
