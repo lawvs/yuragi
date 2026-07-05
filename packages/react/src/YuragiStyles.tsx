@@ -1,4 +1,3 @@
-import * as React from "react";
 import { YURAGI_STYLE_TEXT } from "@yuragi/core";
 
 export type YuragiStylesProps = {

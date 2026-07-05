@@ -1,4 +1,3 @@
-import React from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { readFileSync } from "node:fs";
@@ -17,7 +16,7 @@ const reactMocks = vi.hoisted(() => ({
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
 vi.mock("react", async () => {
-  const actual = await vi.importActual<typeof React>("react");
+  const actual = await vi.importActual<typeof import("react")>("react");
   return {
     ...actual,
     startTransition: reactMocks.startTransition,

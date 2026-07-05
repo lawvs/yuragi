@@ -1,4 +1,4 @@
-import * as React from "react";
+import { ViewTransition, type ReactNode } from "react";
 import { ShardedSvg } from "./ShardedSvg";
 import { createTextFallbackStyle } from "./style";
 import type { ResolvedYuragiTextProps, YuragiTextProps } from "./types";
@@ -12,22 +12,13 @@ export function YuragiText(input: YuragiTextProps) {
     ...input,
   };
 
-  const ViewTransition = (
-    React as typeof React & {
-      ViewTransition?: React.ComponentType<{
-        name: string;
-        children: React.ReactNode;
-      }>;
-    }
-  ).ViewTransition;
-
   if (props.sharedId && !ViewTransition) {
     throw new Error(
       "yuragi v1 requires React Canary ViewTransition when sharedId is set",
     );
   }
 
-  let content: React.ReactNode;
+  let content: ReactNode;
 
   if (!props.outline) {
     if (props.fallback === "hidden") return null;

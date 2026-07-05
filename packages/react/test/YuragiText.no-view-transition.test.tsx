@@ -1,12 +1,12 @@
-import React from "react";
 import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { YuragiText } from "../src/YuragiText";
 
 vi.mock("react", async () => {
-  const actual = await vi.importActual<typeof React & { ViewTransition?: unknown }>(
-    "react",
-  );
+  const actual =
+    await vi.importActual<typeof import("react") & { ViewTransition?: unknown }>(
+      "react",
+    );
   return {
     ...actual,
     ViewTransition: undefined,

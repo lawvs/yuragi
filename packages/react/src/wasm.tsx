@@ -1,4 +1,10 @@
-import * as React from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   createYuragiFont,
   type BinarySource,
@@ -14,7 +20,7 @@ type YuragiFontContextValue = {
 };
 
 export type YuragiFontProviderProps = {
-  children: React.ReactNode;
+  children: ReactNode;
   font: BinarySource | YuragiFont;
   axes?: Record<string, number>;
   wasm?: BinarySource;
@@ -25,8 +31,7 @@ export type YuragiFontProviderProps = {
 
 export type RuntimeYuragiTextProps = Omit<YuragiTextProps, "outline">;
 
-const YuragiFontContext =
-  React.createContext<YuragiFontContextValue | null>(null);
+const YuragiFontContext = createContext<YuragiFontContextValue | null>(null);
 
 function isYuragiFont(value: BinarySource | YuragiFont): value is YuragiFont {
   return (
@@ -66,14 +71,14 @@ export function YuragiFontProvider({
   styleNonce,
   wasm,
 }: YuragiFontProviderProps) {
-  const [value, setValue] = React.useState<YuragiFontContextValue>({
+  const [value, setValue] = useState<YuragiFontContextValue>({
     font: isYuragiFont(font) ? font : null,
     error: null,
   });
   const axesKey = stableRecordKey(axes);
   const preloadKey = stablePreloadKey(preload);
 
-  React.useEffect(() => {
+  useEffect(() => {
     let cancelled = false;
     let ownedFont: YuragiFont | null = null;
 
@@ -137,7 +142,7 @@ export function YuragiFontProvider({
 }
 
 export function useYuragiFont() {
-  const context = React.useContext(YuragiFontContext);
+  const context = useContext(YuragiFontContext);
   if (!context) {
     throw new Error(
       "YuragiText from @yuragi/react/wasm requires YuragiFontProvider",
@@ -149,9 +154,9 @@ export function useYuragiFont() {
 
 export function YuragiText(props: RuntimeYuragiTextProps) {
   const { error, font } = useYuragiFont();
-  const [outline, setOutline] = React.useState<YuragiTextProps["outline"]>();
+  const [outline, setOutline] = useState<YuragiTextProps["outline"]>();
 
-  React.useEffect(() => {
+  useEffect(() => {
     let cancelled = false;
     setOutline(undefined);
 

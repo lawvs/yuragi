@@ -1,18 +1,18 @@
-import React from "react";
+import { StrictMode, type CSSProperties, type ReactNode } from "react";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { YuragiText } from "../src/YuragiText";
 import { animateShards, type TextOutline } from "@yuragi/core";
 
 vi.mock("react", async () => {
-  const actual = await vi.importActual<typeof React>("react");
+  const actual = await vi.importActual<typeof import("react")>("react");
   return {
     ...actual,
     ViewTransition: ({
       children,
       name,
     }: {
-      children: React.ReactNode;
+      children: ReactNode;
       name: string;
     }) => <div data-view-transition={name}>{children}</div>,
   };
@@ -388,13 +388,13 @@ describe("YuragiText", () => {
 
   it("does not scatter during StrictMode initial mount", async () => {
     render(
-      <React.StrictMode>
+      <StrictMode>
         <YuragiText
           text="A"
           outline={outline}
           transition={{ enter: "settle", exit: "scatter" }}
         />
-      </React.StrictMode>,
+      </StrictMode>,
     );
     await Promise.resolve();
 
@@ -457,7 +457,7 @@ describe("YuragiText", () => {
             strokeOpacity: 0.25,
             strokeWidth: 2,
             "--yuragi-test": 4,
-          } as React.CSSProperties
+          } as CSSProperties
         }
       />,
     );

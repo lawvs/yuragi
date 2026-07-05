@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useLayoutEffect, useRef } from "react";
 import {
   animateShards,
   createShardedSvg,
@@ -40,14 +40,14 @@ function hasSameSvgLayout(
 }
 
 export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
-  const hostRef = React.useRef<HTMLSpanElement>(null);
-  const svgRef = React.useRef<SVGSVGElement | null>(null);
-  const renderedSvgRef = React.useRef<RenderedSvgState | null>(null);
-  const pendingScatterRef = React.useRef<{ cancelled: boolean } | null>(null);
-  const latestTransitionRef = React.useRef(props.transition);
+  const hostRef = useRef<HTMLSpanElement>(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const renderedSvgRef = useRef<RenderedSvgState | null>(null);
+  const pendingScatterRef = useRef<{ cancelled: boolean } | null>(null);
+  const latestTransitionRef = useRef(props.transition);
   latestTransitionRef.current = props.transition;
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     const host = hostRef.current;
     if (!host || !props.outline) return;
 
@@ -124,7 +124,7 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
     props.text,
   ]);
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     const pending = pendingScatterRef.current;
     if (pending) pending.cancelled = true;
 
