@@ -23,7 +23,7 @@ vi.mock("react", async () => {
   };
 });
 
-vi.mock("@yuragi/react", () => ({
+vi.mock("@yuragi/react/static", () => ({
   YuragiText: ({
     text,
     sharedId,
