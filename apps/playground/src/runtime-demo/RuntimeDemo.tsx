@@ -1,6 +1,6 @@
 import { startTransition, useMemo, useState } from "react";
 import { YuragiFontProvider, YuragiText } from "@yuragi/react";
-import { demoPosts } from "../data";
+import { runtimePosts } from "../data";
 import {
   alignOptions,
   titleSharedId,
@@ -13,7 +13,10 @@ import {
 } from "../font-presets";
 
 export function RuntimeDemo() {
-  const [selectedId, setSelectedId] = useState(demoPosts[0]?.id ?? "");
+  const [selectedId, setSelectedId] = useState(runtimePosts[0]?.id ?? "");
+  const [draftTitle, setDraftTitle] = useState(
+    runtimePosts[0]?.title ?? "",
+  );
   const [size, setSize] = useState(88);
   const [align, setAlign] = useState<Align>("start");
   const [hoverOutline, setHoverOutline] = useState(true);
@@ -21,13 +24,20 @@ export function RuntimeDemo() {
   const [transitionSpeed, setTransitionSpeed] = useState(1);
 
   const selectedPost = useMemo(
-    () => demoPosts.find((post) => post.id === selectedId) ?? demoPosts[0],
+    () =>
+      runtimePosts.find((post) => post.id === selectedId) ??
+      runtimePosts[0],
     [selectedId],
   );
 
   function selectPost(id: string) {
+    const post =
+      runtimePosts.find((candidate) => candidate.id === id) ??
+      runtimePosts[0];
+
     startTransition(() => {
-      setSelectedId(id);
+      setSelectedId(post?.id ?? "");
+      setDraftTitle(post?.title ?? "");
     });
   }
 
@@ -43,7 +53,7 @@ export function RuntimeDemo() {
         aria-label="Runtime React demo"
       >
         <aside className="post-list" aria-label="Demo posts">
-          {demoPosts.map((post) => {
+          {runtimePosts.map((post) => {
             const selected = post.id === selectedId;
             const shouldShare = sharedTitleMotion && !selected;
 
@@ -77,7 +87,7 @@ export function RuntimeDemo() {
             <button
               className="back-button"
               type="button"
-              onClick={() => selectPost(demoPosts[0]?.id ?? "")}
+              onClick={() => selectPost(runtimePosts[0]?.id ?? "")}
             >
               Back
             </button>
@@ -94,6 +104,16 @@ export function RuntimeDemo() {
                   onChange={(event) => setSize(Number(event.target.value))}
                 />
                 <output>{size}px</output>
+              </label>
+
+              <label className="text-control">
+                <span>Title</span>
+                <input
+                  aria-label="Runtime title text"
+                  name="runtime-title"
+                  value={draftTitle}
+                  onChange={(event) => setDraftTitle(event.target.value)}
+                />
               </label>
 
               <label className="range-control">
@@ -156,7 +176,7 @@ export function RuntimeDemo() {
           <article className="preview-surface">
             <div className="preview-title">
               <YuragiText
-                text={selectedPost.title}
+                text={draftTitle}
                 sharedId={
                   sharedTitleMotion ? titleSharedId(selectedPost) : false
                 }

@@ -25,3 +25,5 @@ export const demoPosts: DemoPost[] = [
 export const outlineTitles = demoPosts
   .filter((post) => post.id !== "missing")
   .map((post) => post.title);
+
+export const runtimePosts = demoPosts.filter((post) => post.id !== "missing");

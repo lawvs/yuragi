@@ -197,6 +197,7 @@ h1 {
 
 .range-control,
 .select-control,
+.text-control,
 .toggle-control {
   display: inline-flex;
   align-items: center;
@@ -230,8 +231,22 @@ h1 {
   gap: 7px;
 }
 
+.text-control {
+  gap: 7px;
+}
+
 .select-control select {
   min-width: 92px;
+  border: 1px solid #bfc6bf;
+  border-radius: 6px;
+  padding: 3px 8px;
+  background: #fbfaf7;
+  color: #18201d;
+}
+
+.text-control input {
+  width: 170px;
+  min-width: 0;
   border: 1px solid #bfc6bf;
   border-radius: 6px;
   padding: 3px 8px;
@@ -473,6 +488,7 @@ h1 {
   }
 
   .select-control,
+  .text-control,
   .toggle-control {
     flex: 1 1 150px;
   }
@@ -500,6 +516,7 @@ h1 {
 
   .range-control,
   .select-control,
+  .text-control,
   .toggle-control {
     width: 100%;
   }
@@ -511,6 +528,10 @@ h1 {
 
   .range-control input {
     min-width: 0;
+    width: 100%;
+  }
+
+  .text-control input {
     width: 100%;
   }
 

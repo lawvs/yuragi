@@ -158,6 +158,25 @@ describe("App", () => {
     expect(provider?.getAttribute("data-axes")).toBe('{"wght":900}');
     expect(dashboard?.getAttribute("data-shared-id")).toBe("title:dashboard");
     expect(host.querySelector("[data-static-sharded-text]")).toBeNull();
+    expect(host.textContent).not.toContain("Missing Outline");
+  });
+
+  it("updates the runtime preview title from text input", () => {
+    renderApp();
+
+    const titleInput = host.querySelector<HTMLInputElement>(
+      'input[name="runtime-title"]',
+    );
+    expect(titleInput).not.toBeNull();
+
+    act(() => {
+      setInputValue(titleInput!, "Live Runtime Title");
+    });
+
+    const title = host.querySelector(
+      '.preview-title [data-runtime-sharded-text="Live Runtime Title"]',
+    );
+    expect(title?.getAttribute("data-shared-id")).toBe("title:dashboard");
   });
 
   it("keeps the precompiled static demo behind an explicit tab", () => {
