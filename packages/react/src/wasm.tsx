@@ -2,6 +2,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -150,9 +151,20 @@ export function useYuragiFont() {
 export function YuragiText(props: RuntimeYuragiTextProps) {
   const { error, font } = useYuragiFont();
   const [outline, setOutline] = useState<YuragiTextProps["outline"]>();
+  const previousFontRef = useRef(font);
+  const previousErrorRef = useRef(error);
+  const hasDisplayedOutlineRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
+    if (
+      previousFontRef.current !== font ||
+      previousErrorRef.current !== error
+    ) {
+      previousFontRef.current = font;
+      previousErrorRef.current = error;
+      hasDisplayedOutlineRef.current = false;
+    }
     setOutline(undefined);
 
     if (!font || error) return;
@@ -175,5 +187,24 @@ export function YuragiText(props: RuntimeYuragiTextProps) {
     };
   }, [error, font, props.text]);
 
-  return <StaticYuragiText {...props} outline={outline} />;
+  useEffect(() => {
+    if (outline) {
+      hasDisplayedOutlineRef.current = true;
+    }
+  }, [outline]);
+
+  const transition =
+    outline &&
+    !hasDisplayedOutlineRef.current &&
+    props.transition?.enter === "settle"
+      ? { ...props.transition, enter: "none" as const }
+      : props.transition;
+
+  return (
+    <StaticYuragiText
+      {...props}
+      outline={outline}
+      transition={transition}
+    />
+  );
 }

@@ -21,22 +21,39 @@ vi.mock("../src/YuragiText", () => ({
     outline,
     fallback,
     sharedId,
+    transition,
   }: {
     text: string;
     outline?: TextOutline;
     fallback?: string;
     sharedId?: string | false;
+    transition?: {
+      enter?: string;
+      exit?: string;
+      speed?: number;
+    };
   }) => (
     <span
       data-fallback={fallback}
       data-has-outline={outline ? "yes" : "no"}
       data-sharded-text={text}
       data-shared-id={sharedId || undefined}
+      data-transition-enter={transition?.enter}
+      data-transition-exit={transition?.exit}
+      data-transition-speed={transition?.speed}
     >
       {text}
     </span>
   ),
 }));
+
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((nextResolve) => {
+    resolve = nextResolve;
+  });
+  return { promise, resolve };
+}
 
 describe("@yuragi/react runtime", () => {
   afterEach(() => {
@@ -90,6 +107,114 @@ describe("@yuragi/react runtime", () => {
 
     cleanup();
     expect(font.dispose).toHaveBeenCalled();
+  });
+
+  it("does not use enter transition for the first runtime outline reveal", async () => {
+    const compiled = deferred<TextOutline>();
+    const font = {
+      info: { bytes: 3, unitsPerEm: 1000 },
+      compile: vi.fn(() => compiled.promise),
+      preload: vi.fn(async () => undefined),
+      dispose: vi.fn(),
+    };
+
+    render(
+      <YuragiFontProvider font={font}>
+        <YuragiText
+          text="Runtime"
+          transition={{ enter: "settle", exit: "scatter", speed: 0.8 }}
+        />
+      </YuragiFontProvider>,
+    );
+
+    expect(screen.getByText("Runtime").dataset.hasOutline).toBe("no");
+
+    await act(async () => {
+      compiled.resolve(outline);
+      await compiled.promise;
+    });
+
+    const rendered = screen.getByText("Runtime");
+    expect(rendered.dataset.hasOutline).toBe("yes");
+    expect(rendered.dataset.transitionEnter).toBe("none");
+    expect(rendered.dataset.transitionExit).toBe("scatter");
+    expect(rendered.dataset.transitionSpeed).toBe("0.8");
+  });
+
+  it("keeps enter transition for runtime text changes after the first outline", async () => {
+    const first = deferred<TextOutline>();
+    const second = deferred<TextOutline>();
+    const font = {
+      info: { bytes: 3, unitsPerEm: 1000 },
+      compile: vi.fn((text: string) =>
+        text === "First" ? first.promise : second.promise,
+      ),
+      preload: vi.fn(async () => undefined),
+      dispose: vi.fn(),
+    };
+
+    const { rerender } = render(
+      <YuragiFontProvider font={font}>
+        <YuragiText text="First" transition={{ enter: "settle" }} />
+      </YuragiFontProvider>,
+    );
+
+    await act(async () => {
+      first.resolve(outline);
+      await first.promise;
+    });
+
+    expect(screen.getByText("First").dataset.transitionEnter).toBe("none");
+
+    rerender(
+      <YuragiFontProvider font={font}>
+        <YuragiText text="Second" transition={{ enter: "settle" }} />
+      </YuragiFontProvider>,
+    );
+
+    await act(async () => {
+      second.resolve(outline);
+      await second.promise;
+    });
+
+    const rendered = screen.getByText("Second");
+    expect(rendered.dataset.hasOutline).toBe("yes");
+    expect(rendered.dataset.transitionEnter).toBe("settle");
+  });
+
+  it("does not use enter transition when text changes before the first runtime outline reveal", async () => {
+    const first = deferred<TextOutline>();
+    const second = deferred<TextOutline>();
+    const font = {
+      info: { bytes: 3, unitsPerEm: 1000 },
+      compile: vi.fn((text: string) =>
+        text === "First" ? first.promise : second.promise,
+      ),
+      preload: vi.fn(async () => undefined),
+      dispose: vi.fn(),
+    };
+
+    const { rerender } = render(
+      <YuragiFontProvider font={font}>
+        <YuragiText text="First" transition={{ enter: "settle" }} />
+      </YuragiFontProvider>,
+    );
+
+    rerender(
+      <YuragiFontProvider font={font}>
+        <YuragiText text="Second" transition={{ enter: "settle" }} />
+      </YuragiFontProvider>,
+    );
+
+    await act(async () => {
+      first.resolve(outline);
+      second.resolve(outline);
+      await Promise.all([first.promise, second.promise]);
+    });
+
+    const rendered = screen.getByText("Second");
+    expect(rendered.dataset.hasOutline).toBe("yes");
+    expect(rendered.dataset.transitionEnter).toBe("none");
   });
 
   it("includes YuragiStyles by default", () => {
