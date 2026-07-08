@@ -1,11 +1,28 @@
 :root {
-  color: #18201d;
-  background: #f5f4ef;
+  color-scheme: light dark;
+  --color-bg: #fff;
+  --color-fg: #000;
+  --color-fg-secondary: oklab(0.3 0 0);
+  --color-bg-block: rgba(0, 0, 0, 0.05);
+  --color-border: color-mix(in srgb, var(--color-fg) 16%, transparent);
+
+  color: var(--color-fg);
+  background: var(--color-bg);
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #2e2f33;
+    --color-fg: oklab(0.95 0 0);
+    --color-fg-secondary: oklab(0.8 0 0);
+    --color-bg-block: rgba(0, 0, 0, 0.2);
+    --color-border: color-mix(in srgb, var(--color-fg) 20%, transparent);
+  }
 }
 
 * {
@@ -42,9 +59,9 @@ input {
 .field,
 .toggle,
 .presets button {
-  border: 1px solid #ccc8bb;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: #fffdfa;
+  background: var(--color-bg-block);
 }
 
 .field {
@@ -55,7 +72,7 @@ input {
 
 .field span,
 .toggle span {
-  color: #405047;
+  color: var(--color-fg-secondary);
   font-size: 0.9rem;
   font-weight: 700;
 }
@@ -64,19 +81,18 @@ input {
 .field input:not([type]) {
   min-width: 0;
   min-height: 38px;
-  border: 1px solid #bfc6bf;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 6px 9px;
-  background: #fbfaf7;
+  background: var(--color-bg);
 }
 
 .field input[type="range"] {
   width: 100%;
-  accent-color: #24473a;
+  accent-color: var(--color-fg);
 }
 
 .field output {
-  color: #18201d;
   font-variant-numeric: tabular-nums;
 }
 
@@ -91,7 +107,7 @@ input {
 .toggle input {
   width: 16px;
   height: 16px;
-  accent-color: #24473a;
+  accent-color: var(--color-fg);
 }
 
 .presets {
@@ -107,9 +123,8 @@ input {
 }
 
 .presets button[aria-pressed="true"] {
-  border-color: #24473a;
-  background: #24473a;
-  color: #ffffff;
+  background: var(--color-fg);
+  color: var(--color-bg);
 }
 
 .preview {
@@ -117,10 +132,10 @@ input {
   min-width: 0;
   min-height: 440px;
   align-content: center;
-  border: 1px solid #d1cdc0;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: clamp(20px, 6vw, 56px);
-  background: #fffdfa;
+  background: var(--color-bg-block);
   overflow-wrap: anywhere;
 }
 
