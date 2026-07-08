@@ -37,6 +37,11 @@ Yuragi's required styles by default.
 Pass `includeStyles={false}` if your app imports `@yuragi/core/style.css`
 manually, and pass `styleNonce` when your CSP requires a style nonce.
 
+## Runnable Example
+
+See [`examples/react-runtime-vite`](../../examples/react-runtime-vite) for a
+minimal Vite + React example using the runtime provider with dynamic text.
+
 ## Preloading Titles
 
 `preload` is optional. `YuragiText` compiles text on demand and renders fallback

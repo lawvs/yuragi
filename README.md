@@ -57,6 +57,19 @@ export function Title() {
 outlines in memory, and renders fallback text until the outline is ready. It
 also includes Yuragi's required styles by default.
 
+## Example
+
+Run the minimal Vite + React runtime example:
+
+```bash
+pnpm install
+pnpm build
+pnpm --filter @yuragi/example-react-runtime-vite dev
+```
+
+See [`examples/react-runtime-vite`](examples/react-runtime-vite) for the full
+example source.
+
 ## Static Precompile Escape Hatch
 
 Use static precompiled outlines when an app needs lower runtime cost,
