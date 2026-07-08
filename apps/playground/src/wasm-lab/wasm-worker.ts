@@ -1,4 +1,5 @@
 import { YuragiWasmRuntime } from "@yuragi/wasm/runtime";
+import type { FontAxes } from "@yuragi/core";
 
 type LoadWasmMessage = {
   type: "load-wasm";
@@ -18,7 +19,7 @@ type LoadLocalFontMessage = {
 type CompileMessage = {
   type: "compile";
   text: string;
-  axes: Record<string, number>;
+  axes: FontAxes;
 };
 
 type IncomingMessage =
@@ -85,7 +86,7 @@ async function loadRemoteFont(fontUrl: string) {
   await setFont(await response.arrayBuffer(), start);
 }
 
-function compile(text: string, axes: Record<string, number>) {
+function compile(text: string, axes: FontAxes) {
   if (!runtime) {
     throw new Error("load the WASM compiler before compiling text");
   }

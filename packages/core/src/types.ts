@@ -1,10 +1,35 @@
 export const YURAGI_BUNDLE_VERSION = 1 as const;
 
+export type KnownFontAxisTag =
+  | "wght"
+  | "wdth"
+  | "slnt"
+  | "ital"
+  | "opsz"
+  | "GRAD"
+  | "XOPQ"
+  | "YOPQ"
+  | "XTRA"
+  | "YTUC"
+  | "YTLC"
+  | "YTAS"
+  | "YTDE"
+  | "YTFI"
+  | "CASL"
+  | "MONO"
+  | "CRSV";
+
+export type FontAxisTag = KnownFontAxisTag | (string & {});
+
+export type FontAxes = Readonly<
+  Partial<Record<KnownFontAxisTag, number>> & Record<string, number>
+>;
+
 export type TextOutlineBundle = {
   version: typeof YURAGI_BUNDLE_VERSION;
   font: {
     source: string;
-    axes?: Record<string, number>;
+    axes?: FontAxes;
     unitsPerEm: number;
     hash: string;
   };

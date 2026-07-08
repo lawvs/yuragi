@@ -10,11 +10,13 @@ inside the installed package.
 ## API
 
 ```ts
-import { compileOutlines } from "@yuragi/compiler";
+import { compileOutlines, type FontAxes } from "@yuragi/compiler";
+
+const axes = { wght: 900 } satisfies FontAxes;
 
 const bundle = await compileOutlines({
   font: "./fonts/title.otf",
-  axes: { wght: 900 },
+  axes,
   titles: ["Dashboard", "Settings"],
 });
 ```
@@ -33,7 +35,7 @@ The compiler deduplicates title strings before invoking the native compiler.
 ## Options
 
 - `font`: font file path.
-- `axes`: optional variation axis values for variable fonts.
+- `axes`: optional `FontAxes` variation axis values for variable fonts.
 - `titles`: explicit strings to compile, or an async function that returns them.
 
 The output is a `TextOutlineBundle` from `@yuragi/core`.

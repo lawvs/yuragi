@@ -3,6 +3,7 @@
   "compilerOptions": {
     "types": ["react/canary"],
     "paths": {
+      "@yuragi/core": ["../../packages/core/src/index.ts"],
       "@yuragi/react": ["../../packages/react/src/index.ts"],
       "@yuragi/react/static": ["../../packages/react/src/static.ts"],
       "@yuragi/wasm": ["../../packages/wasm/src/index.ts"],

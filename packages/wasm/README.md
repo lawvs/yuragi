@@ -6,11 +6,13 @@ at build time or when users can provide their own text.
 ## Font API
 
 ```ts
-import { createYuragiFont } from "@yuragi/wasm";
+import { createYuragiFont, type FontAxes } from "@yuragi/wasm";
+
+const axes = { wght: 900 } satisfies FontAxes;
 
 const font = await createYuragiFont({
   font: "/fonts/NotoSerifSC[wght].ttf",
-  axes: { wght: 900 },
+  axes,
   preload: ["复杂分层"],
 });
 
@@ -41,6 +43,10 @@ type BinarySource =
 
 String and URL sources use `fetch`. Pass a custom `fetch` implementation when
 running in an environment without `globalThis.fetch`.
+
+`FontAxes` includes common OpenType variation axis tags such as `wght`, `wdth`,
+`opsz`, `slnt`, and `ital`, while still allowing custom tags from specific
+fonts.
 
 ## Lower-Level Runtime
 

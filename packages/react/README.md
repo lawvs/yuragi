@@ -37,6 +37,23 @@ Yuragi's required styles by default.
 Pass `includeStyles={false}` if your app imports `@yuragi/core/style.css`
 manually, and pass `styleNonce` when your CSP requires a style nonce.
 
+## Font Axes
+
+`axes` accepts `FontAxes`, which includes common OpenType variation axis tags
+such as `wght`, `wdth`, `opsz`, `slnt`, and `ital`, while still allowing custom
+4-character tags from specific fonts:
+
+```tsx
+import type { FontAxes } from "@yuragi/react";
+
+const axes = {
+  wght: 900,
+  opsz: 18,
+  XOPQ: 120,
+  TEST: 1,
+} satisfies FontAxes;
+```
+
 ## Runnable Example
 
 See [`examples/react-runtime-vite`](../../examples/react-runtime-vite) for a

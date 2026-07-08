@@ -3,6 +3,7 @@ import type { TextOutlineBundle } from "@yuragi/core";
 import type { CompileOutlinesOptions } from "./types";
 
 export type { CompileOutlinesOptions };
+export type { FontAxes, FontAxisTag, KnownFontAxisTag } from "@yuragi/core";
 
 export async function normalizeTitles(
   titles: CompileOutlinesOptions["titles"],

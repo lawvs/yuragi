@@ -7,12 +7,15 @@ into `virtual:yuragi/outlines`, which can be rendered by `@yuragi/react`.
 
 ```ts
 import Yuragi from "@yuragi/unplugin/vite";
+import type { FontAxes } from "@yuragi/unplugin";
+
+const axes = { wght: 900 } satisfies FontAxes;
 
 export default {
   plugins: [
     Yuragi({
       font: "./fonts/title.otf",
-      axes: { wght: 900 },
+      axes,
       titles: ["Dashboard", "Settings"],
     }),
   ],
@@ -38,15 +41,18 @@ The default export is the outline map. The named exports are:
 ## Options
 
 ```ts
+import type { FontAxes } from "@yuragi/unplugin";
+
 type YuragiPluginOptions = {
   font: string;
-  axes?: Record<string, number>;
+  axes?: FontAxes;
   titles: string[] | (() => string[] | Promise<string[]>);
 };
 ```
 
 - `font`: local font path passed to the compiler wrapper.
-- `axes`: variation axis values for variable fonts.
+- `axes`: variation axis values for variable fonts, with common OpenType tags
+  typed and custom tags still allowed.
 - `titles`: explicit strings to compile, or an async function that returns them.
 
 `titles` is intentionally explicit. Yuragi does not scan source files for text.

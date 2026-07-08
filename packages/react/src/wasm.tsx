@@ -11,9 +11,12 @@ import {
   type BinarySource,
   type YuragiFont,
 } from "@yuragi/wasm";
+import type { FontAxes } from "@yuragi/core";
 import { YuragiStyles } from "./YuragiStyles";
 import { YuragiText as StaticYuragiText } from "./YuragiText";
 import type { YuragiTextProps } from "./types";
+
+export type { FontAxes, FontAxisTag, KnownFontAxisTag } from "@yuragi/core";
 
 type YuragiFontContextValue = {
   font: YuragiFont | null;
@@ -23,7 +26,7 @@ type YuragiFontContextValue = {
 export type YuragiFontProviderProps = {
   children: ReactNode;
   font: BinarySource | YuragiFont;
-  axes?: Record<string, number>;
+  axes?: FontAxes;
   wasm?: BinarySource;
   preload?: readonly string[];
   includeStyles?: boolean;
@@ -44,7 +47,7 @@ function isYuragiFont(value: BinarySource | YuragiFont): value is YuragiFont {
   );
 }
 
-function stableRecordKey(record: Record<string, number> | undefined) {
+function stableRecordKey(record: FontAxes | undefined) {
   return JSON.stringify(
     Object.fromEntries(
       Object.entries(record ?? {}).sort(([left], [right]) =>

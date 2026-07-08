@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { YuragiFontProvider, YuragiText } from "@yuragi/react";
+import type { FontAxes } from "@yuragi/react";
 import { RuntimeControls } from "./RuntimeControls";
 
 const FONT_URL =
   "https://raw.githubusercontent.com/adobe-fonts/source-han-serif/release/Variable/OTF/SourceHanSerifSC-VF.otf";
-const AXES = { wght: 900 };
+const AXES = { wght: 900 } satisfies FontAxes;
 const PRESETS = ["Dashboard", "Settings", "揺らぎ", "Live Runtime Title"] as const;
 
 export function App() {

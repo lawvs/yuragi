@@ -1,4 +1,4 @@
-import type { TextOutline } from "@yuragi/core";
+import type { FontAxes, TextOutline } from "@yuragi/core";
 import {
   YuragiWasmRuntime,
   type YuragiFontInfo,
@@ -7,6 +7,7 @@ import {
 
 export { YuragiWasmRuntime };
 export type { YuragiFontInfo, YuragiRuntime };
+export type { FontAxes, FontAxisTag, KnownFontAxisTag } from "@yuragi/core";
 
 export type BinarySource =
   | string
@@ -16,7 +17,7 @@ export type BinarySource =
   | (() => BinarySource | Promise<BinarySource>);
 
 export type CompileOptions = {
-  axes?: Record<string, number>;
+  axes?: FontAxes;
 };
 
 export type YuragiFont = {
@@ -28,7 +29,7 @@ export type YuragiFont = {
 
 export type CreateYuragiFontOptions = {
   font: BinarySource;
-  axes?: Record<string, number>;
+  axes?: FontAxes;
   wasm?: BinarySource;
   preload?: readonly string[];
   fetch?: typeof fetch;
@@ -79,7 +80,7 @@ async function resolveBinarySource(
   return toArrayBuffer(resolved);
 }
 
-function stableAxesKey(axes: Record<string, number>) {
+function stableAxesKey(axes: FontAxes) {
   return JSON.stringify(
     Object.fromEntries(
       Object.entries(axes).sort(([left], [right]) =>
@@ -92,13 +93,13 @@ function stableAxesKey(axes: Record<string, number>) {
 class RuntimeYuragiFont implements YuragiFont {
   readonly info: YuragiFontInfo;
   #runtime: YuragiRuntime | null;
-  #axes: Record<string, number>;
+  #axes: FontAxes;
   #cache = new Map<string, Promise<TextOutline>>();
 
   constructor(
     runtime: YuragiRuntime,
     info: YuragiFontInfo,
-    axes: Record<string, number>,
+    axes: FontAxes,
   ) {
     this.#runtime = runtime;
     this.info = info;
@@ -135,7 +136,7 @@ export async function createYuragiFont(
   options: CreateYuragiFontOptions,
 ): Promise<YuragiFont> {
   const fetchImpl = options.fetch ?? globalThis.fetch?.bind(globalThis);
-  const axes = options.axes ?? {};
+  const axes: FontAxes = options.axes ?? {};
   const runtime =
     options.runtime ??
     (await YuragiWasmRuntime.load(

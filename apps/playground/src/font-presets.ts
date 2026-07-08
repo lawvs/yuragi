@@ -1,17 +1,19 @@
+import type { FontAxes } from "@yuragi/core";
+
 export const DEFAULT_WASM_URL =
   "/yuragi-wasm/yuragi_wasm_compiler.wasm";
 
 export const DEFAULT_FONT_URL =
   "https://raw.githubusercontent.com/adobe-fonts/source-han-serif/release/Variable/OTF/SourceHanSerifSC-VF.otf";
 
-export const DEFAULT_AXES = { wght: 900 };
+export const DEFAULT_AXES = { wght: 900 } satisfies FontAxes;
 
 export type FontPreset = {
   id: string;
   label: string;
   url: string;
   sampleText: string;
-  axes: Record<string, number>;
+  axes: FontAxes;
 };
 
 export const FONT_PRESETS: FontPreset[] = [
@@ -52,7 +54,7 @@ export const FONT_PRESETS: FontPreset[] = [
     url:
       "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/Inter%5Bopsz,wght%5D.ttf",
     sampleText: "Dashboard",
-    axes: { wght: 900 },
+    axes: { wght: 900 } satisfies FontAxes,
   },
   {
     id: "custom",

@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
+import type { FontAxes } from "@yuragi/core";
 
 const testDir = dirname(fileURLToPath(import.meta.url));
 const reactMocks = vi.hoisted(() => ({
@@ -30,7 +31,7 @@ vi.mock("@yuragi/react", () => ({
     font,
     wasm,
   }: {
-    axes?: Record<string, number>;
+    axes?: FontAxes;
     children: ReactNode;
     font: string;
     wasm?: string;

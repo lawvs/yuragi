@@ -1,4 +1,4 @@
-import type { TextOutline } from "@yuragi/core";
+import type { FontAxes, TextOutline } from "@yuragi/core";
 
 type WasmExports = {
   memory: WebAssembly.Memory;
@@ -31,7 +31,7 @@ export type YuragiFontInfo = {
 
 export type YuragiRuntime = {
   setFont(fontBytes: ArrayBuffer): YuragiFontInfo;
-  compileTitle(text: string, axes: Record<string, number>): TextOutline;
+  compileTitle(text: string, axes: FontAxes): TextOutline;
 };
 
 const encoder = new TextEncoder();
@@ -109,7 +109,7 @@ export class YuragiWasmRuntime implements YuragiRuntime {
     }
   }
 
-  compileTitle(text: string, axes: Record<string, number>) {
+  compileTitle(text: string, axes: FontAxes) {
     const textBytes = encoder.encode(text);
     const axesBytes = encoder.encode(JSON.stringify(axes));
     const textPtr = copyInput(this.#exports, textBytes);
