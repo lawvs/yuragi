@@ -9,6 +9,7 @@
     "typecheck": "pnpm -r --filter './packages/*' typecheck && pnpm --filter @yuragi/playground typecheck",
     "dev": "pnpm --filter @yuragi/playground dev",
     "playground:build": "pnpm --filter @yuragi/playground build",
+    "examples:build": "pnpm build && pnpm -r --filter './examples/*' build",
     "wasm-lab:build": "pnpm --filter @yuragi/playground wasm-lab:build"
   },
   "devDependencies": {
