@@ -1,0 +1,146 @@
+:root {
+  color: #18201d;
+  background: #f5f4ef;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button,
+input {
+  color: inherit;
+  font: inherit;
+}
+
+.example-shell {
+  display: grid;
+  grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
+  gap: 20px;
+  width: min(1120px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 32px 0;
+}
+
+.controls {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.field,
+.toggle,
+.presets button {
+  border: 1px solid #ccc8bb;
+  border-radius: 8px;
+  background: #fffdfa;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.field span,
+.toggle span {
+  color: #405047;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.field input[type="text"],
+.field input:not([type]) {
+  min-width: 0;
+  min-height: 38px;
+  border: 1px solid #bfc6bf;
+  border-radius: 6px;
+  padding: 6px 9px;
+  background: #fbfaf7;
+}
+
+.field input[type="range"] {
+  width: 100%;
+  accent-color: #24473a;
+}
+
+.field output {
+  color: #18201d;
+  font-variant-numeric: tabular-nums;
+}
+
+.toggle {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: #24473a;
+}
+
+.presets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.presets button {
+  min-height: 38px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.presets button[aria-pressed="true"] {
+  border-color: #24473a;
+  background: #24473a;
+  color: #ffffff;
+}
+
+.preview {
+  display: grid;
+  min-width: 0;
+  min-height: 440px;
+  align-content: center;
+  border: 1px solid #d1cdc0;
+  border-radius: 8px;
+  padding: clamp(20px, 6vw, 56px);
+  background: #fffdfa;
+  overflow-wrap: anywhere;
+}
+
+.preview [data-yuragi-root] {
+  max-width: 100%;
+  height: auto;
+}
+
+.preview span {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .example-shell {
+    grid-template-columns: 1fr;
+    width: min(640px, calc(100vw - 24px));
+    padding: 20px 0;
+  }
+
+  .preview {
+    min-height: 320px;
+  }
+}
