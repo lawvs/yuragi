@@ -20,13 +20,6 @@ export type ShardTiming = {
   easing: string;
 };
 
-export type VisualRect = {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-};
-
 export type PlanShardTimingsOptions = {
   type: "settle" | "scatter";
   speed?: number;
@@ -117,98 +110,11 @@ function finiteDatasetNumberOrUndefined(
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-function rectFromDomRect(rect: DOMRect): VisualRect {
-  return {
-    left: Number.isFinite(rect.left) ? rect.left : 0,
-    top: Number.isFinite(rect.top) ? rect.top : 0,
-    width: Number.isFinite(rect.width) ? rect.width : 0,
-    height: Number.isFinite(rect.height) ? rect.height : 0,
-  };
-}
-
-function hasVisibleRect(rect: VisualRect): boolean {
-  return rect.width > 0 || rect.height > 0;
-}
-
-function hasFiniteRect(rect: VisualRect): boolean {
-  return (
-    Number.isFinite(rect.left) &&
-    Number.isFinite(rect.top) &&
-    Number.isFinite(rect.width) &&
-    Number.isFinite(rect.height)
-  );
-}
-
-function matrixPoint(
-  matrix: Pick<DOMMatrix, "a" | "b" | "c" | "d" | "e" | "f">,
-  x: number,
-  y: number,
-) {
-  return {
-    x: matrix.a * x + matrix.c * y + matrix.e,
-    y: matrix.b * x + matrix.d * y + matrix.f,
-  };
-}
-
-function rectFromSvgGeometry(shard: SVGGraphicsElement): VisualRect | undefined {
-  if (
-    typeof shard.getBBox !== "function" ||
-    typeof shard.getScreenCTM !== "function"
-  ) {
-    return undefined;
-  }
-
-  let box: DOMRect | SVGRect;
-  let matrix: DOMMatrix | null;
-  try {
-    box = shard.getBBox();
-    matrix = shard.getScreenCTM();
-  } catch {
-    return undefined;
-  }
-  if (!matrix) return undefined;
-
-  const points = [
-    matrixPoint(matrix, box.x, box.y),
-    matrixPoint(matrix, box.x + box.width, box.y),
-    matrixPoint(matrix, box.x, box.y + box.height),
-    matrixPoint(matrix, box.x + box.width, box.y + box.height),
-  ];
-  const xs = points.map((point) => point.x);
-  const ys = points.map((point) => point.y);
-  const left = Math.min(...xs);
-  const right = Math.max(...xs);
-  const top = Math.min(...ys);
-  const bottom = Math.max(...ys);
-  const rect = {
-    left,
-    top,
-    width: right - left,
-    height: bottom - top,
-  };
-
-  return hasFiniteRect(rect) && hasVisibleRect(rect) ? rect : undefined;
-}
-
-export function measureShardMotionRect(
-  shardMotion: SVGGElement,
-): VisualRect | undefined {
-  const shard = shardMotion.querySelector<SVGGraphicsElement>("[data-shard]");
-  const pathRect = shard ? rectFromSvgGeometry(shard) : undefined;
-  if (pathRect) return pathRect;
-
-  const rect = shardMotion.getBoundingClientRect();
-  const visualRect = rectFromDomRect(rect);
-  if (!hasFiniteRect(visualRect) || !hasVisibleRect(visualRect)) {
-    return undefined;
-  }
-
-  return visualRect;
-}
-
 function visualShardX(shardMotion: SVGGElement): number | undefined {
-  const rect = measureShardMotionRect(shardMotion);
-  if (!rect) return undefined;
+  const rect = shardMotion.getBoundingClientRect();
+  const hasVisibleBounds = rect.width > 0 || rect.height > 0;
+  if (!hasVisibleBounds) return undefined;
+
   const centerX = rect.left + rect.width / 2;
   return Number.isFinite(centerX) ? centerX : undefined;
 }

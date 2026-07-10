@@ -146,7 +146,7 @@ reliable.
 ## Runtime Props
 
 - `text`: rendered string.
-- `sharedId`: string shared motion identity for matching titles across renders;
+- `sharedId`: string shared element name for React Canary `ViewTransition`;
   `false` disables shared motion for that instance.
 - `size`: text size in CSS pixels.
 - `maxWidth`: wrapping width.
@@ -163,11 +163,9 @@ reliable.
 - `className`, `style`: applied to the root element.
 
 Exit scatter is rendered in a fixed viewport overlay so the old title keeps its
-screen position. Shared title motion consumes a recent source snapshot and moves
-matching shards from their old screen positions into the new title; mismatches
-fall back to the normal settle/scatter behavior. Enter, exit, and shared motion
-use the same x-position wave timing, which helps outgoing and incoming titles
-line up visually during page changes.
+screen position while React View Transition moves the new shared title. Enter
+and exit use the same x-position wave timing, which helps outgoing and incoming
+titles line up visually during page changes.
 
 ## Static Precompiled Escape Hatch
 
@@ -218,5 +216,6 @@ If your app imports `@yuragi/core/style.css` directly, do not render
 ## Requirements
 
 - React Canary and React DOM Canary.
-- Browser support for the Web Animations API for animated shards.
+- Browser support for React's `ViewTransition` integration when `sharedId` is
+  used.
 - A font file that can be loaded by the runtime provider or the static compiler.

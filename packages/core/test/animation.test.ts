@@ -299,61 +299,6 @@ describe("animateShards", () => {
     );
   });
 
-  it("measures shard paths before wrapper bounds for x-position stagger", async () => {
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    const first = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    const second = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "g",
-    );
-    const firstPath = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "path",
-    );
-    const secondPath = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "path",
-    );
-    first.dataset.shardMotion = "true";
-    second.dataset.shardMotion = "true";
-    first.getBoundingClientRect = vi.fn(
-      () => ({ left: 0, width: 100, height: 100 }) as DOMRect,
-    );
-    second.getBoundingClientRect = vi.fn(
-      () => ({ left: 0, width: 100, height: 100 }) as DOMRect,
-    );
-    firstPath.dataset.shard = "true";
-    secondPath.dataset.shard = "true";
-    firstPath.getBBox = vi.fn(
-      () => ({ x: 100, y: 0, width: 20, height: 20 }) as DOMRect,
-    );
-    secondPath.getBBox = vi.fn(
-      () => ({ x: 0, y: 0, width: 20, height: 20 }) as DOMRect,
-    );
-    firstPath.getScreenCTM = vi.fn(
-      () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }) as DOMMatrix,
-    );
-    secondPath.getScreenCTM = vi.fn(
-      () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }) as DOMMatrix,
-    );
-    first.append(firstPath);
-    second.append(secondPath);
-    svg.append(first, second);
-
-    await animateShards(svg, { type: "scatter", stagger: "by-x" });
-
-    expect(Element.prototype.animate).toHaveBeenNthCalledWith(
-      1,
-      expect.any(Array),
-      expect.objectContaining({ delay: 120 }),
-    );
-    expect(Element.prototype.animate).toHaveBeenNthCalledWith(
-      2,
-      expect.any(Array),
-      expect.objectContaining({ delay: 0 }),
-    );
-  });
-
   it("does not animate when reduced motion is preferred", async () => {
     Object.defineProperty(window, "matchMedia", {
       configurable: true,

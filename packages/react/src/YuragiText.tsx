@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { ViewTransition, type ReactNode } from "react";
 import { ShardedSvg } from "./ShardedSvg";
 import { createTextFallbackStyle } from "./style";
 import type { ResolvedYuragiTextProps, YuragiTextProps } from "./types";
@@ -11,6 +11,12 @@ export function YuragiText(input: YuragiTextProps) {
     fallback: "text",
     ...input,
   };
+
+  if (props.sharedId && !ViewTransition) {
+    throw new Error(
+      "yuragi v1 requires React Canary ViewTransition when sharedId is set",
+    );
+  }
 
   let content: ReactNode;
 
@@ -26,6 +32,10 @@ export function YuragiText(input: YuragiTextProps) {
     );
   } else {
     content = <ShardedSvg props={props} />;
+  }
+
+  if (props.sharedId && ViewTransition) {
+    return <ViewTransition name={props.sharedId}>{content}</ViewTransition>;
   }
 
   return content;
