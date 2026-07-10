@@ -1,5 +1,9 @@
 import { startTransition, useMemo, useState } from "react";
-import { YuragiFontProvider, YuragiText } from "@yuragi/react";
+import {
+  useYuragiFont,
+  YuragiFontProvider,
+  YuragiText,
+} from "@yuragi/react";
 import { runtimePosts } from "../data";
 import {
   alignOptions,
@@ -92,6 +96,8 @@ export function RuntimeDemo() {
               Back
             </button>
             <div className="controls" aria-label="Text controls">
+              <RuntimeFontStatus />
+
               <label className="range-control">
                 <span>Size</span>
                 <input
@@ -197,5 +203,21 @@ export function RuntimeDemo() {
         </section>
       </section>
     </YuragiFontProvider>
+  );
+}
+
+function RuntimeFontStatus() {
+  const fontState = useYuragiFont();
+  const label =
+    fontState.status === "ready"
+      ? "Font ready"
+      : fontState.status === "error"
+        ? "Font error"
+        : "Loading font";
+
+  return (
+    <span className="font-status" data-status={fontState.status}>
+      {label}
+    </span>
   );
 }

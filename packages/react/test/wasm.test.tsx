@@ -1,7 +1,12 @@
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { YuragiFontProvider, YuragiText } from "../src/index";
+import {
+  useYuragiFont,
+  YuragiFontProvider,
+  YuragiText,
+} from "../src/index";
 import { createYuragiFont } from "@yuragi/wasm";
+import type { YuragiFont } from "@yuragi/wasm";
 import type { TextOutline } from "@yuragi/core";
 
 const outline: TextOutline = {
@@ -53,6 +58,21 @@ function deferred<T>() {
     resolve = nextResolve;
   });
   return { promise, resolve };
+}
+
+function FontStateProbe() {
+  const state = useYuragiFont();
+
+  return (
+    <span
+      data-error={state.error?.message}
+      data-has-font={state.font ? "yes" : "no"}
+      data-ready={String(state.ready)}
+      data-status={state.status}
+    >
+      font state
+    </span>
+  );
 }
 
 describe("@yuragi/react runtime", () => {
@@ -107,6 +127,59 @@ describe("@yuragi/react runtime", () => {
 
     cleanup();
     expect(font.dispose).toHaveBeenCalled();
+  });
+
+  it("exposes loading and ready font state through useYuragiFont", async () => {
+    const loaded = deferred<YuragiFont>();
+    const font = {
+      info: { bytes: 3, unitsPerEm: 1000 },
+      compile: vi.fn(async () => outline),
+      preload: vi.fn(async () => undefined),
+      dispose: vi.fn(),
+    };
+    vi.mocked(createYuragiFont).mockReturnValue(loaded.promise);
+
+    render(
+      <YuragiFontProvider font={new Uint8Array([1, 2, 3])}>
+        <FontStateProbe />
+      </YuragiFontProvider>,
+    );
+
+    expect(screen.getByText("font state").dataset.status).toBe("loading");
+    expect(screen.getByText("font state").dataset.ready).toBe("false");
+    expect(screen.getByText("font state").dataset.hasFont).toBe("no");
+
+    await act(async () => {
+      loaded.resolve(font);
+      await loaded.promise;
+    });
+
+    expect(screen.getByText("font state").dataset.status).toBe("ready");
+    expect(screen.getByText("font state").dataset.ready).toBe("true");
+    expect(screen.getByText("font state").dataset.hasFont).toBe("yes");
+  });
+
+  it("exposes font loading errors through useYuragiFont", async () => {
+    vi.mocked(createYuragiFont).mockRejectedValue(
+      new Error("font failed"),
+    );
+
+    render(
+      <YuragiFontProvider font={new Uint8Array([1, 2, 3])}>
+        <FontStateProbe />
+      </YuragiFontProvider>,
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText("font state").dataset.status).toBe("error");
+    expect(screen.getByText("font state").dataset.ready).toBe("false");
+    expect(screen.getByText("font state").dataset.hasFont).toBe("no");
+    expect(screen.getByText("font state").dataset.error).toBe(
+      "font failed",
+    );
   });
 
   it("does not use enter transition for the first runtime outline reveal", async () => {
@@ -273,7 +346,7 @@ describe("@yuragi/react runtime", () => {
 
   it("throws when YuragiText is rendered without a YuragiFontProvider", () => {
     expect(() => render(<YuragiText text="Missing Provider" />)).toThrow(
-      "YuragiText from @yuragi/react requires YuragiFontProvider",
+      "useYuragiFont from @yuragi/react requires YuragiFontProvider",
     );
   });
 });

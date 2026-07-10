@@ -25,6 +25,12 @@ vi.mock("react", async () => {
 });
 
 vi.mock("@yuragi/react", () => ({
+  useYuragiFont: () => ({
+    status: "ready",
+    ready: true,
+    font: {},
+    error: null,
+  }),
   YuragiFontProvider: ({
     axes,
     children,
@@ -158,6 +164,7 @@ describe("App", () => {
     );
     expect(provider?.getAttribute("data-axes")).toBe('{"wght":900}');
     expect(dashboard?.getAttribute("data-shared-id")).toBe("title:dashboard");
+    expect(host.querySelector(".font-status")?.textContent).toBe("Font ready");
     expect(host.querySelector("[data-static-sharded-text]")).toBeNull();
     expect(host.textContent).not.toContain("Missing Outline");
   });

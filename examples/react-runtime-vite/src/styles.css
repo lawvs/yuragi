@@ -5,6 +5,7 @@
   --color-fg-secondary: oklab(0.3 0 0);
   --color-bg-block: rgba(0, 0, 0, 0.05);
   --color-border: color-mix(in srgb, var(--color-fg) 16%, transparent);
+  --color-danger: #9d2b2b;
 
   color: var(--color-fg);
   background: var(--color-bg);
@@ -22,6 +23,7 @@
     --color-fg-secondary: oklab(0.8 0 0);
     --color-bg-block: rgba(0, 0, 0, 0.2);
     --color-border: color-mix(in srgb, var(--color-fg) 20%, transparent);
+    --color-danger: #ff8a8a;
   }
 }
 
@@ -57,6 +59,7 @@ input {
 }
 
 .field,
+.font-status,
 .toggle,
 .presets button {
   border: 1px solid var(--color-border);
@@ -71,10 +74,27 @@ input {
 }
 
 .field span,
+.font-status,
 .toggle span {
   color: var(--color-fg-secondary);
   font-size: 0.9rem;
   font-weight: 700;
+}
+
+.font-status {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  margin: 0;
+  padding: 10px 12px;
+}
+
+.font-status[data-status="ready"] {
+  color: var(--color-fg);
+}
+
+.font-status[data-status="error"] {
+  color: var(--color-danger);
 }
 
 .field input[type="text"],

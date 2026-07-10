@@ -18,10 +18,27 @@ import type { YuragiTextProps } from "./types";
 
 export type { FontAxes, FontAxisTag, KnownFontAxisTag } from "@yuragi/core";
 
-type YuragiFontContextValue = {
-  font: YuragiFont | null;
-  error: Error | null;
-};
+export type YuragiFontStatus = "loading" | "ready" | "error";
+
+export type YuragiFontState =
+  | {
+      status: "loading";
+      ready: false;
+      font: null;
+      error: null;
+    }
+  | {
+      status: "ready";
+      ready: true;
+      font: YuragiFont;
+      error: null;
+    }
+  | {
+      status: "error";
+      ready: false;
+      font: null;
+      error: Error;
+    };
 
 export type YuragiFontProviderProps = {
   children: ReactNode;
@@ -35,7 +52,24 @@ export type YuragiFontProviderProps = {
 
 export type RuntimeYuragiTextProps = Omit<YuragiTextProps, "outline">;
 
-const YuragiFontContext = createContext<YuragiFontContextValue | null>(null);
+const YuragiFontContext = createContext<YuragiFontState | null>(null);
+
+function loadingFontState(): YuragiFontState {
+  return { status: "loading", ready: false, font: null, error: null };
+}
+
+function readyFontState(font: YuragiFont): YuragiFontState {
+  return { status: "ready", ready: true, font, error: null };
+}
+
+function errorFontState(error: unknown): YuragiFontState {
+  return {
+    status: "error",
+    ready: false,
+    font: null,
+    error: error instanceof Error ? error : new Error(String(error)),
+  };
+}
 
 function isYuragiFont(value: BinarySource | YuragiFont): value is YuragiFont {
   return (
@@ -70,10 +104,9 @@ export function YuragiFontProvider({
   styleNonce,
   wasm,
 }: YuragiFontProviderProps) {
-  const [value, setValue] = useState<YuragiFontContextValue>({
-    font: isYuragiFont(font) ? font : null,
-    error: null,
-  });
+  const [value, setValue] = useState<YuragiFontState>(
+    isYuragiFont(font) ? readyFontState(font) : loadingFontState(),
+  );
   const axesKey = stableRecordKey(axes);
   const preloadKey = stablePreloadKey(preload);
 
@@ -82,14 +115,11 @@ export function YuragiFontProvider({
     let ownedFont: YuragiFont | null = null;
 
     if (isYuragiFont(font)) {
-      setValue({ font, error: null });
+      setValue(readyFontState(font));
       if (preload) {
         void font.preload(preload).catch((error: unknown) => {
           if (!cancelled) {
-            setValue({
-              font,
-              error: error instanceof Error ? error : new Error(String(error)),
-            });
+            setValue(errorFontState(error));
           }
         });
       }
@@ -99,7 +129,7 @@ export function YuragiFontProvider({
       };
     }
 
-    setValue({ font: null, error: null });
+    setValue(loadingFontState());
     void createYuragiFont({
       font,
       axes,
@@ -113,14 +143,11 @@ export function YuragiFontProvider({
         }
 
         ownedFont = createdFont;
-        setValue({ font: createdFont, error: null });
+        setValue(readyFontState(createdFont));
       })
       .catch((error: unknown) => {
         if (!cancelled) {
-          setValue({
-            font: null,
-            error: error instanceof Error ? error : new Error(String(error)),
-          });
+          setValue(errorFontState(error));
         }
       });
 
@@ -144,7 +171,7 @@ export function useYuragiFont() {
   const context = useContext(YuragiFontContext);
   if (!context) {
     throw new Error(
-      "YuragiText from @yuragi/react requires YuragiFontProvider",
+      "useYuragiFont from @yuragi/react requires YuragiFontProvider",
     );
   }
 

@@ -54,6 +54,28 @@ const axes = {
 } satisfies FontAxes;
 ```
 
+## Font State
+
+Use `useYuragiFont()` inside `YuragiFontProvider` when UI needs to know whether
+the runtime compiler and font are ready:
+
+```tsx
+import { useYuragiFont } from "@yuragi/react";
+
+function PlayButton() {
+  const font = useYuragiFont();
+
+  return (
+    <button disabled={!font.ready}>
+      {font.status === "ready" ? "Play" : "Loading font"}
+    </button>
+  );
+}
+```
+
+`font.status` is `"loading"`, `"ready"`, or `"error"`. This describes provider
+readiness only; individual `YuragiText` outlines still compile on demand.
+
 ## Runnable Example
 
 See [`examples/react-runtime-vite`](../../examples/react-runtime-vite) for a

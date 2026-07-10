@@ -1,3 +1,5 @@
+import { useYuragiFont } from "@yuragi/react";
+
 type RuntimeControlsProps = {
   title: string;
   onTitleChange: (title: string) => void;
@@ -25,8 +27,20 @@ export function RuntimeControls({
   onSharedMotionChange,
   presets,
 }: RuntimeControlsProps) {
+  const fontState = useYuragiFont();
+  const fontStatusText =
+    fontState.status === "ready"
+      ? "Font ready"
+      : fontState.status === "error"
+        ? "Font error"
+        : "Loading font";
+
   return (
     <section className="controls" aria-label="Runtime controls">
+      <p className="font-status" data-status={fontState.status}>
+        {fontStatusText}
+      </p>
+
       <label className="field">
         <span>Title</span>
         <input

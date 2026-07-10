@@ -6,6 +6,7 @@ This example uses:
 
 - `YuragiFontProvider` from `@yuragi/react`
 - runtime `YuragiText`
+- provider font status through `useYuragiFont`
 - dynamic title input
 - hover outline
 - settle/exit transition controls
