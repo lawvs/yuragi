@@ -1,22 +1,9 @@
-import { StrictMode, type CSSProperties, type ReactNode } from "react";
+import { StrictMode, type CSSProperties } from "react";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { YuragiText } from "../src/YuragiText";
 import { animateShards, type TextOutline } from "@yuragi/core";
-
-vi.mock("react", async () => {
-  const actual = await vi.importActual<typeof import("react")>("react");
-  return {
-    ...actual,
-    ViewTransition: ({
-      children,
-      name,
-    }: {
-      children: ReactNode;
-      name: string;
-    }) => <div data-view-transition={name}>{children}</div>,
-  };
-});
+import { clearSharedMotionSnapshots } from "../src/shared-motion";
 
 vi.mock("@yuragi/core", async () => {
   const actual = await vi.importActual<typeof import("@yuragi/core")>(
@@ -70,6 +57,30 @@ const nextOutline: TextOutline = {
   ],
 };
 
+const twoShardOutline: TextOutline = {
+  em: 1000,
+  ascender: 880,
+  descender: -120,
+  groups: [
+    {
+      text: "A",
+      advance: 500,
+      breakAfter: true,
+      glyphs: [
+        {
+          char: "A",
+          advance: 500,
+          bbox: { top: -800, bottom: 200, left: 0, right: 500 },
+          shards: [
+            { path: "M0 0L250 0L250 500Z", direction: [1, 0] },
+            { path: "M250 0L500 0L500 500Z", direction: [-1, 0] },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
 function deferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void;
   const promise = new Promise<T>((nextResolve) => {
@@ -97,6 +108,39 @@ function rect(
   } as DOMRect;
 }
 
+function mockSingleShardSharedRects() {
+  return vi
+    .spyOn(Element.prototype, "getBoundingClientRect")
+    .mockImplementation(function (this: Element) {
+      const root =
+        this instanceof SVGSVGElement
+          ? this
+          : this.closest<SVGSVGElement>("[data-yuragi-root]");
+      const width = Number(root?.getAttribute("width") ?? 0);
+      if (this instanceof SVGSVGElement) {
+        return width === 12
+          ? rect(10, 20, 12, 24)
+          : rect(100, 80, 24, 48);
+      }
+      if (this.matches("[data-shard-motion]")) {
+        return width === 12 ? rect(12, 25, 4, 8) : rect(110, 95, 8, 16);
+      }
+      return rect(0, 0, 0, 0);
+    });
+}
+
+function installElementAnimate(finished: Promise<void> = Promise.resolve()) {
+  const animate = vi.fn(() => ({ finished })) as unknown as Element["animate"];
+  const originalAnimate = Element.prototype.animate;
+  Element.prototype.animate = animate;
+  return {
+    animate,
+    restore: () => {
+      Element.prototype.animate = originalAnimate;
+    },
+  };
+}
+
 describe("YuragiText", () => {
   afterEach(async () => {
     cleanup();
@@ -104,6 +148,7 @@ describe("YuragiText", () => {
     document
       .querySelectorAll("[data-yuragi-exit]")
       .forEach((node) => node.remove());
+    clearSharedMotionSnapshots();
     vi.mocked(animateShards).mockClear();
     vi.mocked(animateShards).mockImplementation(async () => undefined);
   });
@@ -156,7 +201,7 @@ describe("YuragiText", () => {
     ).toThrow('Missing yuragi outline for "Missing"');
   });
 
-  it("wraps with ViewTransition when sharedId is provided", () => {
+  it("renders shared text without a ViewTransition wrapper", () => {
     render(
       <YuragiText
         text="A"
@@ -166,19 +211,15 @@ describe("YuragiText", () => {
       />,
     );
 
-    expect(
-      document.querySelector('[data-view-transition="title:a"]'),
-    ).not.toBeNull();
+    expect(document.querySelector("[data-yuragi-root]")).not.toBeNull();
+    expect(document.querySelector("[data-view-transition]")).toBeNull();
   });
 
-  it("wraps text fallback with ViewTransition when sharedId is provided", () => {
+  it("renders text fallback plainly when sharedId is provided", () => {
     render(<YuragiText text="Missing" sharedId="title:missing" />);
 
-    const transition = document.querySelector(
-      '[data-view-transition="title:missing"]',
-    );
-    expect(transition).not.toBeNull();
-    expect(transition?.textContent).toBe("Missing");
+    expect(screen.getByText("Missing")).not.toBeNull();
+    expect(document.querySelector("[data-view-transition]")).toBeNull();
   });
 
   it("animates shards with settle transition on enter", () => {
@@ -247,6 +288,211 @@ describe("YuragiText", () => {
       stagger: "by-x",
       speed: 0.8,
     });
+  });
+
+  it("animates shared shards from a captured source snapshot", async () => {
+    const animationFinished = deferred<void>();
+    const { animate, restore } = installElementAnimate(
+      animationFinished.promise,
+    );
+    const getBoundingClientRect = mockSingleShardSharedRects();
+
+    try {
+      const { rerender } = render(
+        <section>
+          <YuragiText
+            text="A"
+            outline={outline}
+            sharedId="title:a"
+            size={24}
+          />
+          <YuragiText text="A" outline={outline} sharedId={false} size={48} />
+        </section>,
+      );
+      const sourceSvg = document.querySelector<SVGSVGElement>(
+        '[width="12"][data-yuragi-root]',
+      );
+      expect(sourceSvg).not.toBeNull();
+
+      rerender(
+        <section>
+          <YuragiText text="A" outline={outline} sharedId={false} size={24} />
+          <YuragiText
+            text="A"
+            outline={outline}
+            sharedId="title:a"
+            size={48}
+            transition={{ enter: "settle", speed: 0.5 }}
+          />
+        </section>,
+      );
+      await Promise.resolve();
+
+      expect(animate).toHaveBeenCalledTimes(1);
+      expect(animate).toHaveBeenCalledWith(
+        [
+          {
+            transform: "translate(-100px, -74px) scale(0.5)",
+          },
+          {},
+        ],
+        {
+          duration: 1000,
+          delay: 0,
+          easing: "cubic-bezier(0, 0, 0, 1)",
+          fill: "both",
+        },
+      );
+      expect(sourceSvg?.style.visibility).toBe("hidden");
+      expect(animateShards).not.toHaveBeenCalled();
+
+      animationFinished.resolve();
+      await animationFinished.promise;
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(sourceSvg?.style.visibility).toBe("");
+    } finally {
+      restore();
+      getBoundingClientRect.mockRestore();
+    }
+  });
+
+  it("uses shared motion when the same sharedId changes layout", async () => {
+    const { animate, restore } = installElementAnimate();
+    const getBoundingClientRect = mockSingleShardSharedRects();
+
+    try {
+      const { rerender } = render(
+        <YuragiText
+          text="A"
+          outline={outline}
+          sharedId="title:a"
+          size={24}
+        />,
+      );
+
+      rerender(
+        <YuragiText
+          text="A"
+          outline={outline}
+          sharedId="title:a"
+          size={48}
+          transition={{ enter: "settle", exit: "scatter", speed: 0.5 }}
+        />,
+      );
+      await Promise.resolve();
+
+      expect(animate).toHaveBeenCalledTimes(1);
+      expect(animateShards).not.toHaveBeenCalled();
+    } finally {
+      restore();
+      getBoundingClientRect.mockRestore();
+    }
+  });
+
+  it("falls back to settle for shared motion when reduced motion is requested", async () => {
+    const getBoundingClientRect = mockSingleShardSharedRects();
+    const originalMatchMedia = window.matchMedia;
+    Object.defineProperty(window, "matchMedia", {
+      configurable: true,
+      value: vi.fn(() => ({ matches: true })),
+    });
+
+    try {
+      const { rerender } = render(
+        <section>
+          <YuragiText
+            text="A"
+            outline={outline}
+            sharedId="title:a"
+            size={24}
+          />
+          <YuragiText text="A" outline={outline} sharedId={false} size={48} />
+        </section>,
+      );
+
+      rerender(
+        <section>
+          <YuragiText text="A" outline={outline} sharedId={false} size={24} />
+          <YuragiText
+            text="A"
+            outline={outline}
+            sharedId="title:a"
+            size={48}
+            transition={{ enter: "settle", speed: 0.7 }}
+          />
+        </section>,
+      );
+      await Promise.resolve();
+
+      expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
+        type: "settle",
+        stagger: "by-x",
+        speed: 0.7,
+      });
+    } finally {
+      Object.defineProperty(window, "matchMedia", {
+        configurable: true,
+        value: originalMatchMedia,
+      });
+      getBoundingClientRect.mockRestore();
+    }
+  });
+
+  it("falls back to settle when shared shard counts do not match", async () => {
+    const getBoundingClientRect = vi
+      .spyOn(Element.prototype, "getBoundingClientRect")
+      .mockImplementation(function (this: Element) {
+        if (this instanceof SVGSVGElement) return rect(10, 20, 12, 24);
+        if (this.matches("[data-shard-motion]")) return rect(12, 25, 4, 8);
+        return rect(0, 0, 0, 0);
+      });
+
+    try {
+      const { rerender } = render(
+        <section>
+          <YuragiText
+            text="A"
+            outline={outline}
+            sharedId="title:a"
+            size={24}
+          />
+          <YuragiText
+            text="A"
+            outline={twoShardOutline}
+            sharedId={false}
+            size={48}
+          />
+        </section>,
+      );
+      const sourceSvg = document.querySelector<SVGSVGElement>(
+        '[width="12"][data-yuragi-root]',
+      );
+
+      rerender(
+        <section>
+          <YuragiText text="A" outline={outline} sharedId={false} size={24} />
+          <YuragiText
+            text="A"
+            outline={twoShardOutline}
+            sharedId="title:a"
+            size={48}
+            transition={{ enter: "settle", speed: 0.7 }}
+          />
+        </section>,
+      );
+      await Promise.resolve();
+
+      expect(sourceSvg?.style.visibility).toBe("");
+      expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
+        type: "settle",
+        stagger: "by-x",
+        speed: 0.7,
+      });
+    } finally {
+      getBoundingClientRect.mockRestore();
+    }
   });
 
   it("animates a fixed viewport clone when outline changes", async () => {

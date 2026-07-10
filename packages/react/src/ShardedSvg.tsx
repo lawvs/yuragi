@@ -12,11 +12,20 @@ import {
   refreshRenderedSvgExitSnapshot,
   type SvgExitSnapshot,
 } from "./exit-overlay";
+import {
+  captureSharedMotionSnapshot,
+  tryAnimateSharedMotionEnter,
+  wasSharedMotionSnapshotConsumed,
+  type SharedMotionOwner,
+  type SharedMotionSnapshot,
+} from "./shared-motion";
 import { applySvgStyle } from "./style";
 import type { ResolvedYuragiTextProps } from "./types";
 
 type RenderedSvgState = {
   svg: SVGSVGElement;
+  owner: SharedMotionOwner;
+  sharedId?: string;
   outline: TextOutline;
   text: string;
   size: number;
@@ -44,18 +53,110 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const renderedSvgRef = useRef<RenderedSvgState | null>(null);
   const pendingScatterRef = useRef<{ cancelled: boolean } | null>(null);
+  const pendingEnterRef = useRef<{ cancelled: boolean } | null>(null);
+  const ownerRef = useRef<SharedMotionOwner>(Symbol("yuragi-text"));
   const latestTransitionRef = useRef(props.transition);
   latestTransitionRef.current = props.transition;
+
+  function cancelPendingEnter() {
+    const pending = pendingEnterRef.current;
+    if (pending) pending.cancelled = true;
+    pendingEnterRef.current = null;
+  }
+
+  function captureSharedSnapshot(
+    renderedSvg: RenderedSvgState | undefined,
+    options: { allowSameOwner?: boolean } = {},
+  ): SharedMotionSnapshot | undefined {
+    if (!renderedSvg?.sharedId) return undefined;
+    return captureSharedMotionSnapshot(
+      renderedSvg.sharedId,
+      renderedSvg.owner,
+      renderedSvg.svg,
+      options,
+    );
+  }
+
+  function scheduleSvgExit(
+    svg: SVGSVGElement,
+    options: {
+      snapshot?: SvgExitSnapshot;
+      speed?: number;
+      sharedSnapshot?: SharedMotionSnapshot;
+    } = {},
+  ) {
+    const runExit = () => {
+      animateSvgExit(svg, {
+        snapshot: options.snapshot,
+        speed: options.speed,
+      });
+    };
+
+    if (options.sharedSnapshot) {
+      queueMicrotask(() => {
+        queueMicrotask(() => {
+          if (wasSharedMotionSnapshotConsumed(options.sharedSnapshot)) return;
+          runExit();
+        });
+      });
+      return;
+    }
+
+    runExit();
+  }
+
+  function runEnterAnimation(renderedSvg: RenderedSvgState) {
+    const transition = latestTransitionRef.current;
+    const sharedId = renderedSvg.sharedId;
+    if (
+      sharedId &&
+      tryAnimateSharedMotionEnter(sharedId, renderedSvg.owner, renderedSvg.svg, {
+        speed: transition?.speed,
+      })
+    ) {
+      return;
+    }
+
+    if (transition?.enter === "settle") {
+      void animateShards(
+        renderedSvg.svg,
+        createSettleAnimationOptions(transition.speed),
+      );
+    }
+  }
+
+  function scheduleEnterAnimation(renderedSvg: RenderedSvgState) {
+    cancelPendingEnter();
+
+    if (!renderedSvg.sharedId) {
+      runEnterAnimation(renderedSvg);
+      return;
+    }
+
+    const pending = { cancelled: false };
+    pendingEnterRef.current = pending;
+    queueMicrotask(() => {
+      if (pending.cancelled || renderedSvgRef.current !== renderedSvg) return;
+      runEnterAnimation(renderedSvg);
+      if (pendingEnterRef.current === pending) pendingEnterRef.current = null;
+    });
+  }
 
   useLayoutEffect(() => {
     const host = hostRef.current;
     if (!host || !props.outline) return;
 
     const current = renderedSvgRef.current;
+    const sharedId = props.sharedId || undefined;
     if (hasSameSvgLayout(current, props)) {
       if (props.style && current) {
         applySvgStyle(current.svg, props.style);
         refreshRenderedSvgExitSnapshot(current, current.svg);
+      }
+      if (current && current.sharedId !== sharedId) {
+        captureSharedSnapshot(current);
+        current.sharedId = sharedId;
+        if (sharedId) scheduleEnterAnimation(current);
       }
       return;
     }
@@ -76,6 +177,8 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
     svgRef.current = svg;
     const renderedSvg: RenderedSvgState = {
       svg,
+      owner: ownerRef.current,
+      sharedId,
       outline: props.outline,
       text: props.text,
       size: props.size,
@@ -88,6 +191,14 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
     const shouldScatterPrevious =
       previousSvg?.parentElement === host &&
       props.transition?.exit === "scatter";
+    const shouldCapturePreviousShared =
+      previousSvg?.parentElement === host &&
+      previous?.sharedId !== undefined;
+    const previousSharedSnapshot = shouldCapturePreviousShared
+      ? captureSharedSnapshot(previous, {
+          allowSameOwner: previous.sharedId === sharedId,
+        })
+      : undefined;
 
     if (shouldScatterPrevious && previousSvg) {
       const exitSnapshot = pickSvgExitSnapshot(
@@ -95,21 +206,16 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
         previous?.exitSnapshot,
       );
       host.replaceChildren(svg);
-      animateSvgExit(previousSvg, {
+      scheduleSvgExit(previousSvg, {
         snapshot: exitSnapshot,
         speed: props.transition?.speed,
+        sharedSnapshot: previousSharedSnapshot,
       });
     } else {
       host.replaceChildren(svg);
     }
     refreshRenderedSvgExitSnapshot(renderedSvg, svg);
-
-    if (props.transition?.enter === "settle") {
-      void animateShards(
-        svg,
-        createSettleAnimationOptions(props.transition.speed),
-      );
-    }
+    scheduleEnterAnimation(renderedSvg);
   }, [
     props.align,
     props.className,
@@ -121,6 +227,7 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
     props.transition?.enter,
     props.transition?.exit,
     props.transition?.speed,
+    props.sharedId,
     props.text,
   ]);
 
@@ -130,10 +237,12 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
 
     return () => {
       const transition = latestTransitionRef.current;
-      if (transition?.exit !== "scatter") return;
       const renderedSvg = renderedSvgRef.current;
       const svg = renderedSvg?.svg ?? svgRef.current;
       if (!svg) return;
+      cancelPendingEnter();
+      const sharedSnapshot = captureSharedSnapshot(renderedSvg ?? undefined);
+      if (transition?.exit !== "scatter") return;
       const exitSnapshot = pickSvgExitSnapshot(
         svg,
         renderedSvg?.exitSnapshot,
@@ -141,8 +250,11 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
 
       const nextPending = { cancelled: false };
       pendingScatterRef.current = nextPending;
-      queueMicrotask(() => {
-        if (!nextPending.cancelled) {
+      const runExit = () => {
+        if (
+          !nextPending.cancelled &&
+          !wasSharedMotionSnapshotConsumed(sharedSnapshot)
+        ) {
           animateSvgExit(svg, {
             snapshot: exitSnapshot,
             speed: transition.speed,
@@ -151,7 +263,12 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
         if (pendingScatterRef.current === nextPending) {
           pendingScatterRef.current = null;
         }
-      });
+      };
+      if (sharedSnapshot) {
+        queueMicrotask(() => queueMicrotask(runExit));
+      } else {
+        queueMicrotask(runExit);
+      }
     };
   }, [props.transition?.exit]);
 

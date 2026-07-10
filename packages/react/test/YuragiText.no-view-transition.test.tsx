@@ -14,12 +14,10 @@ vi.mock("react", async () => {
 });
 
 describe("YuragiText without ViewTransition", () => {
-  it("throws when sharedId is set and outline is missing", () => {
+  it("does not require ViewTransition when sharedId is set", () => {
     expect(() =>
       render(<YuragiText text="Missing" sharedId="title:missing" />),
-    ).toThrow(
-      "yuragi v1 requires React Canary ViewTransition when sharedId is set",
-    );
+    ).not.toThrow();
   });
 
   it("does not require ViewTransition when sharedId is false", () => {
