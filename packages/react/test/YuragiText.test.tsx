@@ -130,14 +130,64 @@ function mockSingleShardSharedRects() {
 }
 
 function installElementAnimate(finished: Promise<void> = Promise.resolve()) {
-  const animate = vi.fn(() => ({ finished })) as unknown as Element["animate"];
+  const animate = vi.fn(() => ({ finished }));
   const originalAnimate = Element.prototype.animate;
-  Element.prototype.animate = animate;
+  Element.prototype.animate = animate as unknown as Element["animate"];
   return {
     animate,
     restore: () => {
       Element.prototype.animate = originalAnimate;
     },
+  };
+}
+
+function installTwoShardPathGeometry() {
+  const originalGetBBox = (
+    SVGElement.prototype as SVGElement & {
+      getBBox?: () => DOMRect;
+    }
+  ).getBBox;
+  const originalGetScreenCTM = (
+    SVGElement.prototype as SVGElement & {
+      getScreenCTM?: () => DOMMatrix;
+    }
+  ).getScreenCTM;
+
+  Object.defineProperty(SVGElement.prototype, "getBBox", {
+    configurable: true,
+    value(this: SVGElement) {
+      const d = this.getAttribute("d") ?? "";
+      if (d.startsWith("M250")) return rect(250, 0, 250, 500);
+      return rect(0, 0, 250, 500);
+    },
+  });
+  Object.defineProperty(SVGElement.prototype, "getScreenCTM", {
+    configurable: true,
+    value(this: SVGElement) {
+      const root = this.closest<SVGSVGElement>("[data-yuragi-root]");
+      const width = Number(root?.getAttribute("width") ?? 0);
+      const scale = width === 12 ? 0.024 : 0.048;
+      const offset = width === 12 ? { x: 10, y: 20 } : { x: 100, y: 80 };
+      return {
+        a: scale,
+        b: 0,
+        c: 0,
+        d: scale,
+        e: offset.x,
+        f: offset.y,
+      } as DOMMatrix;
+    },
+  });
+
+  return () => {
+    Object.defineProperty(SVGElement.prototype, "getBBox", {
+      configurable: true,
+      value: originalGetBBox,
+    });
+    Object.defineProperty(SVGElement.prototype, "getScreenCTM", {
+      configurable: true,
+      value: originalGetScreenCTM,
+    });
   };
 }
 
@@ -387,6 +437,83 @@ describe("YuragiText", () => {
       expect(animateShards).not.toHaveBeenCalled();
     } finally {
       restore();
+      getBoundingClientRect.mockRestore();
+    }
+  });
+
+  it("moves shared motion by shard path instead of whole glyph bounds", async () => {
+    const { animate, restore } = installElementAnimate();
+    const restorePathGeometry = installTwoShardPathGeometry();
+    const getBoundingClientRect = vi
+      .spyOn(Element.prototype, "getBoundingClientRect")
+      .mockImplementation(function (this: Element) {
+        const root =
+          this instanceof SVGSVGElement
+            ? this
+            : this.closest<SVGSVGElement>("[data-yuragi-root]");
+        const width = Number(root?.getAttribute("width") ?? 0);
+        if (this instanceof SVGSVGElement) {
+          return width === 12
+            ? rect(10, 20, 12, 24)
+            : rect(100, 80, 24, 48);
+        }
+        if (this.matches("[data-shard-motion]")) {
+          return width === 12 ? rect(10, 20, 12, 24) : rect(100, 80, 24, 48);
+        }
+        return rect(0, 0, 0, 0);
+      });
+
+    try {
+      const { rerender } = render(
+        <section>
+          <YuragiText
+            text="A"
+            outline={twoShardOutline}
+            sharedId="title:a"
+            size={24}
+          />
+          <YuragiText
+            text="A"
+            outline={twoShardOutline}
+            sharedId={false}
+            size={48}
+          />
+        </section>,
+      );
+
+      rerender(
+        <section>
+          <YuragiText
+            text="A"
+            outline={twoShardOutline}
+            sharedId={false}
+            size={24}
+          />
+          <YuragiText
+            text="A"
+            outline={twoShardOutline}
+            sharedId="title:a"
+            size={48}
+            transition={{ enter: "settle", speed: 1 }}
+          />
+        </section>,
+      );
+      await Promise.resolve();
+
+      const animateCalls = animate.mock.calls as unknown as Array<
+        [Keyframe[] | PropertyIndexedKeyframes | null]
+      >;
+      const transforms = animateCalls.map(([keyframes]) => {
+        const [first] = keyframes as Keyframe[];
+        return first.transform;
+      });
+      expect(transforms).toEqual([
+        "translate(-93px, -66px) scale(0.5)",
+        "translate(-99px, -66px) scale(0.5)",
+      ]);
+    } finally {
+      restore();
+      restorePathGeometry();
       getBoundingClientRect.mockRestore();
     }
   });

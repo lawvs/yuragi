@@ -1,4 +1,8 @@
-import { planShardTimings } from "@yuragi/core";
+import {
+  measureShardMotionRect,
+  planShardTimings,
+  type VisualRect,
+} from "@yuragi/core";
 
 export type SharedMotionOwner = symbol;
 
@@ -30,6 +34,15 @@ function now(): number {
 }
 
 function snapshotRect(rect: DOMRect): RectSnapshot {
+  return {
+    left: rect.left,
+    top: rect.top,
+    width: rect.width,
+    height: rect.height,
+  };
+}
+
+function snapshotVisualRect(rect: VisualRect): RectSnapshot {
   return {
     left: rect.left,
     top: rect.top,
@@ -71,6 +84,20 @@ function normalizedScale(source: RectSnapshot, target: RectSnapshot): number {
 
 function shardMotions(svg: SVGSVGElement): SVGGElement[] {
   return Array.from(svg.querySelectorAll<SVGGElement>("[data-shard-motion]"));
+}
+
+function measureShardRects(
+  shards: SVGGElement[],
+): RectSnapshot[] | undefined {
+  if (shards.length === 0) return undefined;
+
+  const rects: RectSnapshot[] = [];
+  for (const shard of shards) {
+    const rect = measureShardMotionRect(shard);
+    if (!rect) return undefined;
+    rects.push(snapshotVisualRect(rect));
+  }
+  return rects;
 }
 
 function prefersReducedMotion(svg: SVGSVGElement): boolean {
@@ -135,10 +162,8 @@ export function captureSharedMotionSnapshot(
   const rootRect = snapshotRect(svg.getBoundingClientRect());
   if (!hasVisibleRect(rootRect)) return undefined;
 
-  const shardRects = shardMotions(svg).map((shard) =>
-    snapshotRect(shard.getBoundingClientRect()),
-  );
-  if (shardRects.length === 0) return undefined;
+  const shardRects = measureShardRects(shardMotions(svg));
+  if (!shardRects) return undefined;
 
   const existing = sharedSnapshots.get(id);
   if (existing?.cleanupTimer) clearTimeout(existing.cleanupTimer);
@@ -205,10 +230,10 @@ export function tryAnimateSharedMotionEnter(
     return false;
   }
 
-  const targetRects = targetShards.map((shard) =>
-    snapshotRect(shard.getBoundingClientRect()),
-  );
-  if (targetRects.some((rect) => !hasVisibleRect(rect))) return false;
+  const targetRects = measureShardRects(targetShards);
+  if (!targetRects || targetRects.some((rect) => !hasVisibleRect(rect))) {
+    return false;
+  }
 
   const scale = normalizedScale(snapshot.rootRect, targetRootRect);
   const timings = planShardTimings({
