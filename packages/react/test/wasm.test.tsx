@@ -25,13 +25,11 @@ vi.mock("../src/YuragiText", () => ({
     text,
     outline,
     fallback,
-    sharedId,
     transition,
   }: {
     text: string;
     outline?: TextOutline;
     fallback?: string;
-    sharedId?: string | false;
     transition?: {
       enter?: string;
       exit?: string;
@@ -42,7 +40,6 @@ vi.mock("../src/YuragiText", () => ({
       data-fallback={fallback}
       data-has-outline={outline ? "yes" : "no"}
       data-sharded-text={text}
-      data-shared-id={sharedId || undefined}
       data-transition-enter={transition?.enter}
       data-transition-exit={transition?.exit}
       data-transition-speed={transition?.speed}
@@ -96,11 +93,7 @@ describe("@yuragi/react runtime", () => {
         axes={{ wght: 900 }}
         preload={["复杂分层"]}
       >
-        <YuragiText
-          text="复杂分层"
-          fallback="text"
-          sharedId="title:runtime"
-        />
+        <YuragiText text="复杂分层" fallback="text" />
       </YuragiFontProvider>,
     );
 
@@ -121,9 +114,6 @@ describe("@yuragi/react runtime", () => {
     });
     expect(font.compile).toHaveBeenCalledWith("复杂分层");
     expect(screen.getByText("复杂分层").dataset.hasOutline).toBe("yes");
-    expect(screen.getByText("复杂分层").dataset.sharedId).toBe(
-      "title:runtime",
-    );
 
     cleanup();
     expect(font.dispose).toHaveBeenCalled();

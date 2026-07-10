@@ -5,11 +5,7 @@ import {
   YuragiText,
 } from "@yuragi/react";
 import { runtimePosts } from "../data";
-import {
-  alignOptions,
-  titleSharedId,
-  type Align,
-} from "../demo-options";
+import { alignOptions, type Align } from "../demo-options";
 import {
   DEFAULT_AXES,
   DEFAULT_FONT_URL,
@@ -24,7 +20,6 @@ export function RuntimeDemo() {
   const [size, setSize] = useState(88);
   const [align, setAlign] = useState<Align>("start");
   const [hoverOutline, setHoverOutline] = useState(true);
-  const [sharedTitleMotion, setSharedTitleMotion] = useState(true);
   const [transitionSpeed, setTransitionSpeed] = useState(1);
 
   const selectedPost = useMemo(
@@ -59,7 +54,6 @@ export function RuntimeDemo() {
         <aside className="post-list" aria-label="Demo posts">
           {runtimePosts.map((post) => {
             const selected = post.id === selectedId;
-            const shouldShare = sharedTitleMotion && !selected;
 
             return (
               <button
@@ -73,7 +67,6 @@ export function RuntimeDemo() {
                 <span className="post-title">
                   <YuragiText
                     text={post.title}
-                    sharedId={shouldShare ? titleSharedId(post) : false}
                     size={30}
                     maxWidth={320}
                     fallback="text"
@@ -165,17 +158,6 @@ export function RuntimeDemo() {
                 <span>Hover outline</span>
               </label>
 
-              <label className="toggle-control">
-                <input
-                  type="checkbox"
-                  name="shared-title-motion"
-                  checked={sharedTitleMotion}
-                  onChange={(event) =>
-                    setSharedTitleMotion(event.target.checked)
-                  }
-                />
-                <span>Shared title motion</span>
-              </label>
             </div>
           </div>
 
@@ -183,9 +165,6 @@ export function RuntimeDemo() {
             <div className="preview-title">
               <YuragiText
                 text={draftTitle}
-                sharedId={
-                  sharedTitleMotion ? titleSharedId(selectedPost) : false
-                }
                 size={size}
                 maxWidth={760}
                 align={align}

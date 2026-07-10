@@ -279,7 +279,6 @@ export function WasmLab() {
           <YuragiText
             text={text}
             outline={outline}
-            sharedId="wasm-lab:title"
             size={86}
             maxWidth={760}
             fallback="text"

@@ -89,7 +89,6 @@ function createSvgExitOverlay(
   overlay.style.zIndex = "2147483647";
   overlay.style.transform = "none";
   overlay.style.transformOrigin = "0 0";
-  overlay.style.setProperty("view-transition-name", "none");
   setOptionalStyleProperty(overlay, "color", snapshot.color);
   setOptionalStyleProperty(overlay, "fill", snapshot.fill);
   setOptionalStyleProperty(overlay, "stroke", snapshot.stroke);

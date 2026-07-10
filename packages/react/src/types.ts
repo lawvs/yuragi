@@ -4,7 +4,6 @@ import type { ShardTransitionOptions, TextOutline } from "@yuragi/core";
 export type YuragiTextProps = {
   text: string;
   outline?: TextOutline;
-  sharedId?: string | false;
   size?: number;
   maxWidth?: number;
   align?: "start" | "center" | "end";

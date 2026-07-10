@@ -13,7 +13,7 @@ export const demoPosts: DemoPost[] = [
   {
     id: "settings",
     title: "Settings",
-    summary: "A detail page transition with a shared title.",
+    summary: "A detail page transition with local shard motion.",
   },
   {
     id: "missing",

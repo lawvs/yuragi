@@ -53,12 +53,10 @@ vi.mock("@yuragi/react", () => ({
   ),
   YuragiText: ({
     fallback,
-    sharedId,
     text,
     transition,
   }: {
     fallback?: string;
-    sharedId?: string | false;
     text: string;
     transition?: {
       enter?: string;
@@ -70,7 +68,6 @@ vi.mock("@yuragi/react", () => ({
       data-fallback={fallback}
       data-runtime-sharded-text={text}
       data-sharded-text={text}
-      data-shared-id={sharedId || undefined}
       data-transition-enter={transition?.enter}
       data-transition-exit={transition?.exit}
       data-transition-speed={transition?.speed}
@@ -83,12 +80,10 @@ vi.mock("@yuragi/react", () => ({
 vi.mock("@yuragi/react/static", () => ({
   YuragiText: ({
     text,
-    sharedId,
     fallback,
     transition,
   }: {
     text: string;
-    sharedId?: string | false;
     fallback?: string;
     transition?: {
       enter?: string;
@@ -100,7 +95,6 @@ vi.mock("@yuragi/react/static", () => ({
       data-fallback={fallback}
       data-static-sharded-text={text}
       data-sharded-text={text}
-      data-shared-id={sharedId || undefined}
       data-transition-enter={transition?.enter}
       data-transition-exit={transition?.exit}
       data-transition-speed={transition?.speed}
@@ -163,7 +157,7 @@ describe("App", () => {
       "/yuragi-wasm/yuragi_wasm_compiler.wasm",
     );
     expect(provider?.getAttribute("data-axes")).toBe('{"wght":900}');
-    expect(dashboard?.getAttribute("data-shared-id")).toBe("title:dashboard");
+    expect(dashboard).not.toBeNull();
     expect(host.querySelector(".font-status")?.textContent).toBe("Font ready");
     expect(host.querySelector("[data-static-sharded-text]")).toBeNull();
     expect(host.textContent).not.toContain("Missing Outline");
@@ -184,7 +178,7 @@ describe("App", () => {
     const title = host.querySelector(
       '.preview-title [data-runtime-sharded-text="Live Runtime Title"]',
     );
-    expect(title?.getAttribute("data-shared-id")).toBe("title:dashboard");
+    expect(title).not.toBeNull();
   });
 
   it("keeps the precompiled static demo behind an explicit tab", () => {
@@ -204,30 +198,7 @@ describe("App", () => {
     );
 
     expect(host.querySelector("[data-yuragi-runtime-provider]")).toBeNull();
-    expect(missing?.getAttribute("data-shared-id")).toBe("title:missing");
     expect(missing?.getAttribute("data-fallback")).toBe("text");
-  });
-
-  it("does not mount duplicate shared title ids in the demo view", () => {
-    renderApp();
-
-    const sharedIds = Array.from(host.querySelectorAll("[data-shared-id]"))
-      .map((node) => node.getAttribute("data-shared-id"))
-      .filter((value): value is string => Boolean(value));
-
-    expect(sharedIds).toEqual(Array.from(new Set(sharedIds)));
-
-    act(() => {
-      host
-        .querySelector<HTMLButtonElement>('button[data-post-id="settings"]')
-        ?.click();
-    });
-
-    const nextSharedIds = Array.from(host.querySelectorAll("[data-shared-id]"))
-      .map((node) => node.getAttribute("data-shared-id"))
-      .filter((value): value is string => Boolean(value));
-
-    expect(nextSharedIds).toEqual(Array.from(new Set(nextSharedIds)));
   });
 
   it("opens a detail view with controls and enter/exit shard animation settings", () => {
@@ -250,7 +221,6 @@ describe("App", () => {
     const title = host.querySelector(
       '.preview-title [data-sharded-text="Settings"]',
     );
-    expect(title?.getAttribute("data-shared-id")).toBe("title:settings");
     expect(title?.getAttribute("data-transition-enter")).toBe("settle");
     expect(title?.getAttribute("data-transition-exit")).toBe("scatter");
     expect(title?.getAttribute("data-transition-speed")).toBe("1");
@@ -317,23 +287,6 @@ describe("App", () => {
     );
     expect(title).not.toBeNull();
     expect(title?.getAttribute("data-transition-speed")).toBe("0.8");
-  });
-
-  it("can disable shared title motion from the demo controls", () => {
-    renderApp();
-
-    expect(host.querySelector("[data-shared-id]")).not.toBeNull();
-
-    const sharedTitleMotion = host.querySelector<HTMLInputElement>(
-      'input[name="shared-title-motion"]',
-    );
-    expect(sharedTitleMotion).not.toBeNull();
-
-    act(() => {
-      sharedTitleMotion?.click();
-    });
-
-    expect(host.querySelector("[data-shared-id]")).toBeNull();
   });
 
   it("keeps the experimental WASM lab behind an explicit playground tab", () => {

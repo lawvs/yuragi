@@ -9,8 +9,8 @@ import { WasmLab } from "./wasm-lab/WasmLab";
 type PlaygroundView = "runtime-demo" | "static-demo" | "wasm-lab";
 
 const viewPipelines: Record<PlaygroundView, string[]> = {
-  "runtime-demo": ["@yuragi/react", "runtime WASM", "ViewTransition"],
-  "static-demo": ["unplugin", "static outlines", "ViewTransition"],
+  "runtime-demo": ["@yuragi/react", "runtime WASM", "shard transitions"],
+  "static-demo": ["unplugin", "static outlines", "shard transitions"],
   "wasm-lab": ["worker", "runtime compiler", "metrics"],
 };
 

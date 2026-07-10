@@ -9,8 +9,6 @@ type RuntimeControlsProps = {
   onSpeedChange: (speed: number) => void;
   hoverOutline: boolean;
   onHoverOutlineChange: (enabled: boolean) => void;
-  sharedMotion: boolean;
-  onSharedMotionChange: (enabled: boolean) => void;
   presets: readonly string[];
 };
 
@@ -23,8 +21,6 @@ export function RuntimeControls({
   onSpeedChange,
   hoverOutline,
   onHoverOutlineChange,
-  sharedMotion,
-  onSharedMotionChange,
   presets,
 }: RuntimeControlsProps) {
   const fontState = useYuragiFont();
@@ -83,15 +79,6 @@ export function RuntimeControls({
           onChange={(event) => onHoverOutlineChange(event.target.checked)}
         />
         <span>Hover outline</span>
-      </label>
-
-      <label className="toggle">
-        <input
-          type="checkbox"
-          checked={sharedMotion}
-          onChange={(event) => onSharedMotionChange(event.target.checked)}
-        />
-        <span>Shared motion</span>
       </label>
 
       <div className="presets" aria-label="Preset titles">

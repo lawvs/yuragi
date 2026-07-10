@@ -13,7 +13,6 @@ export function App() {
   const [size, setSize] = useState(88);
   const [speed, setSpeed] = useState(1);
   const [hoverOutline, setHoverOutline] = useState(true);
-  const [sharedMotion, setSharedMotion] = useState(true);
 
   return (
     <YuragiFontProvider font={FONT_URL} axes={AXES}>
@@ -27,15 +26,12 @@ export function App() {
           onSpeedChange={setSpeed}
           hoverOutline={hoverOutline}
           onHoverOutlineChange={setHoverOutline}
-          sharedMotion={sharedMotion}
-          onSharedMotionChange={setSharedMotion}
           presets={PRESETS}
         />
 
         <section className="preview" aria-label="Runtime preview">
           <YuragiText
             text={title}
-            sharedId={sharedMotion ? "example:title" : false}
             size={size}
             maxWidth={860}
             align="start"

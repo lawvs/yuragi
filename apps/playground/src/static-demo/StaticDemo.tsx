@@ -2,18 +2,13 @@ import { startTransition, useMemo, useState } from "react";
 import { YuragiText } from "@yuragi/react/static";
 import outlines from "virtual:yuragi/outlines";
 import { demoPosts } from "../data";
-import {
-  alignOptions,
-  titleSharedId,
-  type Align,
-} from "../demo-options";
+import { alignOptions, type Align } from "../demo-options";
 
 export function useStaticDemoState() {
   const [selectedId, setSelectedId] = useState(demoPosts[0]?.id ?? "");
   const [size, setSize] = useState(88);
   const [align, setAlign] = useState<Align>("start");
   const [hoverOutline, setHoverOutline] = useState(true);
-  const [sharedTitleMotion, setSharedTitleMotion] = useState(true);
   const [transitionSpeed, setTransitionSpeed] = useState(1);
 
   const selectedPost = useMemo(
@@ -31,8 +26,6 @@ export function useStaticDemoState() {
     setAlign,
     hoverOutline,
     setHoverOutline,
-    sharedTitleMotion,
-    setSharedTitleMotion,
     transitionSpeed,
     setTransitionSpeed,
   };
@@ -55,8 +48,6 @@ export function StaticDemo({ state }: StaticDemoProps) {
     setAlign,
     hoverOutline,
     setHoverOutline,
-    sharedTitleMotion,
-    setSharedTitleMotion,
     transitionSpeed,
     setTransitionSpeed,
   } = state;
@@ -76,7 +67,6 @@ export function StaticDemo({ state }: StaticDemoProps) {
       <aside className="post-list" aria-label="Demo posts">
         {demoPosts.map((post) => {
           const selected = post.id === selectedId;
-          const shouldShare = sharedTitleMotion && !selected;
 
           return (
             <button
@@ -91,7 +81,6 @@ export function StaticDemo({ state }: StaticDemoProps) {
                 <YuragiText
                   text={post.title}
                   outline={outlines[post.title]}
-                  sharedId={shouldShare ? titleSharedId(post) : false}
                   size={30}
                   maxWidth={320}
                   fallback="text"
@@ -171,17 +160,6 @@ export function StaticDemo({ state }: StaticDemoProps) {
               <span>Hover outline</span>
             </label>
 
-            <label className="toggle-control">
-              <input
-                type="checkbox"
-                name="shared-title-motion"
-                checked={sharedTitleMotion}
-                onChange={(event) =>
-                  setSharedTitleMotion(event.target.checked)
-                }
-              />
-              <span>Shared title motion</span>
-            </label>
           </div>
         </div>
 
@@ -190,9 +168,6 @@ export function StaticDemo({ state }: StaticDemoProps) {
             <YuragiText
               text={selectedPost.title}
               outline={outlines[selectedPost.title]}
-              sharedId={
-                sharedTitleMotion ? titleSharedId(selectedPost) : false
-              }
               size={size}
               maxWidth={760}
               align={align}

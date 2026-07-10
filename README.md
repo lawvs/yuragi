@@ -43,7 +43,6 @@ export function Title() {
     >
       <YuragiText
         text="Dashboard"
-        sharedId="title:dashboard"
         size={56}
         hover="outline"
         transition={{ enter: "settle", exit: "scatter", speed: 1 }}
@@ -116,7 +115,6 @@ export function Title() {
       <YuragiText
         text="Dashboard"
         outline={outlines["Dashboard"]}
-        sharedId="title:dashboard"
         size={56}
         hover="outline"
         transition={{ enter: "settle", exit: "scatter", speed: 1 }}
@@ -141,7 +139,6 @@ For package-specific options and lower-level APIs, see the package READMEs:
 ## Requirements
 
 - React Canary for `@yuragi/react`.
-- Browser support for the View Transition API when using shared element motion.
 - A font file that can be loaded by the compiler.
 - Rust and Cargo on `PATH` when using the static build-time compiler wrapper.
 

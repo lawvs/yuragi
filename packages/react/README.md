@@ -19,7 +19,6 @@ export function RuntimeTitle({ title }: { title: string }) {
     >
       <YuragiText
         text={title}
-        sharedId={`title:${title}`}
         size={88}
         fallback="text"
         hover="outline"
@@ -146,8 +145,6 @@ reliable.
 ## Runtime Props
 
 - `text`: rendered string.
-- `sharedId`: string shared element name for React Canary `ViewTransition`;
-  `false` disables shared motion for that instance.
 - `size`: text size in CSS pixels.
 - `maxWidth`: wrapping width.
 - `align`: `"start"`, `"center"`, or `"end"`.
@@ -163,9 +160,8 @@ reliable.
 - `className`, `style`: applied to the root element.
 
 Exit scatter is rendered in a fixed viewport overlay so the old title keeps its
-screen position while React View Transition moves the new shared title. Enter
-and exit use the same x-position wave timing, which helps outgoing and incoming
-titles line up visually during page changes.
+screen position while its shards animate out. Enter and exit are local shard
+animations; Yuragi does not move text between separate page locations in v1.
 
 ## Static Precompiled Escape Hatch
 
@@ -183,7 +179,6 @@ export function StaticTitle() {
       <YuragiText
         text="Dashboard"
         outline={outlines["Dashboard"]}
-        sharedId="title:dashboard"
         size={56}
         maxWidth={760}
         align="start"
@@ -216,6 +211,4 @@ If your app imports `@yuragi/core/style.css` directly, do not render
 ## Requirements
 
 - React Canary and React DOM Canary.
-- Browser support for React's `ViewTransition` integration when `sharedId` is
-  used.
 - A font file that can be loaded by the runtime provider or the static compiler.

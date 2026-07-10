@@ -1,22 +1,8 @@
-import { StrictMode, type CSSProperties, type ReactNode } from "react";
+import { StrictMode, type CSSProperties } from "react";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { YuragiText } from "../src/YuragiText";
 import { animateShards, type TextOutline } from "@yuragi/core";
-
-vi.mock("react", async () => {
-  const actual = await vi.importActual<typeof import("react")>("react");
-  return {
-    ...actual,
-    ViewTransition: ({
-      children,
-      name,
-    }: {
-      children: ReactNode;
-      name: string;
-    }) => <div data-view-transition={name}>{children}</div>,
-  };
-});
 
 vi.mock("@yuragi/core", async () => {
   const actual = await vi.importActual<typeof import("@yuragi/core")>(
@@ -156,31 +142,6 @@ describe("YuragiText", () => {
     ).toThrow('Missing yuragi outline for "Missing"');
   });
 
-  it("wraps with ViewTransition when sharedId is provided", () => {
-    render(
-      <YuragiText
-        text="A"
-        outline={outline}
-        sharedId="title:a"
-        size={24}
-      />,
-    );
-
-    expect(
-      document.querySelector('[data-view-transition="title:a"]'),
-    ).not.toBeNull();
-  });
-
-  it("wraps text fallback with ViewTransition when sharedId is provided", () => {
-    render(<YuragiText text="Missing" sharedId="title:missing" />);
-
-    const transition = document.querySelector(
-      '[data-view-transition="title:missing"]',
-    );
-    expect(transition).not.toBeNull();
-    expect(transition?.textContent).toBe("Missing");
-  });
-
   it("animates shards with settle transition on enter", () => {
     render(
       <YuragiText
@@ -308,9 +269,6 @@ describe("YuragiText", () => {
       expect(exitSvg?.style.width).toBe("180px");
       expect(exitSvg?.style.height).toBe("54px");
       expect(exitSvg?.style.pointerEvents).toBe("none");
-      expect(exitSvg?.style.getPropertyValue("view-transition-name")).toBe(
-        "none",
-      );
       expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
         type: "settle",
         stagger: "by-x",
