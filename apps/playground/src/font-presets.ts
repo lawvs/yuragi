@@ -3,8 +3,16 @@ import type { FontAxes } from "@yuragi/core";
 export const DEFAULT_WASM_URL =
   "/yuragi-wasm/yuragi_wasm_compiler.wasm";
 
-export const DEFAULT_FONT_URL =
+export const REMOTE_DEFAULT_FONT_URL =
   "https://raw.githubusercontent.com/adobe-fonts/source-han-serif/release/Variable/OTF/SourceHanSerifSC-VF.otf";
+
+export function resolveDefaultFontUrl(developmentUrl?: string) {
+  return developmentUrl || REMOTE_DEFAULT_FONT_URL;
+}
+
+export const DEFAULT_FONT_URL = resolveDefaultFontUrl(
+  import.meta.env.YURAGI_PLAYGROUND_FONT_URL,
+);
 
 export const DEFAULT_AXES = { wght: 900 } satisfies FontAxes;
 

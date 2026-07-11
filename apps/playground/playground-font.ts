@@ -34,6 +34,10 @@ const defaultCacheDir = fileURLToPath(
   new URL("./node_modules/.vite/yuragi/fonts/", import.meta.url),
 );
 
+export function playgroundFontDevUrl(path: string) {
+  return `/@fs/${path.replaceAll("\\", "/")}`;
+}
+
 async function fileExists(path: string) {
   try {
     await access(path, constants.R_OK);

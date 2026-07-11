@@ -28,7 +28,8 @@ import {
 } from "./ShardPreview";
 
 type InspectorStatus =
-  | "loading"
+  | "loading-wasm"
+  | "loading-font"
   | "ready"
   | "compiling"
   | "idle"
@@ -95,7 +96,7 @@ export function ShardInspector() {
     () => new Set(),
   );
   const [playback, setPlayback] = useState<InspectorPlayback | null>(null);
-  const [status, setStatus] = useState<InspectorStatus>("loading");
+  const [status, setStatus] = useState<InspectorStatus>("loading-wasm");
   const [error, setError] = useState("");
   const [compileMs, setCompileMs] = useState<number>();
   const selectedCodePoint = useMemo(
@@ -159,7 +160,10 @@ export function ShardInspector() {
 
       if (message.type === "wasm-ready") {
         wasmReadyRef.current = true;
-        if (shouldLoadPendingFontRef.current) loadPendingFont(worker);
+        if (shouldLoadPendingFontRef.current) {
+          setStatus("loading-font");
+          loadPendingFont(worker);
+        }
         return;
       }
 
@@ -203,7 +207,7 @@ export function ShardInspector() {
       setStatus("error");
     });
 
-    setStatus("loading");
+    setStatus("loading-wasm");
     worker.postMessage({ type: "load-wasm", wasmUrl: DEFAULT_WASM_URL });
 
     return () => {
@@ -238,7 +242,7 @@ export function ShardInspector() {
     setMissingGlyphs(new Set());
     setCompileMs(undefined);
     setError("");
-    setStatus("loading");
+    setStatus(wasmReadyRef.current ? "loading-font" : "loading-wasm");
     fontReadyRef.current = false;
     activeRequestRef.current = "";
     activeFontLoadRef.current = "";
@@ -258,7 +262,7 @@ export function ShardInspector() {
     setMissingGlyphs(new Set());
     setCompileMs(undefined);
     setError("");
-    setStatus("loading");
+    setStatus(wasmReadyRef.current ? "loading-font" : "loading-wasm");
     fontReadyRef.current = false;
     activeRequestRef.current = "";
     activeFontLoadRef.current = "";
@@ -497,18 +501,41 @@ export function ShardInspector() {
             </div>
           ) : null}
           <p className="inspector-status" data-status={status}>
-            {status === "ready"
-              ? `Compiled ${glyphs.size} of ${catalogGlyphsRef.current.length} glyphs in ${compileMs?.toFixed(1) ?? "0.0"} ms.`
-              : status === "idle"
-                ? "Apply the selected font to rebuild the atlas."
-                : status === "error"
-                  ? error
-                  : status}
+            {inspectorStatusText(
+              status,
+              glyphs.size,
+              catalogGlyphsRef.current.length,
+              compileMs,
+              error,
+            )}
           </p>
         </aside>
       </div>
     </section>
   );
+}
+
+function inspectorStatusText(
+  status: InspectorStatus,
+  compiledGlyphs: number,
+  totalGlyphs: number,
+  compileMs: number | undefined,
+  error: string,
+) {
+  switch (status) {
+    case "loading-wasm":
+      return "Loading WASM...";
+    case "loading-font":
+      return "Loading font...";
+    case "compiling":
+      return "Compiling glyphs...";
+    case "ready":
+      return `Compiled ${compiledGlyphs} of ${totalGlyphs} glyphs in ${compileMs?.toFixed(1) ?? "0.0"} ms.`;
+    case "idle":
+      return "Apply the selected font to rebuild the atlas.";
+    case "error":
+      return error;
+  }
 }
 
 type GlyphSectionProps = {

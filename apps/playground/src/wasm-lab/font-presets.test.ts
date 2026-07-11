@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_FONT_PRESET_ID, FONT_PRESETS, findFontPreset } from "./config";
+import {
+  DEFAULT_FONT_PRESET_ID,
+  FONT_PRESETS,
+  findFontPreset,
+  resolveDefaultFontUrl,
+} from "./config";
 
 describe("WASM Lab font presets", () => {
   it("keeps Source Han as the default large-font baseline", () => {
@@ -25,5 +30,14 @@ describe("WASM Lab font presets", () => {
     expect(findFontPreset("ma-shan-zheng").sampleText).toBe("复杂分层");
     expect(findFontPreset("inter").sampleText).toBe("Dashboard");
     expect(findFontPreset("custom").url).toBe("");
+  });
+
+  it("prefers the Vite-served cached font during development", () => {
+    expect(resolveDefaultFontUrl("/@fs/cache/SourceHanSerifSC-VF.otf")).toBe(
+      "/@fs/cache/SourceHanSerifSC-VF.otf",
+    );
+    expect(resolveDefaultFontUrl("")).toContain(
+      "raw.githubusercontent.com/adobe-fonts/source-han-serif",
+    );
   });
 });

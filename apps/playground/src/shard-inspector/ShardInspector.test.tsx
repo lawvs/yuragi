@@ -108,10 +108,16 @@ describe("ShardInspector", () => {
       type: "load-wasm",
       wasmUrl: "/yuragi-wasm/yuragi_wasm_compiler.wasm",
     });
+    expect(host.querySelector(".inspector-status")?.textContent).toBe(
+      "Loading WASM...",
+    );
 
     act(() => {
       worker.emit({ type: "wasm-ready", wasmBytes: 10, wasmLoadMs: 1 });
     });
+    expect(host.querySelector(".inspector-status")?.textContent).toBe(
+      "Loading font...",
+    );
     const fontMessage = worker.postMessage.mock.calls.find(
       ([message]) => message.type === "load-remote-font",
     )?.[0];
@@ -132,6 +138,9 @@ describe("ShardInspector", () => {
         loadId: fontMessage.loadId,
       });
     });
+    expect(host.querySelector(".inspector-status")?.textContent).toBe(
+      "Compiling glyphs...",
+    );
     const compileMessage = worker.postMessage.mock.calls.find(
       ([message]) => message.type === "compile-glyphs",
     )?.[0];

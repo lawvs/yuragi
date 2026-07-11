@@ -6,6 +6,7 @@ import { join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   DEFAULT_PLAYGROUND_FONT_URL,
+  playgroundFontDevUrl,
   resolvePlaygroundFont,
 } from "../playground-font";
 
@@ -92,6 +93,15 @@ describe("resolvePlaygroundFont", () => {
   it("exposes the layered-compatible default font URL", () => {
     expect(DEFAULT_PLAYGROUND_FONT_URL).toBe(
       "https://raw.githubusercontent.com/adobe-fonts/source-han-serif/release/Variable/OTF/SourceHanSerifSC-VF.otf",
+    );
+  });
+
+  it("exposes cached fonts through Vite's filesystem URL", () => {
+    expect(playgroundFontDevUrl("/workspace/cache/font.otf")).toBe(
+      "/@fs//workspace/cache/font.otf",
+    );
+    expect(playgroundFontDevUrl("C:\\workspace\\cache\\font.ttf")).toBe(
+      "/@fs/C:/workspace/cache/font.ttf",
     );
   });
 });
