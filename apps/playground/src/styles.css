@@ -765,6 +765,11 @@ h1 {
   font-size: 7rem;
 }
 
+.glyph-missing {
+  color: var(--color-fg-secondary);
+  font-size: 0.85rem;
+}
+
 .inspector-preview-stage,
 .inspector-preview-host {
   display: grid;
@@ -953,6 +958,12 @@ h1 {
     width: min(calc(100vw - 24px), 366px);
     margin-left: 12px;
     margin-right: auto;
+  }
+
+  .view-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
   }
 
   .post-list {

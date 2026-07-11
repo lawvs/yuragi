@@ -24,6 +24,7 @@ import {
   ShardPreview,
   shardColor,
   type InspectorMode,
+  type InspectorPlayback,
 } from "./ShardPreview";
 
 type InspectorStatus =
@@ -42,9 +43,13 @@ type WorkerMessage =
       unitsPerEm: number;
     }
   | {
-      type: "compiled";
-      requestId?: string;
-      outline: TextOutline;
+      type: "glyphs-compiled";
+      requestId: string;
+      results: Array<{
+        glyph: string;
+        outline?: TextOutline;
+        error?: string;
+      }>;
       compileMs: number;
       outlineBytes: number;
       wasmBytes: number;
@@ -80,6 +85,10 @@ export function ShardInspector() {
   const [glyphs, setGlyphs] = useState<Map<string, InspectorGlyph>>(
     () => new Map(),
   );
+  const [missingGlyphs, setMissingGlyphs] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [playback, setPlayback] = useState<InspectorPlayback | null>(null);
   const [status, setStatus] = useState<InspectorStatus>("loading");
   const [error, setError] = useState("");
   const [compileMs, setCompileMs] = useState<number>();
@@ -88,15 +97,16 @@ export function ShardInspector() {
     [selectedGlyph],
   );
   const selected = glyphs.get(selectedGlyph);
+  const selectedMissing = missingGlyphs.has(selectedGlyph);
 
   function compileCatalog() {
     const requestId = `inspector-${++requestSequenceRef.current}`;
     activeRequestRef.current = requestId;
     setStatus("compiling");
     workerRef.current?.postMessage({
-      type: "compile",
+      type: "compile-glyphs",
       requestId,
-      text: catalogGlyphsRef.current.join(""),
+      glyphs: catalogGlyphsRef.current,
       axes: axesRef.current,
     });
   }
@@ -139,9 +149,25 @@ export function ShardInspector() {
         return;
       }
 
-      if (message.type === "compiled") {
+      if (message.type === "glyphs-compiled") {
         if (message.requestId !== activeRequestRef.current) return;
-        setGlyphs(createGlyphOutlineMap(message.outline));
+        const nextGlyphs = new Map<string, InspectorGlyph>();
+
+        for (const result of message.results) {
+          if (!result.outline) continue;
+          for (const [glyph, data] of createGlyphOutlineMap(result.outline)) {
+            nextGlyphs.set(glyph, data);
+          }
+        }
+
+        setGlyphs(nextGlyphs);
+        setMissingGlyphs(
+          new Set(
+            catalogGlyphsRef.current.filter(
+              (glyph) => !nextGlyphs.has(glyph),
+            ),
+          ),
+        );
         setCompileMs(message.compileMs);
         setStatus("ready");
         return;
@@ -167,6 +193,7 @@ export function ShardInspector() {
     fontUrlRef.current = preset.url;
     axesRef.current = preset.axes;
     setGlyphs(new Map());
+    setMissingGlyphs(new Set());
     fontReadyRef.current = false;
     activeRequestRef.current = "";
     setCompileMs(undefined);
@@ -177,6 +204,7 @@ export function ShardInspector() {
   function applyRemoteFont() {
     if (!fontUrlRef.current.trim()) return;
     setGlyphs(new Map());
+    setMissingGlyphs(new Set());
     setCompileMs(undefined);
     setError("");
     setStatus("loading");
@@ -195,6 +223,7 @@ export function ShardInspector() {
   async function applyLocalFont(file: File | undefined) {
     if (!file) return;
     setGlyphs(new Map());
+    setMissingGlyphs(new Set());
     setCompileMs(undefined);
     setError("");
     setStatus("loading");
@@ -229,6 +258,14 @@ export function ShardInspector() {
   function selectGlyph(glyph: string) {
     setSelectedGlyph(glyph);
     setSelectedShard(null);
+  }
+
+  function play(type: InspectorPlayback["type"]) {
+    setMode("assembled");
+    setPlayback({
+      type,
+      distance: explodeDistance,
+    });
   }
 
   return (
@@ -310,6 +347,7 @@ export function ShardInspector() {
               glyphs={searchGlyphs}
               selectedGlyph={selectedGlyph}
               glyphMap={glyphs}
+              missingGlyphs={missingGlyphs}
               onSelect={selectGlyph}
             />
           ) : null}
@@ -321,6 +359,7 @@ export function ShardInspector() {
               glyphs={section.glyphs}
               selectedGlyph={selectedGlyph}
               glyphMap={glyphs}
+              missingGlyphs={missingGlyphs}
               onSelect={selectGlyph}
             />
           ))}
@@ -371,9 +410,13 @@ export function ShardInspector() {
                 data={selected}
                 mode={mode}
                 explodeDistance={explodeDistance}
+                playback={playback}
                 selectedShard={selectedShard}
+                onPlay={play}
                 onSelectShard={setSelectedShard}
               />
+            ) : selectedMissing ? (
+              <span className="glyph-missing">Missing glyph</span>
             ) : (
               <span>{selectedGlyph}</span>
             )}
@@ -420,7 +463,7 @@ export function ShardInspector() {
           ) : null}
           <p className="inspector-status" data-status={status}>
             {status === "ready"
-              ? `Compiled ${glyphs.size} glyphs in ${compileMs?.toFixed(1) ?? "0.0"} ms.`
+              ? `Compiled ${glyphs.size} of ${catalogGlyphsRef.current.length} glyphs in ${compileMs?.toFixed(1) ?? "0.0"} ms.`
               : status === "idle"
                 ? "Apply the selected font to rebuild the atlas."
                 : status === "error"
@@ -439,6 +482,7 @@ type GlyphSectionProps = {
   glyphs: readonly string[];
   selectedGlyph: string;
   glyphMap: Map<string, InspectorGlyph>;
+  missingGlyphs: Set<string>;
   onSelect: (glyph: string) => void;
 };
 
@@ -448,6 +492,7 @@ function GlyphSection({
   glyphs,
   selectedGlyph,
   glyphMap,
+  missingGlyphs,
   onSelect,
 }: GlyphSectionProps) {
   return (
@@ -462,6 +507,7 @@ function GlyphSection({
             key={glyph}
             glyph={glyph}
             data={glyphMap.get(glyph)}
+            missing={missingGlyphs.has(glyph)}
             selected={glyph === selectedGlyph}
             onSelect={onSelect}
           />
@@ -474,11 +520,13 @@ function GlyphSection({
 function GlyphTile({
   glyph,
   data,
+  missing,
   selected,
   onSelect,
 }: {
   glyph: string;
   data?: InspectorGlyph;
+  missing: boolean;
   selected: boolean;
   onSelect: (glyph: string) => void;
 }) {
@@ -504,7 +552,9 @@ function GlyphTile({
         )}
       </span>
       <span className="glyph-tile-label">{glyph}</span>
-      <span data-shard-count>{data?.glyph.shards.length ?? "-"}</span>
+      <span data-shard-count>
+        {missing ? "Missing" : (data?.glyph.shards.length ?? "-")}
+      </span>
     </button>
   );
 }

@@ -380,5 +380,8 @@ describe("App", () => {
     expect(styles).toMatch(
       /\.range-control\s*{[^}]*grid-template-columns:\s*auto minmax\(0,\s*1fr\) auto/s,
     );
+    expect(styles).toMatch(
+      /@media \(max-width:\s*560px\)[\s\S]*\.view-tabs\s*{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
+    );
   });
 });

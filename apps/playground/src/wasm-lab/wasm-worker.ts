@@ -1,5 +1,5 @@
 import { YuragiWasmRuntime } from "@yuragi/wasm/runtime";
-import type { FontAxes } from "@yuragi/core";
+import type { FontAxes, TextOutline } from "@yuragi/core";
 
 type LoadWasmMessage = {
   type: "load-wasm";
@@ -23,11 +23,19 @@ type CompileMessage = {
   requestId?: string;
 };
 
+type CompileGlyphsMessage = {
+  type: "compile-glyphs";
+  glyphs: string[];
+  axes: FontAxes;
+  requestId: string;
+};
+
 type IncomingMessage =
   | LoadWasmMessage
   | LoadRemoteFontMessage
   | LoadLocalFontMessage
-  | CompileMessage;
+  | CompileMessage
+  | CompileGlyphsMessage;
 
 let runtime: YuragiWasmRuntime | undefined;
 let wasmBytes = 0;
@@ -108,6 +116,50 @@ function compile(text: string, axes: FontAxes, requestId?: string) {
   });
 }
 
+function compileGlyphs(
+  glyphs: string[],
+  axes: FontAxes,
+  requestId: string,
+) {
+  if (!runtime) {
+    throw new Error("load the WASM compiler before compiling text");
+  }
+  if (fontBytes === 0) {
+    throw new Error("load a font before compiling text");
+  }
+
+  const start = performance.now();
+  const encoder = new TextEncoder();
+  const results: Array<{
+    glyph: string;
+    outline?: TextOutline;
+    error?: string;
+  }> = [];
+  let outlineBytes = 0;
+
+  for (const glyph of glyphs) {
+    try {
+      const outline = runtime.compileTitle(glyph, axes);
+      outlineBytes += encoder.encode(JSON.stringify(outline)).length;
+      results.push({ glyph, outline });
+    } catch (error) {
+      results.push({
+        glyph,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  post("glyphs-compiled", {
+    requestId,
+    results,
+    compileMs: duration(start),
+    outlineBytes,
+    wasmBytes,
+    fontBytes,
+  });
+}
+
 self.addEventListener("message", (event: MessageEvent<IncomingMessage>) => {
   void (async () => {
     const message = event.data;
@@ -124,6 +176,9 @@ self.addEventListener("message", (event: MessageEvent<IncomingMessage>) => {
         break;
       case "compile":
         compile(message.text, message.axes, message.requestId);
+        break;
+      case "compile-glyphs":
+        compileGlyphs(message.glyphs, message.axes, message.requestId);
         break;
     }
   })().catch((error) => {

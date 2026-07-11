@@ -111,16 +111,21 @@ describe("ShardInspector", () => {
       });
     });
     const compileMessage = worker.postMessage.mock.calls.find(
-      ([message]) => message.type === "compile",
+      ([message]) => message.type === "compile-glyphs",
     )?.[0];
-    expect(compileMessage?.text).toContain("abcdefghijklmnopqrstuvwxyz");
-    expect(compileMessage?.text).toContain("あいうえお");
+    expect(compileMessage?.glyphs.join("")).toContain(
+      "abcdefghijklmnopqrstuvwxyz",
+    );
+    expect(compileMessage?.glyphs.join("")).toContain("あいうえお");
 
     act(() => {
       worker.emit({
-        type: "compiled",
+        type: "glyphs-compiled",
         requestId: compileMessage.requestId,
-        outline,
+        results: [
+          { glyph: "a", outline },
+          { glyph: "b", outline },
+        ],
         compileMs: 3,
         outlineBytes: 30,
         wasmBytes: 10,
@@ -131,6 +136,12 @@ describe("ShardInspector", () => {
     expect(
       host.querySelector('[data-glyph="a"] [data-shard-count]')?.textContent,
     ).toBe("1");
+    expect(host.querySelector('[data-glyph="c"]')?.textContent).toContain(
+      "Missing",
+    );
+    expect(host.querySelector(".inspector-status")?.textContent).toContain(
+      "2 of 155",
+    );
 
     act(() => {
       host.querySelector<HTMLButtonElement>('[data-glyph="b"]')?.click();
@@ -178,5 +189,16 @@ describe("ShardInspector", () => {
     expect(
       host.querySelector<HTMLButtonElement>('[data-action="play-scatter"]'),
     ).not.toBeNull();
+
+    act(() => {
+      host
+        .querySelector<HTMLButtonElement>('[data-action="play-settle"]')
+        ?.click();
+    });
+    expect(
+      host
+        .querySelector<HTMLButtonElement>('button[data-mode="assembled"]')
+        ?.getAttribute("aria-pressed"),
+    ).toBe("true");
   });
 });
