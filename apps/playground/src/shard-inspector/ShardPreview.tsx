@@ -75,6 +75,8 @@ export function ShardPreview({
           mode === "assembled" && !selected
             ? "currentColor"
             : shardColor(index);
+        path.style.stroke =
+          mode === "assembled" && selected ? shardColor(index) : "";
       }
       if (mode === "exploded") {
         const direction = data.shards[index]?.direction ?? [0, 0];

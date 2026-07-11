@@ -238,6 +238,11 @@ describe("ShardInspector", () => {
     ).toBe("rgb(0, 121, 140)");
     expect(
       host.querySelector<SVGPathElement>(
+        '[data-inspector-shard="1"] [data-shard]',
+      )?.style.stroke,
+    ).toBe("rgb(0, 121, 140)");
+    expect(
+      host.querySelector<SVGPathElement>(
         '[data-inspector-shard="0"] [data-shard]',
       )?.style.fill,
     ).toBe("currentcolor");
