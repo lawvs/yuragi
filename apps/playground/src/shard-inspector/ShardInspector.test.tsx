@@ -295,4 +295,97 @@ describe("ShardInspector", () => {
         ?.accept,
     ).toBe(".otf,.ttf,font/otf,font/ttf");
   });
+
+  it("ignores a local file read superseded by a remote font", async () => {
+    act(() => {
+      createRoot(host).render(<ShardInspector />);
+    });
+
+    const worker = FakeWorker.instances[0]!;
+    act(() => {
+      worker.emit({ type: "wasm-ready", wasmBytes: 10, wasmLoadMs: 1 });
+    });
+
+    let resolveLocalFont: (bytes: ArrayBuffer) => void = () => {};
+    const localFont = {
+      arrayBuffer: vi.fn(
+        () =>
+          new Promise<ArrayBuffer>((resolve) => {
+            resolveLocalFont = resolve;
+          }),
+      ),
+    } as unknown as File;
+    const input = host.querySelector<HTMLInputElement>(
+      'input[name="inspector-local-font"]',
+    )!;
+    Object.defineProperty(input, "files", {
+      configurable: true,
+      value: [localFont],
+    });
+    act(() => {
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    const preset = host.querySelector<HTMLSelectElement>(
+      'select[name="inspector-font-preset"]',
+    )!;
+    act(() => {
+      preset.value = "inter";
+      preset.dispatchEvent(new Event("change", { bubbles: true }));
+      Array.from(host.querySelectorAll("button"))
+        .find((button) => button.textContent?.trim() === "Apply font")
+        ?.click();
+    });
+
+    await act(async () => {
+      resolveLocalFont(new ArrayBuffer(8));
+      await Promise.resolve();
+    });
+
+    expect(
+      worker.postMessage.mock.calls.filter(
+        ([message]) => message.type === "load-local-font",
+      ),
+    ).toHaveLength(0);
+    expect(
+      worker.postMessage.mock.calls.at(-1)?.[0],
+    ).toEqual(expect.objectContaining({ type: "load-remote-font" }));
+  });
+
+  it("does not apply the default font after a preset changes during startup", () => {
+    act(() => {
+      createRoot(host).render(<ShardInspector />);
+    });
+
+    const worker = FakeWorker.instances[0]!;
+    const preset = host.querySelector<HTMLSelectElement>(
+      'select[name="inspector-font-preset"]',
+    )!;
+    act(() => {
+      preset.value = "inter";
+      preset.dispatchEvent(new Event("change", { bubbles: true }));
+      worker.emit({ type: "wasm-ready", wasmBytes: 10, wasmLoadMs: 1 });
+    });
+
+    expect(
+      worker.postMessage.mock.calls.filter(
+        ([message]) => message.type === "load-remote-font",
+      ),
+    ).toHaveLength(0);
+    expect(host.querySelector(".inspector-status")?.textContent).toContain(
+      "Apply the selected font",
+    );
+
+    act(() => {
+      Array.from(host.querySelectorAll("button"))
+        .find((button) => button.textContent?.trim() === "Apply font")
+        ?.click();
+    });
+    expect(worker.postMessage.mock.calls.at(-1)?.[0]).toEqual(
+      expect.objectContaining({
+        type: "load-remote-font",
+        fontUrl: expect.stringContaining("Inter"),
+      }),
+    );
+  });
 });

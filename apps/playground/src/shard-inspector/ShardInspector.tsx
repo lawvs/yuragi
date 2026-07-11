@@ -74,8 +74,10 @@ export function ShardInspector() {
   const catalogGlyphsRef = useRef(DEFAULT_GLYPHS);
   const fontReadyRef = useRef(false);
   const wasmReadyRef = useRef(false);
+  const fontIntentSequenceRef = useRef(0);
   const fontLoadSequenceRef = useRef(0);
   const activeFontLoadRef = useRef("");
+  const shouldLoadPendingFontRef = useRef(true);
   const requestSequenceRef = useRef(0);
   const activeRequestRef = useRef("");
   const [presetId, setPresetId] = useState(DEFAULT_FONT_PRESET_ID);
@@ -157,7 +159,7 @@ export function ShardInspector() {
 
       if (message.type === "wasm-ready") {
         wasmReadyRef.current = true;
-        loadPendingFont(worker);
+        if (shouldLoadPendingFontRef.current) loadPendingFont(worker);
         return;
       }
 
@@ -212,6 +214,8 @@ export function ShardInspector() {
 
   function selectPreset(id: string) {
     const preset = findFontPreset(id);
+    fontIntentSequenceRef.current += 1;
+    shouldLoadPendingFontRef.current = false;
     setPresetId(preset.id);
     setFontUrl(preset.url);
     fontUrlRef.current = preset.url;
@@ -228,6 +232,8 @@ export function ShardInspector() {
 
   function applyRemoteFont() {
     if (!fontUrlRef.current.trim()) return;
+    fontIntentSequenceRef.current += 1;
+    shouldLoadPendingFontRef.current = true;
     setGlyphs(new Map());
     setMissingGlyphs(new Set());
     setCompileMs(undefined);
@@ -246,6 +252,8 @@ export function ShardInspector() {
 
   async function applyLocalFont(file: File | undefined) {
     if (!file) return;
+    const intent = ++fontIntentSequenceRef.current;
+    shouldLoadPendingFontRef.current = false;
     setGlyphs(new Map());
     setMissingGlyphs(new Set());
     setCompileMs(undefined);
@@ -254,9 +262,13 @@ export function ShardInspector() {
     fontReadyRef.current = false;
     activeRequestRef.current = "";
     activeFontLoadRef.current = "";
+    const fontBytes = await file.arrayBuffer();
+    if (intent !== fontIntentSequenceRef.current) return;
+
+    shouldLoadPendingFontRef.current = true;
     pendingFontRef.current = {
       type: "local",
-      fontBytes: await file.arrayBuffer(),
+      fontBytes,
     };
     const worker = workerRef.current;
     if (worker && wasmReadyRef.current) loadPendingFont(worker);
