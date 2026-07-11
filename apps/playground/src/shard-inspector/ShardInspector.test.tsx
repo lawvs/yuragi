@@ -231,6 +231,16 @@ describe("ShardInspector", () => {
         .querySelector<HTMLButtonElement>('button[data-mode="assembled"]')
         ?.getAttribute("aria-pressed"),
     ).toBe("true");
+    expect(
+      host.querySelector<SVGPathElement>(
+        '[data-inspector-shard="1"] [data-shard]',
+      )?.style.fill,
+    ).toBe("rgb(0, 121, 140)");
+    expect(
+      host.querySelector<SVGPathElement>(
+        '[data-inspector-shard="0"] [data-shard]',
+      )?.style.fill,
+    ).toBe("currentcolor");
   });
 
   it("ignores stale font loads and does not reload WASM", () => {

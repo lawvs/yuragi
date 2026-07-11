@@ -67,11 +67,14 @@ export function ShardPreview({
 
     motions.forEach((motion, index) => {
       motion.dataset.inspectorShard = String(index);
-      if (selectedShard === index) motion.dataset.selected = "true";
+      const selected = selectedShard === index;
+      if (selected) motion.dataset.selected = "true";
       const path = motion.querySelector<SVGPathElement>("[data-shard]");
       if (path) {
         path.style.fill =
-          mode === "assembled" ? "currentColor" : shardColor(index);
+          mode === "assembled" && !selected
+            ? "currentColor"
+            : shardColor(index);
       }
       if (mode === "exploded") {
         const direction = data.shards[index]?.direction ?? [0, 0];
