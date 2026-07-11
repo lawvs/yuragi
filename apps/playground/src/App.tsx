@@ -13,13 +13,6 @@ type PlaygroundView =
   | "shard-inspector"
   | "wasm-lab";
 
-const viewPipelines: Record<PlaygroundView, string[]> = {
-  "runtime-demo": ["@yuragi/react", "runtime WASM", "shard transitions"],
-  "static-demo": ["unplugin", "static outlines", "shard transitions"],
-  "shard-inspector": ["runtime WASM", "glyph atlas", "shard analysis"],
-  "wasm-lab": ["worker", "runtime compiler", "metrics"],
-};
-
 export function App() {
   const [view, setView] = useState<PlaygroundView>("runtime-demo");
   const staticDemo = useStaticDemoState();
@@ -30,11 +23,6 @@ export function App() {
         <div>
           <p className="eyebrow">yuragi v1</p>
           <h1>Playground</h1>
-        </div>
-        <div className="status-strip" aria-label="Pipeline">
-          {viewPipelines[view].map((label) => (
-            <span key={label}>{label}</span>
-          ))}
         </div>
         <nav className="view-tabs" aria-label="Playground views">
           <button

@@ -79,27 +79,6 @@ h1 {
   letter-spacing: 0;
 }
 
-.status-strip {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
-  max-width: 540px;
-}
-
-.status-strip span {
-  display: inline-flex;
-  min-height: 32px;
-  align-items: center;
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  padding: 5px 10px;
-  color: var(--color-fg-secondary);
-  background: var(--color-bg-block);
-  font-size: 0.82rem;
-  white-space: nowrap;
-}
-
 .view-tabs {
   display: inline-flex;
   gap: 6px;
@@ -913,10 +892,6 @@ h1 {
   .topbar {
     align-items: start;
     flex-direction: column;
-  }
-
-  .status-strip {
-    justify-content: flex-start;
   }
 
   .workspace {
