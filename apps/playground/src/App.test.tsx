@@ -310,6 +310,37 @@ describe("App", () => {
     expect(host.textContent).toContain("Compile title");
   });
 
+  it("opens the Shard Inspector with multilingual glyph sections and search", () => {
+    renderApp();
+
+    act(() => {
+      host
+        .querySelector<HTMLButtonElement>('button[data-view="shard-inspector"]')
+        ?.click();
+    });
+
+    expect(host.querySelector(".shard-inspector")).not.toBeNull();
+    expect(host.textContent).toContain("Latin");
+    expect(host.textContent).toContain("Common Chinese");
+    expect(host.textContent).toContain("Hiragana");
+    expect(host.textContent).toContain("Katakana");
+
+    const search = host.querySelector<HTMLInputElement>(
+      'input[name="glyph-search"]',
+    );
+    expect(search).not.toBeNull();
+
+    act(() => {
+      setInputValue(search!, "舞");
+      host
+        .querySelector<HTMLButtonElement>('button[data-action="add-glyphs"]')
+        ?.click();
+    });
+
+    expect(host.querySelector('[data-glyph="舞"]')).not.toBeNull();
+    expect(host.textContent).toContain("Search Results");
+  });
+
   it("switches WASM Lab font presets with matching sample text and URL", () => {
     renderApp();
 

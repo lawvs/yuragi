@@ -20,6 +20,7 @@ type CompileMessage = {
   type: "compile";
   text: string;
   axes: FontAxes;
+  requestId?: string;
 };
 
 type IncomingMessage =
@@ -86,7 +87,7 @@ async function loadRemoteFont(fontUrl: string) {
   await setFont(await response.arrayBuffer(), start);
 }
 
-function compile(text: string, axes: FontAxes) {
+function compile(text: string, axes: FontAxes, requestId?: string) {
   if (!runtime) {
     throw new Error("load the WASM compiler before compiling text");
   }
@@ -98,6 +99,7 @@ function compile(text: string, axes: FontAxes) {
   const outline = runtime.compileTitle(text, axes);
   const outlineBytes = new TextEncoder().encode(JSON.stringify(outline)).length;
   post("compiled", {
+    requestId,
     outline,
     compileMs: duration(start),
     outlineBytes,
@@ -121,7 +123,7 @@ self.addEventListener("message", (event: MessageEvent<IncomingMessage>) => {
         await setFont(message.fontBytes, performance.now());
         break;
       case "compile":
-        compile(message.text, message.axes);
+        compile(message.text, message.axes, message.requestId);
         break;
     }
   })().catch((error) => {
