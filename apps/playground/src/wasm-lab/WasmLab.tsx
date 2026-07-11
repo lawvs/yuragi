@@ -29,7 +29,6 @@ type WorkerMessage =
     }
   | {
       type: "compiled";
-      requestId?: string;
       outline: TextOutline;
       compileMs: number;
       outlineBytes: number;

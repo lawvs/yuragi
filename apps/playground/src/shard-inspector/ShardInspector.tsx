@@ -1,6 +1,5 @@
 import {
   useEffect,
-  useMemo,
   useRef,
   useState,
   type FormEvent,
@@ -36,13 +35,10 @@ type InspectorStatus =
   | "error";
 
 type WorkerMessage =
-  | { type: "wasm-ready"; wasmBytes: number; wasmLoadMs: number }
+  | { type: "wasm-ready" }
   | {
       type: "font-ready";
       loadId?: string;
-      fontBytes: number;
-      fontLoadMs: number;
-      unitsPerEm: number;
     }
   | {
       type: "glyphs-compiled";
@@ -50,12 +46,8 @@ type WorkerMessage =
       results: Array<{
         glyph: string;
         outline?: TextOutline;
-        error?: string;
       }>;
       compileMs: number;
-      outlineBytes: number;
-      wasmBytes: number;
-      fontBytes: number;
     }
   | { type: "error"; message: string; loadId?: string };
 
@@ -66,7 +58,7 @@ type PendingFont =
 export function ShardInspector() {
   const defaultPreset = findFontPreset(DEFAULT_FONT_PRESET_ID);
   const workerRef = useRef<Worker | null>(null);
-  const pendingFontRef = useRef<PendingFont>({
+  const pendingFontRef = useRef<PendingFont | null>({
     type: "remote",
     fontUrl: defaultPreset.url,
   });
@@ -78,7 +70,6 @@ export function ShardInspector() {
   const fontIntentSequenceRef = useRef(0);
   const fontLoadSequenceRef = useRef(0);
   const activeFontLoadRef = useRef("");
-  const shouldLoadPendingFontRef = useRef(true);
   const requestSequenceRef = useRef(0);
   const activeRequestRef = useRef("");
   const [presetId, setPresetId] = useState(DEFAULT_FONT_PRESET_ID);
@@ -99,10 +90,8 @@ export function ShardInspector() {
   const [status, setStatus] = useState<InspectorStatus>("loading-wasm");
   const [error, setError] = useState("");
   const [compileMs, setCompileMs] = useState<number>();
-  const selectedCodePoint = useMemo(
-    () => selectedGlyph.codePointAt(0)?.toString(16).toUpperCase() ?? "",
-    [selectedGlyph],
-  );
+  const selectedCodePoint =
+    selectedGlyph.codePointAt(0)?.toString(16).toUpperCase() ?? "";
   const selected = glyphs.get(selectedGlyph);
   const selectedMissing = missingGlyphs.has(selectedGlyph);
 
@@ -119,9 +108,12 @@ export function ShardInspector() {
   }
 
   function loadPendingFont(worker: Worker) {
+    const pendingFont = pendingFontRef.current;
+    if (!pendingFont) return;
+    pendingFontRef.current = null;
+
     const loadId = `inspector-font-${++fontLoadSequenceRef.current}`;
     activeFontLoadRef.current = loadId;
-    const pendingFont = pendingFontRef.current;
 
     if (pendingFont.type === "local") {
       worker.postMessage(
@@ -142,6 +134,18 @@ export function ShardInspector() {
     });
   }
 
+  function resetFontState(nextStatus: InspectorStatus) {
+    setGlyphs(new Map());
+    setMissingGlyphs(new Set());
+    setSelectedShard(null);
+    setCompileMs(undefined);
+    setError("");
+    setStatus(nextStatus);
+    fontReadyRef.current = false;
+    activeRequestRef.current = "";
+    activeFontLoadRef.current = "";
+  }
+
   useEffect(() => {
     if (typeof Worker === "undefined") {
       setError("Web Worker is not available in this browser.");
@@ -160,7 +164,7 @@ export function ShardInspector() {
 
       if (message.type === "wasm-ready") {
         wasmReadyRef.current = true;
-        if (shouldLoadPendingFontRef.current) {
+        if (pendingFontRef.current) {
           setStatus("loading-font");
           loadPendingFont(worker);
         }
@@ -219,37 +223,22 @@ export function ShardInspector() {
   function selectPreset(id: string) {
     const preset = findFontPreset(id);
     fontIntentSequenceRef.current += 1;
-    shouldLoadPendingFontRef.current = false;
+    pendingFontRef.current = null;
     setPresetId(preset.id);
     setFontUrl(preset.url);
     fontUrlRef.current = preset.url;
     axesRef.current = preset.axes;
-    setGlyphs(new Map());
-    setMissingGlyphs(new Set());
-    fontReadyRef.current = false;
-    activeRequestRef.current = "";
-    activeFontLoadRef.current = "";
-    setCompileMs(undefined);
-    setError("");
-    setStatus("idle");
+    resetFontState("idle");
   }
 
   function applyRemoteFont() {
     if (!fontUrlRef.current.trim()) return;
     fontIntentSequenceRef.current += 1;
-    shouldLoadPendingFontRef.current = true;
-    setGlyphs(new Map());
-    setMissingGlyphs(new Set());
-    setCompileMs(undefined);
-    setError("");
-    setStatus(wasmReadyRef.current ? "loading-font" : "loading-wasm");
-    fontReadyRef.current = false;
-    activeRequestRef.current = "";
-    activeFontLoadRef.current = "";
     pendingFontRef.current = {
       type: "remote",
       fontUrl: fontUrlRef.current,
     };
+    resetFontState(wasmReadyRef.current ? "loading-font" : "loading-wasm");
     const worker = workerRef.current;
     if (worker && wasmReadyRef.current) loadPendingFont(worker);
   }
@@ -257,25 +246,20 @@ export function ShardInspector() {
   async function applyLocalFont(file: File | undefined) {
     if (!file) return;
     const intent = ++fontIntentSequenceRef.current;
-    shouldLoadPendingFontRef.current = false;
-    setGlyphs(new Map());
-    setMissingGlyphs(new Set());
-    setCompileMs(undefined);
-    setError("");
-    setStatus(wasmReadyRef.current ? "loading-font" : "loading-wasm");
-    fontReadyRef.current = false;
-    activeRequestRef.current = "";
-    activeFontLoadRef.current = "";
+    pendingFontRef.current = null;
+    resetFontState(wasmReadyRef.current ? "loading-font" : "loading-wasm");
     const fontBytes = await file.arrayBuffer();
     if (intent !== fontIntentSequenceRef.current) return;
 
-    shouldLoadPendingFontRef.current = true;
     pendingFontRef.current = {
       type: "local",
       fontBytes,
     };
     const worker = workerRef.current;
-    if (worker && wasmReadyRef.current) loadPendingFont(worker);
+    if (worker && wasmReadyRef.current) {
+      setStatus("loading-font");
+      loadPendingFont(worker);
+    }
   }
 
   function addGlyphs(event: FormEvent) {

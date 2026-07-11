@@ -22,7 +22,6 @@ type CompileMessage = {
   type: "compile";
   text: string;
   axes: FontAxes;
-  requestId?: string;
 };
 
 type CompileGlyphsMessage = {
@@ -111,7 +110,7 @@ async function loadLocalFont(fontBytes: ArrayBuffer, loadId?: string) {
   await setFont(fontBytes, performance.now(), loadId);
 }
 
-function compile(text: string, axes: FontAxes, requestId?: string) {
+function compile(text: string, axes: FontAxes) {
   if (!runtime) {
     throw new Error("load the WASM compiler before compiling text");
   }
@@ -123,7 +122,6 @@ function compile(text: string, axes: FontAxes, requestId?: string) {
   const outline = runtime.compileTitle(text, axes);
   const outlineBytes = new TextEncoder().encode(JSON.stringify(outline)).length;
   post("compiled", {
-    requestId,
     outline,
     compileMs: duration(start),
     outlineBytes,
@@ -191,7 +189,7 @@ self.addEventListener("message", (event: MessageEvent<IncomingMessage>) => {
         await loadLocalFont(message.fontBytes, message.loadId);
         break;
       case "compile":
-        compile(message.text, message.axes, message.requestId);
+        compile(message.text, message.axes);
         break;
       case "compile-glyphs":
         compileGlyphs(message.glyphs, message.axes, message.requestId);

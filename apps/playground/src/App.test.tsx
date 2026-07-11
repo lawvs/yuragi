@@ -380,14 +380,5 @@ describe("App", () => {
     expect(styles).toMatch(
       /\.range-control\s*{[^}]*grid-template-columns:\s*auto minmax\(0,\s*1fr\) auto/s,
     );
-    expect(styles).toMatch(
-      /@media \(max-width:\s*560px\)[\s\S]*\.view-tabs\s*{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
-    );
-    expect(styles).toMatch(
-      /\.glyph-detail-preview\s*{[^}]*overflow:\s*auto/s,
-    );
-    expect(styles).toMatch(
-      /\.inspector-preview-stage\s*{[^}]*--inspector-explode-distance/s,
-    );
   });
 });

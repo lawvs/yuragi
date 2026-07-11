@@ -21,33 +21,3 @@ export function createInspectorGlyph(
     outline,
   };
 }
-
-export function createGlyphOutlineMap(
-  outline: TextOutline,
-): Map<string, InspectorGlyph> {
-  const glyphs = new Map<string, InspectorGlyph>();
-
-  for (const group of outline.groups) {
-    for (const glyph of group.glyphs) {
-      if (glyphs.has(glyph.char)) continue;
-
-      const glyphOutline: TextOutline = {
-        em: outline.em,
-        ascender: outline.ascender,
-        descender: outline.descender,
-        groups: [
-          {
-            text: glyph.char,
-            advance: glyph.advance,
-            breakAfter: true,
-            glyphs: [glyph],
-          },
-        ],
-      };
-      const inspectorGlyph = createInspectorGlyph(glyph.char, glyphOutline);
-      if (inspectorGlyph) glyphs.set(glyph.char, inspectorGlyph);
-    }
-  }
-
-  return glyphs;
-}

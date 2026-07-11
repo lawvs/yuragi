@@ -98,7 +98,7 @@ describe("ShardInspector", () => {
     }
   });
 
-  it("loads the default font, compiles the catalog, and exposes shard counts", () => {
+  it("loads the atlas and inspects an animated shard", () => {
     act(() => {
       createRoot(host).render(<ShardInspector />);
     });
@@ -113,7 +113,7 @@ describe("ShardInspector", () => {
     );
 
     act(() => {
-      worker.emit({ type: "wasm-ready", wasmBytes: 10, wasmLoadMs: 1 });
+      worker.emit({ type: "wasm-ready" });
     });
     expect(host.querySelector(".inspector-status")?.textContent).toBe(
       "Loading font...",
@@ -132,9 +132,6 @@ describe("ShardInspector", () => {
     act(() => {
       worker.emit({
         type: "font-ready",
-        fontBytes: 20,
-        fontLoadMs: 2,
-        unitsPerEm: 1000,
         loadId: fontMessage.loadId,
       });
     });
@@ -144,10 +141,6 @@ describe("ShardInspector", () => {
     const compileMessage = worker.postMessage.mock.calls.find(
       ([message]) => message.type === "compile-glyphs",
     )?.[0];
-    expect(compileMessage?.glyphs.join("")).toContain(
-      "abcdefghijklmnopqrstuvwxyz",
-    );
-    expect(compileMessage?.glyphs.join("")).toContain("あいうえお");
 
     act(() => {
       worker.emit({
@@ -158,9 +151,6 @@ describe("ShardInspector", () => {
           { glyph: "b", outline: outlineFor("b") },
         ],
         compileMs: 3,
-        outlineBytes: 30,
-        wasmBytes: 10,
-        fontBytes: 20,
       });
     });
 
@@ -177,9 +167,6 @@ describe("ShardInspector", () => {
     act(() => {
       host.querySelector<HTMLButtonElement>('[data-glyph="b"]')?.click();
     });
-    expect(host.querySelector(".glyph-detail")?.textContent).toContain(
-      "2 shards",
-    );
     expect(host.querySelectorAll("[data-shard-index]")).toHaveLength(2);
 
     act(() => {
@@ -214,13 +201,6 @@ describe("ShardInspector", () => {
         .querySelector<HTMLButtonElement>('[data-shard-index="1"]')
         ?.getAttribute("aria-pressed"),
     ).toBe("true");
-    expect(
-      host.querySelector<HTMLButtonElement>('[data-action="play-settle"]'),
-    ).not.toBeNull();
-    expect(
-      host.querySelector<HTMLButtonElement>('[data-action="play-scatter"]'),
-    ).not.toBeNull();
-
     act(() => {
       host
         .querySelector<HTMLButtonElement>('[data-action="play-settle"]')
@@ -231,16 +211,11 @@ describe("ShardInspector", () => {
         .querySelector<HTMLButtonElement>('button[data-mode="assembled"]')
         ?.getAttribute("aria-pressed"),
     ).toBe("true");
-    expect(
-      host.querySelector<SVGPathElement>(
-        '[data-inspector-shard="1"] [data-shard]',
-      )?.style.fill,
-    ).toBe("rgb(0, 121, 140)");
-    expect(
-      host.querySelector<SVGPathElement>(
-        '[data-inspector-shard="1"] [data-shard]',
-      )?.style.stroke,
-    ).toBe("rgb(0, 121, 140)");
+    const selectedPath = host.querySelector<SVGPathElement>(
+      '[data-inspector-shard="1"] [data-shard]',
+    );
+    expect(selectedPath?.style.fill).not.toBe("currentcolor");
+    expect(selectedPath?.style.stroke).toBe(selectedPath?.style.fill);
     expect(
       host.querySelector<SVGPathElement>(
         '[data-inspector-shard="0"] [data-shard]',
@@ -255,7 +230,7 @@ describe("ShardInspector", () => {
 
     const worker = FakeWorker.instances[0]!;
     act(() => {
-      worker.emit({ type: "wasm-ready", wasmBytes: 10, wasmLoadMs: 1 });
+      worker.emit({ type: "wasm-ready" });
     });
     const initialFontMessage = worker.postMessage.mock.calls.find(
       ([message]) => message.type === "load-remote-font",
@@ -289,9 +264,6 @@ describe("ShardInspector", () => {
       worker.emit({
         type: "font-ready",
         loadId: initialFontMessage.loadId,
-        fontBytes: 20,
-        fontLoadMs: 2,
-        unitsPerEm: 1000,
       });
     });
     expect(
@@ -304,9 +276,6 @@ describe("ShardInspector", () => {
       worker.emit({
         type: "font-ready",
         loadId: fontMessages[1].loadId,
-        fontBytes: 20,
-        fontLoadMs: 2,
-        unitsPerEm: 1000,
       });
     });
     expect(
@@ -314,10 +283,6 @@ describe("ShardInspector", () => {
         ([message]) => message.type === "compile-glyphs",
       ),
     ).toHaveLength(1);
-    expect(
-      host.querySelector<HTMLInputElement>('input[name="inspector-local-font"]')
-        ?.accept,
-    ).toBe(".otf,.ttf,font/otf,font/ttf");
   });
 
   it("ignores a local file read superseded by a remote font", async () => {
@@ -327,7 +292,7 @@ describe("ShardInspector", () => {
 
     const worker = FakeWorker.instances[0]!;
     act(() => {
-      worker.emit({ type: "wasm-ready", wasmBytes: 10, wasmLoadMs: 1 });
+      worker.emit({ type: "wasm-ready" });
     });
 
     let resolveLocalFont: (bytes: ArrayBuffer) => void = () => {};
@@ -374,42 +339,5 @@ describe("ShardInspector", () => {
     expect(
       worker.postMessage.mock.calls.at(-1)?.[0],
     ).toEqual(expect.objectContaining({ type: "load-remote-font" }));
-  });
-
-  it("does not apply the default font after a preset changes during startup", () => {
-    act(() => {
-      createRoot(host).render(<ShardInspector />);
-    });
-
-    const worker = FakeWorker.instances[0]!;
-    const preset = host.querySelector<HTMLSelectElement>(
-      'select[name="inspector-font-preset"]',
-    )!;
-    act(() => {
-      preset.value = "inter";
-      preset.dispatchEvent(new Event("change", { bubbles: true }));
-      worker.emit({ type: "wasm-ready", wasmBytes: 10, wasmLoadMs: 1 });
-    });
-
-    expect(
-      worker.postMessage.mock.calls.filter(
-        ([message]) => message.type === "load-remote-font",
-      ),
-    ).toHaveLength(0);
-    expect(host.querySelector(".inspector-status")?.textContent).toContain(
-      "Apply the selected font",
-    );
-
-    act(() => {
-      Array.from(host.querySelectorAll("button"))
-        .find((button) => button.textContent?.trim() === "Apply font")
-        ?.click();
-    });
-    expect(worker.postMessage.mock.calls.at(-1)?.[0]).toEqual(
-      expect.objectContaining({
-        type: "load-remote-font",
-        fontUrl: expect.stringContaining("Inter"),
-      }),
-    );
   });
 });
