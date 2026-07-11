@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TextOutline } from "@yuragi/core";
-import { createGlyphOutlineMap } from "./model";
+import { createGlyphOutlineMap, createInspectorGlyph } from "./model";
 
 const outline: TextOutline = {
   em: 1000,
@@ -36,8 +36,8 @@ describe("Shard Inspector outline model", () => {
   it("maps a compiled title into standalone glyph outlines", () => {
     const glyphs = createGlyphOutlineMap(outline);
 
-    expect(glyphs.get("a")?.glyph.shards).toHaveLength(1);
-    expect(glyphs.get("b")?.glyph.shards).toHaveLength(2);
+    expect(glyphs.get("a")?.shards).toHaveLength(1);
+    expect(glyphs.get("b")?.shards).toHaveLength(2);
     expect(glyphs.get("b")?.outline.groups).toEqual([
       {
         text: "b",
@@ -47,5 +47,14 @@ describe("Shard Inspector outline model", () => {
       },
     ]);
     expect(glyphs.get("b")?.outline.em).toBe(1000);
+  });
+
+  it("keeps a multi-code-point grapheme as one inspector entry", () => {
+    const glyph = createInspectorGlyph("e\u0301", outline);
+
+    expect(glyph?.char).toBe("e\u0301");
+    expect(glyph?.shards).toHaveLength(3);
+    expect(glyph?.advance).toBe(900);
+    expect(glyph?.outline).toBe(outline);
   });
 });

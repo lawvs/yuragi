@@ -754,7 +754,7 @@ h1 {
 .glyph-detail-preview {
   display: grid;
   min-height: 300px;
-  overflow: hidden;
+  overflow: auto;
   place-items: center;
   border-block: 1px solid var(--color-border);
   background-image:
@@ -779,17 +779,31 @@ h1 {
 }
 
 .inspector-preview-stage {
+  --inspector-explode-distance: 0px;
+
+  width: max(
+    100%,
+    calc(
+      220px + var(--inspector-explode-distance) +
+        var(--inspector-explode-distance)
+    )
+  );
   color: var(--color-fg);
   font-family: inherit;
   font-size: 1rem;
 }
 
 .inspector-preview-host {
-  min-height: 250px;
+  min-height: calc(
+    250px + var(--inspector-explode-distance) +
+      var(--inspector-explode-distance)
+  );
+  padding: var(--inspector-explode-distance);
 }
 
 .inspector-glyph-svg {
-  max-width: calc(100% - 48px);
+  width: min(220px, 100%);
+  max-width: 220px;
   height: auto;
   overflow: visible;
 }

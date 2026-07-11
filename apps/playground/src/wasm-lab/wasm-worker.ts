@@ -9,11 +9,13 @@ type LoadWasmMessage = {
 type LoadRemoteFontMessage = {
   type: "load-remote-font";
   fontUrl: string;
+  loadId?: string;
 };
 
 type LoadLocalFontMessage = {
   type: "load-local-font";
   fontBytes: ArrayBuffer;
+  loadId?: string;
 };
 
 type CompileMessage = {
@@ -40,6 +42,7 @@ type IncomingMessage =
 let runtime: YuragiWasmRuntime | undefined;
 let wasmBytes = 0;
 let fontBytes = 0;
+let activeFontLoadId: string | undefined;
 
 function post(type: string, payload: Record<string, unknown>) {
   self.postMessage({ type, ...payload });
@@ -68,7 +71,11 @@ async function loadWasm(wasmUrl: string) {
   });
 }
 
-async function setFont(bytes: ArrayBuffer, loadStart: number) {
+async function setFont(
+  bytes: ArrayBuffer,
+  loadStart: number,
+  loadId?: string,
+) {
   if (!runtime) {
     throw new Error("load the WASM compiler before loading a font");
   }
@@ -76,13 +83,15 @@ async function setFont(bytes: ArrayBuffer, loadStart: number) {
   const info = runtime.setFont(bytes);
   fontBytes = info.bytes;
   post("font-ready", {
+    loadId,
     fontBytes,
     fontLoadMs: duration(loadStart),
     unitsPerEm: info.unitsPerEm,
   });
 }
 
-async function loadRemoteFont(fontUrl: string) {
+async function loadRemoteFont(fontUrl: string, loadId?: string) {
+  activeFontLoadId = loadId;
   const start = performance.now();
   const response = await fetch(fontUrl);
 
@@ -92,7 +101,14 @@ async function loadRemoteFont(fontUrl: string) {
     );
   }
 
-  await setFont(await response.arrayBuffer(), start);
+  const bytes = await response.arrayBuffer();
+  if (loadId !== undefined && loadId !== activeFontLoadId) return;
+  await setFont(bytes, start, loadId);
+}
+
+async function loadLocalFont(fontBytes: ArrayBuffer, loadId?: string) {
+  activeFontLoadId = loadId;
+  await setFont(fontBytes, performance.now(), loadId);
 }
 
 function compile(text: string, axes: FontAxes, requestId?: string) {
@@ -169,10 +185,10 @@ self.addEventListener("message", (event: MessageEvent<IncomingMessage>) => {
         await loadWasm(message.wasmUrl);
         break;
       case "load-remote-font":
-        await loadRemoteFont(message.fontUrl);
+        await loadRemoteFont(message.fontUrl, message.loadId);
         break;
       case "load-local-font":
-        await setFont(message.fontBytes, performance.now());
+        await loadLocalFont(message.fontBytes, message.loadId);
         break;
       case "compile":
         compile(message.text, message.axes, message.requestId);
@@ -182,7 +198,11 @@ self.addEventListener("message", (event: MessageEvent<IncomingMessage>) => {
         break;
     }
   })().catch((error) => {
+    const message = event.data;
+    const loadId = "loadId" in message ? message.loadId : undefined;
+    if (loadId !== undefined && loadId !== activeFontLoadId) return;
     post("error", {
+      loadId,
       message: error instanceof Error ? error.message : String(error),
     });
   });

@@ -1,4 +1,9 @@
-import { useLayoutEffect, useRef, type MouseEvent } from "react";
+import {
+  useLayoutEffect,
+  useRef,
+  type CSSProperties,
+  type MouseEvent,
+} from "react";
 import {
   animateShards,
   createShardedSvg,
@@ -55,7 +60,7 @@ export function ShardPreview({
     const layout = layoutShardedText(data.outline, { size: 220 });
     const svg = createShardedSvg(layout);
     svg.classList.add("inspector-glyph-svg");
-    svg.setAttribute("aria-label", data.glyph.char);
+    svg.setAttribute("aria-label", data.char);
     const motions = Array.from(
       svg.querySelectorAll<SVGGElement>("[data-shard-motion]"),
     );
@@ -69,7 +74,7 @@ export function ShardPreview({
           mode === "assembled" ? "currentColor" : shardColor(index);
       }
       if (mode === "exploded") {
-        const direction = data.glyph.shards[index]?.direction ?? [0, 0];
+        const direction = data.shards[index]?.direction ?? [0, 0];
         motion.style.transform = `translate(${direction[0] * explodeDistance}px, ${direction[1] * explodeDistance}px)`;
       }
     });
@@ -96,7 +101,15 @@ export function ShardPreview({
   }
 
   return (
-    <div className="inspector-preview-stage">
+    <div
+      className="inspector-preview-stage"
+      style={
+        {
+          "--inspector-explode-distance":
+            mode === "exploded" ? `${explodeDistance}px` : "0px",
+        } as CSSProperties
+      }
+    >
       <span
         ref={hostRef}
         className="inspector-preview-host"

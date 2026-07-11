@@ -60,6 +60,23 @@ const outline: TextOutline = {
   ],
 };
 
+function outlineFor(char: "a" | "b"): TextOutline {
+  const glyph = outline.groups[0]!.glyphs.find(
+    (candidate) => candidate.char === char,
+  )!;
+  return {
+    ...outline,
+    groups: [
+      {
+        text: char,
+        advance: glyph.advance,
+        breakAfter: true,
+        glyphs: [glyph],
+      },
+    ],
+  };
+}
+
 describe("ShardInspector", () => {
   let host: HTMLDivElement;
   let originalWorker: typeof Worker | undefined;
@@ -95,10 +112,14 @@ describe("ShardInspector", () => {
     act(() => {
       worker.emit({ type: "wasm-ready", wasmBytes: 10, wasmLoadMs: 1 });
     });
+    const fontMessage = worker.postMessage.mock.calls.find(
+      ([message]) => message.type === "load-remote-font",
+    )?.[0];
     expect(worker.postMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         type: "load-remote-font",
         fontUrl: expect.stringContaining("SourceHanSerifSC-VF.otf"),
+        loadId: expect.any(String),
       }),
     );
 
@@ -108,6 +129,7 @@ describe("ShardInspector", () => {
         fontBytes: 20,
         fontLoadMs: 2,
         unitsPerEm: 1000,
+        loadId: fontMessage.loadId,
       });
     });
     const compileMessage = worker.postMessage.mock.calls.find(
@@ -123,8 +145,8 @@ describe("ShardInspector", () => {
         type: "glyphs-compiled",
         requestId: compileMessage.requestId,
         results: [
-          { glyph: "a", outline },
-          { glyph: "b", outline },
+          { glyph: "a", outline: outlineFor("a") },
+          { glyph: "b", outline: outlineFor("b") },
         ],
         compileMs: 3,
         outlineBytes: 30,
@@ -200,5 +222,77 @@ describe("ShardInspector", () => {
         .querySelector<HTMLButtonElement>('button[data-mode="assembled"]')
         ?.getAttribute("aria-pressed"),
     ).toBe("true");
+  });
+
+  it("ignores stale font loads and does not reload WASM", () => {
+    act(() => {
+      createRoot(host).render(<ShardInspector />);
+    });
+
+    const worker = FakeWorker.instances[0]!;
+    act(() => {
+      worker.emit({ type: "wasm-ready", wasmBytes: 10, wasmLoadMs: 1 });
+    });
+    const initialFontMessage = worker.postMessage.mock.calls.find(
+      ([message]) => message.type === "load-remote-font",
+    )?.[0];
+
+    const preset = host.querySelector<HTMLSelectElement>(
+      'select[name="inspector-font-preset"]',
+    )!;
+    act(() => {
+      preset.value = "inter";
+      preset.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    act(() => {
+      Array.from(host.querySelectorAll("button"))
+        .find((button) => button.textContent?.trim() === "Apply font")
+        ?.click();
+    });
+
+    const fontMessages = worker.postMessage.mock.calls
+      .map(([message]) => message)
+      .filter((message) => message.type === "load-remote-font");
+    expect(fontMessages).toHaveLength(2);
+    expect(fontMessages[1].loadId).not.toBe(initialFontMessage.loadId);
+    expect(
+      worker.postMessage.mock.calls.filter(
+        ([message]) => message.type === "load-wasm",
+      ),
+    ).toHaveLength(1);
+
+    act(() => {
+      worker.emit({
+        type: "font-ready",
+        loadId: initialFontMessage.loadId,
+        fontBytes: 20,
+        fontLoadMs: 2,
+        unitsPerEm: 1000,
+      });
+    });
+    expect(
+      worker.postMessage.mock.calls.filter(
+        ([message]) => message.type === "compile-glyphs",
+      ),
+    ).toHaveLength(0);
+
+    act(() => {
+      worker.emit({
+        type: "font-ready",
+        loadId: fontMessages[1].loadId,
+        fontBytes: 20,
+        fontLoadMs: 2,
+        unitsPerEm: 1000,
+      });
+    });
+    expect(
+      worker.postMessage.mock.calls.filter(
+        ([message]) => message.type === "compile-glyphs",
+      ),
+    ).toHaveLength(1);
+    expect(
+      host.querySelector<HTMLInputElement>('input[name="inspector-local-font"]')
+        ?.accept,
+    ).toBe(".otf,.ttf,font/otf,font/ttf");
   });
 });

@@ -19,7 +19,7 @@ import {
   mergeUniqueGlyphs,
   parseGlyphQuery,
 } from "./catalog";
-import { createGlyphOutlineMap, type InspectorGlyph } from "./model";
+import { createInspectorGlyph, type InspectorGlyph } from "./model";
 import {
   ShardPreview,
   shardColor,
@@ -38,6 +38,7 @@ type WorkerMessage =
   | { type: "wasm-ready"; wasmBytes: number; wasmLoadMs: number }
   | {
       type: "font-ready";
+      loadId?: string;
       fontBytes: number;
       fontLoadMs: number;
       unitsPerEm: number;
@@ -55,7 +56,7 @@ type WorkerMessage =
       wasmBytes: number;
       fontBytes: number;
     }
-  | { type: "error"; message: string };
+  | { type: "error"; message: string; loadId?: string };
 
 type PendingFont =
   | { type: "remote"; fontUrl: string }
@@ -72,6 +73,9 @@ export function ShardInspector() {
   const axesRef = useRef<FontAxes>(defaultPreset.axes);
   const catalogGlyphsRef = useRef(DEFAULT_GLYPHS);
   const fontReadyRef = useRef(false);
+  const wasmReadyRef = useRef(false);
+  const fontLoadSequenceRef = useRef(0);
+  const activeFontLoadRef = useRef("");
   const requestSequenceRef = useRef(0);
   const activeRequestRef = useRef("");
   const [presetId, setPresetId] = useState(DEFAULT_FONT_PRESET_ID);
@@ -111,6 +115,30 @@ export function ShardInspector() {
     });
   }
 
+  function loadPendingFont(worker: Worker) {
+    const loadId = `inspector-font-${++fontLoadSequenceRef.current}`;
+    activeFontLoadRef.current = loadId;
+    const pendingFont = pendingFontRef.current;
+
+    if (pendingFont.type === "local") {
+      worker.postMessage(
+        {
+          type: "load-local-font",
+          loadId,
+          fontBytes: pendingFont.fontBytes,
+        },
+        [pendingFont.fontBytes],
+      );
+      return;
+    }
+
+    worker.postMessage({
+      type: "load-remote-font",
+      loadId,
+      fontUrl: pendingFont.fontUrl,
+    });
+  }
+
   useEffect(() => {
     if (typeof Worker === "undefined") {
       setError("Web Worker is not available in this browser.");
@@ -128,22 +156,13 @@ export function ShardInspector() {
       const message = event.data;
 
       if (message.type === "wasm-ready") {
-        const pendingFont = pendingFontRef.current;
-        if (pendingFont.type === "local") {
-          worker.postMessage(
-            { type: "load-local-font", fontBytes: pendingFont.fontBytes },
-            [pendingFont.fontBytes],
-          );
-        } else {
-          worker.postMessage({
-            type: "load-remote-font",
-            fontUrl: pendingFont.fontUrl,
-          });
-        }
+        wasmReadyRef.current = true;
+        loadPendingFont(worker);
         return;
       }
 
       if (message.type === "font-ready") {
+        if (message.loadId !== activeFontLoadRef.current) return;
         fontReadyRef.current = true;
         compileCatalog();
         return;
@@ -155,9 +174,8 @@ export function ShardInspector() {
 
         for (const result of message.results) {
           if (!result.outline) continue;
-          for (const [glyph, data] of createGlyphOutlineMap(result.outline)) {
-            nextGlyphs.set(glyph, data);
-          }
+          const data = createInspectorGlyph(result.glyph, result.outline);
+          if (data) nextGlyphs.set(result.glyph, data);
         }
 
         setGlyphs(nextGlyphs);
@@ -173,6 +191,12 @@ export function ShardInspector() {
         return;
       }
 
+      if (
+        message.loadId !== undefined &&
+        message.loadId !== activeFontLoadRef.current
+      ) {
+        return;
+      }
       setError(message.message);
       setStatus("error");
     });
@@ -196,6 +220,7 @@ export function ShardInspector() {
     setMissingGlyphs(new Set());
     fontReadyRef.current = false;
     activeRequestRef.current = "";
+    activeFontLoadRef.current = "";
     setCompileMs(undefined);
     setError("");
     setStatus("idle");
@@ -210,14 +235,13 @@ export function ShardInspector() {
     setStatus("loading");
     fontReadyRef.current = false;
     activeRequestRef.current = "";
+    activeFontLoadRef.current = "";
     pendingFontRef.current = {
       type: "remote",
       fontUrl: fontUrlRef.current,
     };
-    workerRef.current?.postMessage({
-      type: "load-wasm",
-      wasmUrl: DEFAULT_WASM_URL,
-    });
+    const worker = workerRef.current;
+    if (worker && wasmReadyRef.current) loadPendingFont(worker);
   }
 
   async function applyLocalFont(file: File | undefined) {
@@ -229,14 +253,13 @@ export function ShardInspector() {
     setStatus("loading");
     fontReadyRef.current = false;
     activeRequestRef.current = "";
+    activeFontLoadRef.current = "";
     pendingFontRef.current = {
       type: "local",
       fontBytes: await file.arrayBuffer(),
     };
-    workerRef.current?.postMessage({
-      type: "load-wasm",
-      wasmUrl: DEFAULT_WASM_URL,
-    });
+    const worker = workerRef.current;
+    if (worker && wasmReadyRef.current) loadPendingFont(worker);
   }
 
   function addGlyphs(event: FormEvent) {
@@ -307,7 +330,7 @@ export function ShardInspector() {
             <input
               name="inspector-local-font"
               type="file"
-              accept=".otf,.ttf,.woff,.woff2,font/*"
+              accept=".otf,.ttf,font/otf,font/ttf"
               onChange={(event) => {
                 void applyLocalFont(event.target.files?.[0]);
               }}
@@ -425,11 +448,11 @@ export function ShardInspector() {
             <dl className="glyph-summary">
               <div>
                 <dt>Shards</dt>
-                <dd>{selected.glyph.shards.length} shards</dd>
+                <dd>{selected.shards.length} shards</dd>
               </div>
               <div>
                 <dt>Advance</dt>
-                <dd>{selected.glyph.advance}</dd>
+                <dd>{selected.advance}</dd>
               </div>
             </dl>
           ) : null}
@@ -437,10 +460,10 @@ export function ShardInspector() {
             <div className="shard-parts" aria-label="Glyph shards">
               <div className="shard-parts-heading">
                 <h4>Parts</h4>
-                <span>{selected.glyph.shards.length}</span>
+                <span>{selected.shards.length}</span>
               </div>
               <div className="shard-parts-list">
-                {selected.glyph.shards.map((shard, index) => (
+                {selected.shards.map((shard, index) => (
                   <button
                     key={`${index}-${shard.path}`}
                     type="button"
@@ -553,7 +576,7 @@ function GlyphTile({
       </span>
       <span className="glyph-tile-label">{glyph}</span>
       <span data-shard-count>
-        {missing ? "Missing" : (data?.glyph.shards.length ?? "-")}
+        {missing ? "Missing" : (data?.shards.length ?? "-")}
       </span>
     </button>
   );
