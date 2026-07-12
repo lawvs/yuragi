@@ -1,5 +1,5 @@
 import { YuragiWasmRuntime } from "@yuragi/wasm/runtime";
-import type { FontAxes } from "@yuragi/core";
+import type { FontAxes, TextOutline } from "@yuragi/core";
 
 type LoadWasmMessage = {
   type: "load-wasm";
@@ -9,11 +9,13 @@ type LoadWasmMessage = {
 type LoadRemoteFontMessage = {
   type: "load-remote-font";
   fontUrl: string;
+  loadId?: string;
 };
 
 type LoadLocalFontMessage = {
   type: "load-local-font";
   fontBytes: ArrayBuffer;
+  loadId?: string;
 };
 
 type CompileMessage = {
@@ -22,15 +24,24 @@ type CompileMessage = {
   axes: FontAxes;
 };
 
+type CompileGlyphsMessage = {
+  type: "compile-glyphs";
+  glyphs: string[];
+  axes: FontAxes;
+  requestId: string;
+};
+
 type IncomingMessage =
   | LoadWasmMessage
   | LoadRemoteFontMessage
   | LoadLocalFontMessage
-  | CompileMessage;
+  | CompileMessage
+  | CompileGlyphsMessage;
 
 let runtime: YuragiWasmRuntime | undefined;
 let wasmBytes = 0;
 let fontBytes = 0;
+let activeFontLoadId: string | undefined;
 
 function post(type: string, payload: Record<string, unknown>) {
   self.postMessage({ type, ...payload });
@@ -59,7 +70,11 @@ async function loadWasm(wasmUrl: string) {
   });
 }
 
-async function setFont(bytes: ArrayBuffer, loadStart: number) {
+async function setFont(
+  bytes: ArrayBuffer,
+  loadStart: number,
+  loadId?: string,
+) {
   if (!runtime) {
     throw new Error("load the WASM compiler before loading a font");
   }
@@ -67,13 +82,15 @@ async function setFont(bytes: ArrayBuffer, loadStart: number) {
   const info = runtime.setFont(bytes);
   fontBytes = info.bytes;
   post("font-ready", {
+    loadId,
     fontBytes,
     fontLoadMs: duration(loadStart),
     unitsPerEm: info.unitsPerEm,
   });
 }
 
-async function loadRemoteFont(fontUrl: string) {
+async function loadRemoteFont(fontUrl: string, loadId?: string) {
+  activeFontLoadId = loadId;
   const start = performance.now();
   const response = await fetch(fontUrl);
 
@@ -83,7 +100,14 @@ async function loadRemoteFont(fontUrl: string) {
     );
   }
 
-  await setFont(await response.arrayBuffer(), start);
+  const bytes = await response.arrayBuffer();
+  if (loadId !== undefined && loadId !== activeFontLoadId) return;
+  await setFont(bytes, start, loadId);
+}
+
+async function loadLocalFont(fontBytes: ArrayBuffer, loadId?: string) {
+  activeFontLoadId = loadId;
+  await setFont(fontBytes, performance.now(), loadId);
 }
 
 function compile(text: string, axes: FontAxes) {
@@ -106,6 +130,50 @@ function compile(text: string, axes: FontAxes) {
   });
 }
 
+function compileGlyphs(
+  glyphs: string[],
+  axes: FontAxes,
+  requestId: string,
+) {
+  if (!runtime) {
+    throw new Error("load the WASM compiler before compiling text");
+  }
+  if (fontBytes === 0) {
+    throw new Error("load a font before compiling text");
+  }
+
+  const start = performance.now();
+  const encoder = new TextEncoder();
+  const results: Array<{
+    glyph: string;
+    outline?: TextOutline;
+    error?: string;
+  }> = [];
+  let outlineBytes = 0;
+
+  for (const glyph of glyphs) {
+    try {
+      const outline = runtime.compileTitle(glyph, axes);
+      outlineBytes += encoder.encode(JSON.stringify(outline)).length;
+      results.push({ glyph, outline });
+    } catch (error) {
+      results.push({
+        glyph,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  post("glyphs-compiled", {
+    requestId,
+    results,
+    compileMs: duration(start),
+    outlineBytes,
+    wasmBytes,
+    fontBytes,
+  });
+}
+
 self.addEventListener("message", (event: MessageEvent<IncomingMessage>) => {
   void (async () => {
     const message = event.data;
@@ -115,17 +183,24 @@ self.addEventListener("message", (event: MessageEvent<IncomingMessage>) => {
         await loadWasm(message.wasmUrl);
         break;
       case "load-remote-font":
-        await loadRemoteFont(message.fontUrl);
+        await loadRemoteFont(message.fontUrl, message.loadId);
         break;
       case "load-local-font":
-        await setFont(message.fontBytes, performance.now());
+        await loadLocalFont(message.fontBytes, message.loadId);
         break;
       case "compile":
         compile(message.text, message.axes);
         break;
+      case "compile-glyphs":
+        compileGlyphs(message.glyphs, message.axes, message.requestId);
+        break;
     }
   })().catch((error) => {
+    const message = event.data;
+    const loadId = "loadId" in message ? message.loadId : undefined;
+    if (loadId !== undefined && loadId !== activeFontLoadId) return;
     post("error", {
+      loadId,
       message: error instanceof Error ? error.message : String(error),
     });
   });

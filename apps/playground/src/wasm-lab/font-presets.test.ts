@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_FONT_PRESET_ID, FONT_PRESETS, findFontPreset } from "./config";
+import {
+  DEFAULT_FONT_PRESET_ID,
+  FONT_PRESETS,
+  findFontPreset,
+} from "./config";
 
 describe("WASM Lab font presets", () => {
   it("keeps Source Han as the default large-font baseline", () => {

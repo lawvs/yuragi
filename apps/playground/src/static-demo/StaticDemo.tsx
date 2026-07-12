@@ -3,6 +3,7 @@ import { YuragiText } from "@yuragi/react/static";
 import outlines from "virtual:yuragi/outlines";
 import { demoPosts } from "../data";
 import { alignOptions, type Align } from "../demo-options";
+import "../demo.css";
 
 export function useStaticDemoState() {
   const [selectedId, setSelectedId] = useState(demoPosts[0]?.id ?? "");

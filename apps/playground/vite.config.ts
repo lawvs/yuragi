@@ -6,7 +6,12 @@ import { outlineTitles } from "./src/data";
 
 const font = await resolvePlaygroundFont();
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  define: {
+    "import.meta.env.YURAGI_PLAYGROUND_FONT_URL": JSON.stringify(
+      command === "serve" ? `/@fs/${font.replaceAll("\\", "/")}` : "",
+    ),
+  },
   resolve: {
     alias: {
       "@yuragi/react/static": new URL(
@@ -35,4 +40,4 @@ export default defineConfig({
       titles: outlineTitles,
     }),
   ],
-});
+}));

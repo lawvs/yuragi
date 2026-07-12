@@ -310,6 +310,37 @@ describe("App", () => {
     expect(host.textContent).toContain("Compile title");
   });
 
+  it("opens the Shard Inspector with multilingual glyph sections and search", () => {
+    renderApp();
+
+    act(() => {
+      host
+        .querySelector<HTMLButtonElement>('button[data-view="shard-inspector"]')
+        ?.click();
+    });
+
+    expect(host.querySelector(".shard-inspector")).not.toBeNull();
+    expect(host.textContent).toContain("Latin");
+    expect(host.textContent).toContain("Common Chinese");
+    expect(host.textContent).toContain("Hiragana");
+    expect(host.textContent).toContain("Katakana");
+
+    const search = host.querySelector<HTMLInputElement>(
+      'input[name="glyph-search"]',
+    );
+    expect(search).not.toBeNull();
+
+    act(() => {
+      setInputValue(search!, "舞");
+      host
+        .querySelector<HTMLButtonElement>('button[data-action="add-glyphs"]')
+        ?.click();
+    });
+
+    expect(host.querySelector('[data-glyph="舞"]')).not.toBeNull();
+    expect(host.textContent).toContain("Search Results");
+  });
+
   it("switches WASM Lab font presets with matching sample text and URL", () => {
     renderApp();
 
@@ -336,17 +367,22 @@ describe("App", () => {
   });
 
   it("constrains list shard SVG width for mobile cards", () => {
-    const styles = readFileSync(
-      join(testDir, "styles.css"),
+    const demoStyles = readFileSync(
+      join(testDir, "demo.css"),
       "utf8",
     );
+    const globalStyles = readFileSync(join(testDir, "styles.css"), "utf8");
 
-    expect(styles).toMatch(
+    expect(demoStyles).toMatch(
       /\.post-title\s+\[data-yuragi-root\]\s*{[^}]*width:\s*min\(100%,\s*300px\)/s,
     );
-    expect(styles).toMatch(/width:\s*min\(calc\(100vw - 24px\),\s*720px\)/);
-    expect(styles).toMatch(/width:\s*min\(calc\(100vw - 24px\),\s*366px\)/);
-    expect(styles).toMatch(
+    expect(globalStyles).toMatch(
+      /width:\s*min\(calc\(100vw - 24px\),\s*720px\)/,
+    );
+    expect(globalStyles).toMatch(
+      /width:\s*min\(calc\(100vw - 24px\),\s*366px\)/,
+    );
+    expect(demoStyles).toMatch(
       /\.range-control\s*{[^}]*grid-template-columns:\s*auto minmax\(0,\s*1fr\) auto/s,
     );
   });

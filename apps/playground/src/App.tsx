@@ -5,14 +5,13 @@ import {
   useStaticDemoState,
 } from "./static-demo/StaticDemo";
 import { WasmLab } from "./wasm-lab/WasmLab";
+import { ShardInspector } from "./shard-inspector/ShardInspector";
 
-type PlaygroundView = "runtime-demo" | "static-demo" | "wasm-lab";
-
-const viewPipelines: Record<PlaygroundView, string[]> = {
-  "runtime-demo": ["@yuragi/react", "runtime WASM", "shard transitions"],
-  "static-demo": ["unplugin", "static outlines", "shard transitions"],
-  "wasm-lab": ["worker", "runtime compiler", "metrics"],
-};
+type PlaygroundView =
+  | "runtime-demo"
+  | "static-demo"
+  | "shard-inspector"
+  | "wasm-lab";
 
 export function App() {
   const [view, setView] = useState<PlaygroundView>("runtime-demo");
@@ -25,12 +24,15 @@ export function App() {
           <p className="eyebrow">yuragi v1</p>
           <h1>Playground</h1>
         </div>
-        <div className="status-strip" aria-label="Pipeline">
-          {viewPipelines[view].map((label) => (
-            <span key={label}>{label}</span>
-          ))}
-        </div>
         <nav className="view-tabs" aria-label="Playground views">
+          <button
+            type="button"
+            data-view="shard-inspector"
+            aria-pressed={view === "shard-inspector"}
+            onClick={() => setView("shard-inspector")}
+          >
+            Shard Inspector
+          </button>
           <button
             type="button"
             data-view="runtime-demo"
@@ -60,6 +62,7 @@ export function App() {
 
       {view === "runtime-demo" ? <RuntimeDemo /> : null}
       {view === "static-demo" ? <StaticDemo state={staticDemo} /> : null}
+      {view === "shard-inspector" ? <ShardInspector /> : null}
       {view === "wasm-lab" ? <WasmLab /> : null}
     </main>
   );
