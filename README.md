@@ -15,10 +15,9 @@ The name comes from Japanese `揺らぎ`, a gentle swaying or flicker that echoe
 
 | Package | Purpose |
 | --- | --- |
-| `@yuragi/react` | React Canary runtime text components and static escape hatch. |
+| `@yuragi/react` | Recommended React Canary runtime API and static renderer subpath. |
 | `@yuragi/core` | Shared outline types, layout helpers, SVG helpers, and CSS. |
-| `@yuragi/unplugin` | Vite/Rollup/Webpack/esbuild/Rspack build-time outline plugin. |
-| `@yuragi/compiler` | Native Rust-backed build-time outline compiler wrapper. |
+| `@yuragi/compiler` | Low-level native build-time outline compiler. |
 | `@yuragi/wasm` | Lower-level runtime WASM compiler used by the React provider. |
 
 ## Install
@@ -74,39 +73,37 @@ example source.
 Use static precompiled outlines when an app needs lower runtime cost,
 deterministic generated assets, or stricter resource control.
 
-Install the build-time compiler and plugin:
+Install the build-time compiler:
 
 ```bash
-pnpm add -D @yuragi/unplugin @yuragi/compiler
+pnpm add -D @yuragi/compiler
 ```
 
-Configure the build-time plugin with a font and the titles you want to shard:
+Compile a known title list in your own build script and write the resulting
+outline map wherever your application keeps generated assets:
 
-```ts
-import Yuragi from "@yuragi/unplugin/vite";
+```js
+// scripts/build-yuragi.mjs
+import { writeFile } from "node:fs/promises";
+import { compileOutlines } from "@yuragi/compiler";
 
-export default {
-  plugins: [
-    Yuragi({
-      font: "./fonts/title.otf",
-      axes: { wght: 900 },
-      titles: ["Dashboard", "Settings"],
-    }),
-  ],
-};
+const bundle = await compileOutlines({
+  font: "./fonts/title.otf",
+  axes: { wght: 900 },
+  titles: ["Dashboard", "Settings"],
+});
+
+await writeFile(
+  "./src/yuragi-outlines.json",
+  JSON.stringify(bundle.outlines),
+);
 ```
 
-Add the virtual module types to your Vite env file:
-
-```ts
-/// <reference types="@yuragi/unplugin/client" />
-```
-
-Render a title with React Canary:
+Render an explicit outline with the static React entry:
 
 ```tsx
 import { YuragiStyles, YuragiText } from "@yuragi/react/static";
-import outlines from "virtual:yuragi/outlines";
+import outlines from "./yuragi-outlines.json";
 
 export function Title() {
   return (
@@ -131,7 +128,6 @@ you do not need to render `YuragiStyles`.
 For package-specific options and lower-level APIs, see the package READMEs:
 
 - [`@yuragi/react`](packages/react/README.md)
-- [`@yuragi/unplugin`](packages/unplugin/README.md)
 - [`@yuragi/core`](packages/core/README.md)
 - [`@yuragi/compiler`](packages/compiler/README.md)
 - [`@yuragi/wasm`](packages/wasm/README.md)
