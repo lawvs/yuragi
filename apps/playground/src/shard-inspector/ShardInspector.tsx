@@ -6,6 +6,7 @@ import {
 } from "react";
 import type { FontAxes, TextOutline } from "@yuragi/core";
 import { YuragiText } from "@yuragi/react/static";
+import "./ShardInspector.css";
 import {
   DEFAULT_FONT_PRESET_ID,
   DEFAULT_WASM_URL,

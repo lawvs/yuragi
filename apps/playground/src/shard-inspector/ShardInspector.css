@@ -1,0 +1,459 @@
+.shard-inspector {
+  display: grid;
+  gap: 18px;
+  padding-top: 18px;
+}
+
+.inspector-header {
+  display: grid;
+  grid-template-columns: minmax(200px, 0.55fr) minmax(0, 1.45fr);
+  align-items: end;
+  gap: 18px;
+}
+
+.shard-inspector h2 {
+  margin: 0;
+  font-size: 2.4rem;
+  line-height: 1;
+}
+
+.inspector-font-controls {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.8fr) minmax(220px, 1.4fr) minmax(150px, 0.8fr) auto;
+  align-items: end;
+  gap: 8px;
+}
+
+.inspector-font-controls label,
+.glyph-search label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  color: var(--color-fg-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.inspector-font-controls input,
+.inspector-font-controls select,
+.inspector-font-controls button,
+.glyph-search input,
+.glyph-search button {
+  min-width: 0;
+  min-height: 40px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 7px 9px;
+  background: var(--color-bg);
+}
+
+.inspector-font-controls input,
+.inspector-font-controls select {
+  width: 100%;
+}
+
+.inspector-font-controls input[readonly] {
+  color: var(--color-fg-secondary);
+  background: var(--color-bg-block);
+}
+
+.inspector-font-controls button,
+.glyph-search button {
+  padding-inline: 14px;
+  cursor: pointer;
+}
+
+.inspector-font-controls button:disabled {
+  color: var(--color-fg-secondary);
+  cursor: not-allowed;
+}
+
+.inspector-file-control input {
+  padding: 6px;
+  font-size: 0.8rem;
+}
+
+.glyph-search {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+  padding-block: 12px;
+  border-block: 1px solid var(--color-border);
+}
+
+.inspector-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+  align-items: start;
+  gap: 18px;
+}
+
+.glyph-atlas,
+.glyph-section {
+  display: grid;
+  gap: 12px;
+}
+
+.glyph-atlas {
+  gap: 24px;
+  min-width: 0;
+}
+
+.glyph-section + .glyph-section {
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+.glyph-section-heading,
+.shard-parts-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.glyph-section-heading h3,
+.glyph-detail h3,
+.shard-parts-heading h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  letter-spacing: 0;
+}
+
+.glyph-section-heading > span,
+.shard-parts-heading > span {
+  color: var(--color-fg-secondary);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.glyph-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 7px;
+}
+
+.glyph-tile {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 7px;
+  background: var(--color-bg-block);
+  cursor: pointer;
+}
+
+.glyph-tile:hover {
+  border-color: var(--color-fg-secondary);
+}
+
+.glyph-tile[aria-pressed="true"] {
+  border-color: var(--color-fg);
+  box-shadow: inset 0 0 0 1px var(--color-fg);
+}
+
+.glyph-tile-preview {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+  font-family: serif;
+  font-size: 2.2rem;
+}
+
+.glyph-tile-preview [data-yuragi-root] {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: 48px;
+}
+
+.glyph-tile-label {
+  overflow: hidden;
+  font-size: 0.72rem;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.glyph-tile [data-shard-count] {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  color: var(--color-fg-secondary);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.glyph-detail {
+  position: sticky;
+  top: 12px;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--color-bg-block);
+}
+
+.glyph-detail-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.glyph-detail-heading p,
+.inspector-status {
+  margin: 3px 0 0;
+  color: var(--color-fg-secondary);
+  font-size: 0.8rem;
+}
+
+.glyph-detail-character {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-bg);
+  font-family: serif;
+  font-size: 1.8rem;
+}
+
+.inspector-mode-controls,
+.inspector-playback {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.inspector-mode-controls {
+  padding: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  background: var(--color-bg);
+}
+
+.inspector-mode-controls button,
+.inspector-playback button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--color-fg-secondary);
+  cursor: pointer;
+}
+
+.inspector-mode-controls button[aria-pressed="true"] {
+  background: var(--color-fg);
+  color: var(--color-bg);
+}
+
+.explode-control {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 48px;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-fg-secondary);
+  font-size: 0.78rem;
+}
+
+.explode-control input {
+  min-width: 0;
+  width: 100%;
+  accent-color: var(--color-fg);
+}
+
+.explode-control output {
+  color: var(--color-fg);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.glyph-detail-preview {
+  display: grid;
+  min-height: 300px;
+  overflow: auto;
+  place-items: center;
+  border-block: 1px solid var(--color-border);
+  background-image:
+    linear-gradient(var(--color-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-border) 1px, transparent 1px);
+  background-size: 24px 24px;
+  font-family: serif;
+  font-size: 7rem;
+}
+
+.glyph-missing {
+  color: var(--color-fg-secondary);
+  font-size: 0.85rem;
+}
+
+.inspector-preview-stage,
+.inspector-preview-host {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  place-items: center;
+}
+
+.inspector-preview-stage {
+  --inspector-explode-distance: 0px;
+
+  width: max(
+    100%,
+    calc(
+      220px + var(--inspector-explode-distance) +
+        var(--inspector-explode-distance)
+    )
+  );
+  color: var(--color-fg);
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.inspector-preview-host {
+  min-height: calc(
+    250px + var(--inspector-explode-distance) +
+      var(--inspector-explode-distance)
+  );
+  padding: var(--inspector-explode-distance);
+}
+
+.inspector-glyph-svg {
+  width: min(220px, 100%);
+  max-width: 220px;
+  height: auto;
+  overflow: visible;
+}
+
+.inspector-glyph-svg [data-inspector-shard] {
+  cursor: pointer;
+  transition: transform 160ms ease;
+}
+
+.inspector-glyph-svg [data-inspector-shard][data-selected="true"] path {
+  stroke: var(--color-fg);
+  stroke-width: 24px;
+}
+
+.inspector-playback {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  padding-top: 8px;
+}
+
+.inspector-playback button {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-size: 0.82rem;
+}
+
+.glyph-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.glyph-summary div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.glyph-summary dt {
+  color: var(--color-fg-secondary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.glyph-summary dd {
+  margin: 0;
+  overflow: hidden;
+  font-size: 0.86rem;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shard-parts {
+  display: grid;
+  gap: 7px;
+  min-height: 0;
+}
+
+.shard-parts-list {
+  display: grid;
+  gap: 4px;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.shard-parts-list button {
+  display: grid;
+  grid-template-columns: 14px 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  padding: 5px 7px;
+  background: var(--color-bg);
+  color: var(--color-fg-secondary);
+  font-size: 0.76rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.shard-parts-list button[aria-pressed="true"] {
+  border-color: var(--color-fg);
+  color: var(--color-fg);
+}
+
+.shard-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.inspector-status[data-status="error"] {
+  color: var(--color-danger);
+}
+
+@media (max-width: 820px) {
+  .inspector-header,
+  .inspector-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .inspector-font-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .glyph-detail {
+    position: static;
+    order: -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .inspector-font-controls,
+  .glyph-search {
+    grid-template-columns: 1fr;
+  }
+
+  .glyph-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

@@ -1,0 +1,265 @@
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
+  gap: 18px;
+  padding: 18px 0 0;
+}
+
+.post-list {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.post-button {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  min-height: 128px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--color-bg-block);
+  text-align: left;
+  cursor: pointer;
+}
+
+.post-button:hover {
+  border-color: var(--color-fg-secondary);
+}
+
+.post-button[aria-pressed="true"] {
+  border-color: var(--color-fg);
+  box-shadow: inset 4px 0 0 var(--color-fg);
+}
+
+.post-title {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 36px;
+  overflow-wrap: anywhere;
+}
+
+.post-summary,
+.preview-surface p {
+  margin: 0;
+  color: var(--color-fg-secondary);
+  font-size: 0.95rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.post-summary {
+  display: block;
+  min-width: 0;
+}
+
+.detail-panel {
+  min-width: 0;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.back-button {
+  min-width: 76px;
+  min-height: 38px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg-block);
+  cursor: pointer;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
+}
+
+.range-control,
+.select-control,
+.text-control,
+.font-status,
+.toggle-control {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: var(--color-bg-block);
+  color: var(--color-fg-secondary);
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+.font-status {
+  margin: 0;
+}
+
+.font-status[data-status="ready"] {
+  color: var(--color-fg);
+}
+
+.font-status[data-status="error"] {
+  color: var(--color-danger);
+}
+
+.range-control {
+  gap: 8px;
+}
+
+.range-control input {
+  width: 120px;
+  accent-color: var(--color-fg);
+}
+
+.range-control output {
+  min-width: 56px;
+  color: var(--color-fg);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.select-control,
+.text-control {
+  gap: 7px;
+}
+
+.select-control select {
+  min-width: 92px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 3px 8px;
+  background: var(--color-bg);
+}
+
+.text-control input {
+  width: 170px;
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 3px 8px;
+  background: var(--color-bg);
+}
+
+.toggle-control {
+  gap: 7px;
+  cursor: pointer;
+}
+
+.toggle-control input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-fg);
+}
+
+.preview-surface {
+  display: grid;
+  align-content: center;
+  gap: 18px;
+  min-height: 430px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: clamp(20px, 5vw, 48px);
+  background: var(--color-bg-block);
+}
+
+.preview-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.preview-title [data-yuragi-root],
+.post-title [data-yuragi-root] {
+  max-width: 100%;
+  height: auto;
+}
+
+.post-title [data-yuragi-root] {
+  display: block;
+  width: min(100%, 300px);
+}
+
+.preview-title span,
+.post-title span {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 820px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .post-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .detail-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .controls {
+    justify-content: stretch;
+  }
+
+  .range-control {
+    flex: 1 1 220px;
+  }
+
+  .select-control,
+  .text-control,
+  .toggle-control {
+    flex: 1 1 150px;
+  }
+}
+
+@media (max-width: 560px) {
+  .post-list {
+    grid-template-columns: 1fr;
+  }
+
+  .post-button {
+    min-height: 112px;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .range-control,
+  .select-control,
+  .text-control,
+  .toggle-control {
+    width: 100%;
+  }
+
+  .range-control {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .range-control input {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .text-control input {
+    width: 100%;
+  }
+
+  .preview-surface {
+    min-height: 330px;
+  }
+}

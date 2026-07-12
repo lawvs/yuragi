@@ -367,17 +367,22 @@ describe("App", () => {
   });
 
   it("constrains list shard SVG width for mobile cards", () => {
-    const styles = readFileSync(
-      join(testDir, "styles.css"),
+    const demoStyles = readFileSync(
+      join(testDir, "demo.css"),
       "utf8",
     );
+    const globalStyles = readFileSync(join(testDir, "styles.css"), "utf8");
 
-    expect(styles).toMatch(
+    expect(demoStyles).toMatch(
       /\.post-title\s+\[data-yuragi-root\]\s*{[^}]*width:\s*min\(100%,\s*300px\)/s,
     );
-    expect(styles).toMatch(/width:\s*min\(calc\(100vw - 24px\),\s*720px\)/);
-    expect(styles).toMatch(/width:\s*min\(calc\(100vw - 24px\),\s*366px\)/);
-    expect(styles).toMatch(
+    expect(globalStyles).toMatch(
+      /width:\s*min\(calc\(100vw - 24px\),\s*720px\)/,
+    );
+    expect(globalStyles).toMatch(
+      /width:\s*min\(calc\(100vw - 24px\),\s*366px\)/,
+    );
+    expect(demoStyles).toMatch(
       /\.range-control\s*{[^}]*grid-template-columns:\s*auto minmax\(0,\s*1fr\) auto/s,
     );
   });
