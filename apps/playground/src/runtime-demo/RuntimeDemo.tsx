@@ -6,7 +6,7 @@ import {
 } from "@yuragi/react";
 import { demoPosts } from "../data";
 import { alignOptions, type Align } from "../demo-options";
-import "../demo.css";
+import "./RuntimeDemo.css";
 import {
   DEFAULT_AXES,
   DEFAULT_FONT_URL,

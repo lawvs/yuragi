@@ -304,7 +304,7 @@ describe("App", () => {
 
   it("constrains list shard SVG width for mobile cards", () => {
     const demoStyles = readFileSync(
-      join(testDir, "demo.css"),
+      join(testDir, "runtime-demo/RuntimeDemo.css"),
       "utf8",
     );
     const globalStyles = readFileSync(join(testDir, "styles.css"), "utf8");
