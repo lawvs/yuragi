@@ -205,7 +205,8 @@ Its props type is exported as `StaticYuragiTextProps` from
 The static entry does not discover titles or run a compiler. Call
 `compileOutlines` from your own build script and pass the generated outline
 explicitly. See [`@yuragi/compiler`](../compiler/README.md) for the low-level
-compiler API.
+compiler API and [`examples/react-static-vite`](../../examples/react-static-vite)
+for a runnable Vite example.
 
 ## `YuragiStyles`
 

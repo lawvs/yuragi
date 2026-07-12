@@ -1,0 +1,24 @@
+{
+  "name": "@yuragi/example-react-static-vite",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "generate": "node scripts/compile-outlines.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@yuragi/react": "workspace:*",
+    "react": "19.3.0-canary-e71a6393-20260702",
+    "react-dom": "19.3.0-canary-e71a6393-20260702"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "@yuragi/compiler": "workspace:*",
+    "typescript": "^6.0.3",
+    "vite": "^8.1.3"
+  }
+}

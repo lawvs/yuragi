@@ -33,6 +33,10 @@ package is independent of any framework or bundler.
 
 The output is a `TextOutlineBundle` from `@yuragi/core`.
 
+See [`examples/react-static-vite`](../../examples/react-static-vite) for a
+complete script that writes the outline map to JSON and renders it through
+`@yuragi/react/static`.
+
 ## Native Compiler
 
 The package ships the Rust source under `native/` and runs Cargo against it.
