@@ -4,7 +4,7 @@ import {
   YuragiFontProvider,
   YuragiText,
 } from "@yuragi/react";
-import { runtimePosts } from "../data";
+import { demoPosts } from "../data";
 import { alignOptions, type Align } from "../demo-options";
 import "../demo.css";
 import {
@@ -14,9 +14,9 @@ import {
 } from "../font-presets";
 
 export function RuntimeDemo() {
-  const [selectedId, setSelectedId] = useState(runtimePosts[0]?.id ?? "");
+  const [selectedId, setSelectedId] = useState(demoPosts[0]?.id ?? "");
   const [draftTitle, setDraftTitle] = useState(
-    runtimePosts[0]?.title ?? "",
+    demoPosts[0]?.title ?? "",
   );
   const [size, setSize] = useState(88);
   const [align, setAlign] = useState<Align>("start");
@@ -25,15 +25,13 @@ export function RuntimeDemo() {
 
   const selectedPost = useMemo(
     () =>
-      runtimePosts.find((post) => post.id === selectedId) ??
-      runtimePosts[0],
+      demoPosts.find((post) => post.id === selectedId) ?? demoPosts[0],
     [selectedId],
   );
 
   function selectPost(id: string) {
     const post =
-      runtimePosts.find((candidate) => candidate.id === id) ??
-      runtimePosts[0];
+      demoPosts.find((candidate) => candidate.id === id) ?? demoPosts[0];
 
     startTransition(() => {
       setSelectedId(post?.id ?? "");
@@ -53,7 +51,7 @@ export function RuntimeDemo() {
         aria-label="Runtime React demo"
       >
         <aside className="post-list" aria-label="Demo posts">
-          {runtimePosts.map((post) => {
+          {demoPosts.map((post) => {
             const selected = post.id === selectedId;
 
             return (
@@ -85,7 +83,7 @@ export function RuntimeDemo() {
             <button
               className="back-button"
               type="button"
-              onClick={() => selectPost(runtimePosts[0]?.id ?? "")}
+              onClick={() => selectPost(demoPosts[0]?.id ?? "")}
             >
               Back
             </button>

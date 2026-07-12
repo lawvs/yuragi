@@ -15,15 +15,4 @@ export const demoPosts: DemoPost[] = [
     title: "Settings",
     summary: "A detail page transition with local shard motion.",
   },
-  {
-    id: "missing",
-    title: "Missing Outline",
-    summary: "This entry demonstrates readable text fallback.",
-  },
 ];
-
-export const outlineTitles = demoPosts
-  .filter((post) => post.id !== "missing")
-  .map((post) => post.title);
-
-export const runtimePosts = demoPosts.filter((post) => post.id !== "missing");

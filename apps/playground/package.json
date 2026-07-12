@@ -12,7 +12,6 @@
   "dependencies": {
     "@yuragi/core": "workspace:*",
     "@yuragi/react": "workspace:*",
-    "@yuragi/unplugin": "workspace:*",
     "@yuragi/wasm": "workspace:*",
     "@vitejs/plugin-react": "^6.0.3",
     "react": "19.3.0-canary-e71a6393-20260702",

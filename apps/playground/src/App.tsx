@@ -1,21 +1,15 @@
 import { useState } from "react";
 import { RuntimeDemo } from "./runtime-demo/RuntimeDemo";
-import {
-  StaticDemo,
-  useStaticDemoState,
-} from "./static-demo/StaticDemo";
 import { WasmLab } from "./wasm-lab/WasmLab";
 import { ShardInspector } from "./shard-inspector/ShardInspector";
 
 type PlaygroundView =
   | "runtime-demo"
-  | "static-demo"
   | "shard-inspector"
   | "wasm-lab";
 
 export function App() {
   const [view, setView] = useState<PlaygroundView>("runtime-demo");
-  const staticDemo = useStaticDemoState();
 
   return (
     <main className="playground-shell">
@@ -43,14 +37,6 @@ export function App() {
           </button>
           <button
             type="button"
-            data-view="static-demo"
-            aria-pressed={view === "static-demo"}
-            onClick={() => setView("static-demo")}
-          >
-            Static Demo
-          </button>
-          <button
-            type="button"
             data-view="wasm-lab"
             aria-pressed={view === "wasm-lab"}
             onClick={() => setView("wasm-lab")}
@@ -61,7 +47,6 @@ export function App() {
       </header>
 
       {view === "runtime-demo" ? <RuntimeDemo /> : null}
-      {view === "static-demo" ? <StaticDemo state={staticDemo} /> : null}
       {view === "shard-inspector" ? <ShardInspector /> : null}
       {view === "wasm-lab" ? <WasmLab /> : null}
     </main>

@@ -1,8 +1,6 @@
 import react from "@vitejs/plugin-react";
-import Yuragi from "@yuragi/unplugin/vite";
 import { defineConfig } from "vite";
 import { resolvePlaygroundFont } from "./playground-font";
-import { outlineTitles } from "./src/data";
 
 const font = await resolvePlaygroundFont();
 
@@ -32,12 +30,5 @@ export default defineConfig(({ command }) => ({
       ).pathname,
     },
   },
-  plugins: [
-    react(),
-    Yuragi({
-      font,
-      axes: { wght: 900 },
-      titles: outlineTitles,
-    }),
-  ],
+  plugins: [react()],
 }));
