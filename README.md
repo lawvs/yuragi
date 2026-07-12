@@ -135,24 +135,24 @@ For package-specific options and lower-level APIs, see the package READMEs:
 ## Requirements
 
 - React Canary for `@yuragi/react`.
-- A font file that can be loaded by the compiler.
+- A font file that can be loaded by the runtime or static compiler.
 - Rust and Cargo on `PATH` when using the static build-time compiler wrapper.
 
 ## Playground
 
 The playground uses the same title font as Layered:
 `SourceHanSerifSC-VF.otf` at `wght: 900`. The font is downloaded on first
-build to Vite's cache under `apps/playground/node_modules/.vite/yuragi`
+local dev run to Vite's cache under `apps/playground/node_modules/.vite/yuragi`
 and is not committed to this repository.
 
 To use a local font file instead:
 
 ```bash
-YURAGI_FONT="/path/to/title-font.otf" pnpm playground:build
+YURAGI_FONT="/path/to/title-font.otf" pnpm dev
 ```
 
 `YURAGI_FONT` can also be an `http:` or `https:` URL; remote fonts are
-downloaded to the same Vite cache before outline compilation.
+downloaded to the same Vite cache and served by the local dev server.
 
 Run the playground locally:
 
