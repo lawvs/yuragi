@@ -5,17 +5,14 @@ import type { CompileOutlinesOptions } from "./types";
 export type { CompileOutlinesOptions };
 export type { FontAxes, FontAxisTag, KnownFontAxisTag } from "@yuragi/core";
 
-export async function normalizeTitles(
-  titles: CompileOutlinesOptions["titles"],
-): Promise<string[]> {
-  const resolved = typeof titles === "function" ? await titles() : titles;
-  return Array.from(new Set(resolved));
+function normalizeTitles(titles: readonly string[]): string[] {
+  return Array.from(new Set(titles));
 }
 
 export async function compileOutlines(
   options: CompileOutlinesOptions,
 ): Promise<TextOutlineBundle> {
-  const titles = await normalizeTitles(options.titles);
+  const titles = normalizeTitles(options.titles);
   if (titles.length === 0) {
     console.warn("[yuragi] titles is empty; emitting an empty bundle");
   }

@@ -14,7 +14,7 @@ import {
 import type { FontAxes } from "@yuragi/core";
 import { YuragiStyles } from "./YuragiStyles";
 import { YuragiText as StaticYuragiText } from "./YuragiText";
-import type { YuragiTextProps } from "./types";
+import type { StaticYuragiTextProps } from "./types";
 
 export type { FontAxes, FontAxisTag, KnownFontAxisTag } from "@yuragi/core";
 
@@ -50,7 +50,7 @@ export type YuragiFontProviderProps = {
   styleNonce?: string;
 };
 
-export type RuntimeYuragiTextProps = Omit<YuragiTextProps, "outline">;
+export type YuragiTextProps = Omit<StaticYuragiTextProps, "outline">;
 
 const YuragiFontContext = createContext<YuragiFontState | null>(null);
 
@@ -178,9 +178,10 @@ export function useYuragiFont() {
   return context;
 }
 
-export function YuragiText(props: RuntimeYuragiTextProps) {
+export function YuragiText(props: YuragiTextProps) {
   const { error, font } = useYuragiFont();
-  const [outline, setOutline] = useState<YuragiTextProps["outline"]>();
+  const [outline, setOutline] =
+    useState<StaticYuragiTextProps["outline"]>();
   const previousFontRef = useRef(font);
   const previousErrorRef = useRef(error);
   const hasDisplayedOutlineRef = useRef(false);

@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import type { ShardTransitionOptions, TextOutline } from "@yuragi/core";
 
-export type YuragiTextProps = {
+export type StaticYuragiTextProps = {
   text: string;
   outline?: TextOutline;
   size?: number;
@@ -15,6 +15,6 @@ export type YuragiTextProps = {
 };
 
 export type ResolvedYuragiTextProps = Required<
-  Pick<YuragiTextProps, "text" | "size" | "fallback">
+  Pick<StaticYuragiTextProps, "text" | "size" | "fallback">
 > &
-  Omit<YuragiTextProps, "text" | "size" | "fallback">;
+  Omit<StaticYuragiTextProps, "text" | "size" | "fallback">;
