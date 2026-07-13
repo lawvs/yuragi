@@ -11,10 +11,6 @@ The name comes from Japanese `揺らぎ`, a gentle swaying or flicker that echoe
 > the hollow hover treatment and scattered title transition. Special thanks to
 > [喵喵](https://github.com/CircuitCoder) for the source of that visual idea.
 
-> [!NOTE]
-> Yuragi is pre-release. The packages are not published to npm yet; use the
-> workspace examples while the release workflow is being prepared.
-
 ## Packages
 
 | Package | Purpose |
@@ -30,6 +26,12 @@ Package-specific options and lower-level APIs live in the package READMEs:
 - [`@yuragi/core`](packages/core/README.md)
 - [`@yuragi/compiler`](packages/compiler/README.md)
 - [`@yuragi/wasm`](packages/wasm/README.md)
+
+## Install
+
+```bash
+pnpm add @yuragi/react
+```
 
 ## Quick Start
 
