@@ -8,12 +8,19 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
-anyhow = "1.0.98"
+anyhow = "1.0.103"
 itertools = "0.14.0"
 lyon_algorithms = "1.0.5"
 lyon_path = "1.0.6"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
-ttf-parser = { version = "0.25.1", features = ["variable-fonts"] }
+skrifa = { version = "0.44.0", default-features = false, features = ["std"] }
 unicode-linebreak = "0.1.5"
 unicode-segmentation = "1.12.0"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = "symbols"

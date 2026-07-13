@@ -1,9 +1,15 @@
 use std::collections::{BTreeMap, HashSet};
 
+use anyhow::Context;
 use itertools::Itertools;
 use lyon_path::PathEvent;
 use serde::Serialize;
-use ttf_parser::Rect;
+use skrifa::{
+    instance::{Location, Size},
+    outline::{DrawSettings, OutlinePen},
+    setting::VariationSetting,
+    FontRef, MetadataProvider, Tag,
+};
 
 use crate::direction;
 
@@ -89,6 +95,43 @@ pub struct TextOutline {
     pub ascender: i16,
     pub descender: i16,
     pub groups: Vec<ShardGroup>,
+}
+
+pub struct FontInstance<'a> {
+    face: FontRef<'a>,
+    location: Location,
+}
+
+impl<'a> FontInstance<'a> {
+    pub fn new(bytes: &'a [u8], axes: &BTreeMap<String, f32>) -> anyhow::Result<Self> {
+        let face = FontRef::new(bytes).context("failed to parse font")?;
+        let settings = axes
+            .iter()
+            .map(|(tag, value)| axis_tag(tag).map(|tag| VariationSetting::new(tag, *value)))
+            .collect::<anyhow::Result<Vec<_>>>()?;
+        let location = face.axes().location(settings);
+
+        Ok(Self { face, location })
+    }
+
+    pub fn units_per_em(&self) -> u16 {
+        self.face
+            .metrics(Size::unscaled(), &self.location)
+            .units_per_em
+    }
+
+    pub fn parse_text(&self, text: &str) -> anyhow::Result<TextOutline> {
+        parse_text(text, self)
+    }
+}
+
+fn axis_tag(tag: &str) -> anyhow::Result<Tag> {
+    let bytes = tag.as_bytes();
+    if bytes.len() != 4 {
+        anyhow::bail!("variation axis tag \"{}\" must be exactly 4 bytes", tag);
+    }
+
+    Ok(Tag::new(&[bytes[0], bytes[1], bytes[2], bytes[3]]))
 }
 
 fn serialize_outline(outline: &Outline) -> String {
@@ -229,9 +272,9 @@ fn split_components(input: Outline) -> Vec<Outline> {
                 continue;
             }
 
-            let i_inside_j = loops[i].iter().all(|cmd| {
-                cmd.may_be_inside(component_to_lyon_path_ev(loops[j].iter().cloned()))
-            });
+            let i_inside_j = loops[i]
+                .iter()
+                .all(|cmd| cmd.may_be_inside(component_to_lyon_path_ev(loops[j].iter().cloned())));
             if i_inside_j {
                 inside[i].insert(j);
             }
@@ -280,18 +323,57 @@ fn split_components(input: Outline) -> Vec<Outline> {
 #[derive(Default)]
 struct OutlineBuilder {
     outline: Outline,
+    bounds: Option<(f32, f32, f32, f32)>,
 }
 
-impl ttf_parser::OutlineBuilder for OutlineBuilder {
+impl OutlineBuilder {
+    fn include(&mut self, x: f32, y: f32) {
+        self.bounds = Some(match self.bounds {
+            Some((x_min, y_min, x_max, y_max)) => {
+                (x_min.min(x), y_min.min(y), x_max.max(x), y_max.max(y))
+            }
+            None => (x, y, x, y),
+        });
+    }
+
+    fn glyph_bbox(&self) -> anyhow::Result<GlyphBBox> {
+        let Some((x_min, y_min, x_max, y_max)) = self.bounds else {
+            return Ok(GlyphBBox {
+                top: 0,
+                bottom: 0,
+                left: 0,
+                right: 0,
+            });
+        };
+
+        let x_min = checked_i16(x_min).context("glyph bbox x_min is out of range")?;
+        let y_min = checked_i16(y_min).context("glyph bbox y_min is out of range")?;
+        let x_max = checked_i16(x_max).context("glyph bbox x_max is out of range")?;
+        let y_max = checked_i16(y_max).context("glyph bbox y_max is out of range")?;
+
+        Ok(GlyphBBox {
+            top: -y_max,
+            bottom: -y_min,
+            left: x_min,
+            right: x_max,
+        })
+    }
+}
+
+impl OutlinePen for OutlineBuilder {
     fn move_to(&mut self, x: f32, y: f32) {
+        self.include(x, y);
         self.outline.push(OutlineCmd::Move(x as f64, y as f64));
     }
 
     fn line_to(&mut self, x: f32, y: f32) {
+        self.include(x, y);
         self.outline.push(OutlineCmd::Line(x as f64, y as f64));
     }
 
     fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
+        self.include(x1, y1);
+        self.include(x, y);
         self.outline.push(OutlineCmd::Quad {
             to: (x as f64, y as f64),
             ctrl: (x1 as f64, y1 as f64),
@@ -299,6 +381,9 @@ impl ttf_parser::OutlineBuilder for OutlineBuilder {
     }
 
     fn curve_to(&mut self, x1: f32, y1: f32, x2: f32, y2: f32, x: f32, y: f32) {
+        self.include(x1, y1);
+        self.include(x2, y2);
+        self.include(x, y);
         self.outline.push(OutlineCmd::Cubic {
             to: (x as f64, y as f64),
             ctrl_first: (x1 as f64, y1 as f64),
@@ -311,24 +396,40 @@ impl ttf_parser::OutlineBuilder for OutlineBuilder {
     }
 }
 
-pub fn parse_char(c: char, face: &ttf_parser::Face) -> anyhow::Result<ShardGlyph> {
-    let glyph = face
-        .glyph_index(c)
+fn checked_i16(value: f32) -> Option<i16> {
+    (value.is_finite() && value >= i16::MIN as f32 && value <= i16::MAX as f32)
+        .then(|| value as i16)
+}
+
+fn checked_u16(value: f32) -> Option<u16> {
+    let value = value.round();
+    (value.is_finite() && value >= 0.0 && value <= u16::MAX as f32).then(|| value as u16)
+}
+
+pub fn parse_char(c: char, font: &FontInstance) -> anyhow::Result<ShardGlyph> {
+    let glyph = font
+        .face
+        .charmap()
+        .map(c)
         .ok_or_else(|| anyhow::anyhow!("Glyph \"{}\" not found in font", c))?;
     let mut builder = OutlineBuilder::default();
 
-    let bbox = match face.outline_glyph(glyph, &mut builder) {
-        Some(bbox) => bbox,
-        None => Rect {
-            x_min: 0,
-            x_max: 0,
-            y_min: 0,
-            y_max: 0,
-        },
-    };
+    if let Some(outline) = font.face.outline_glyphs().get(glyph) {
+        outline
+            .draw(
+                DrawSettings::unhinted(Size::unscaled(), &font.location),
+                &mut builder,
+            )
+            .with_context(|| format!("failed to draw glyph '{}'", c))?;
+    }
 
-    let advance = face
-        .glyph_hor_advance(glyph)
+    let bbox = builder.glyph_bbox()?;
+
+    let advance = font
+        .face
+        .glyph_metrics(Size::unscaled(), &font.location)
+        .advance_width(glyph)
+        .and_then(checked_u16)
         .ok_or_else(|| anyhow::anyhow!("Glyph '{}' has no outline and hor adv", c))?;
 
     let mut components = split_components(builder.outline);
@@ -355,17 +456,12 @@ pub fn parse_char(c: char, face: &ttf_parser::Face) -> anyhow::Result<ShardGlyph
     Ok(ShardGlyph {
         char: c,
         advance,
-        bbox: GlyphBBox {
-            top: -bbox.y_max,
-            bottom: -bbox.y_min,
-            left: bbox.x_min,
-            right: bbox.x_max,
-        },
+        bbox,
         shards,
     })
 }
 
-pub fn parse_text(text: &str, face: &ttf_parser::Face) -> anyhow::Result<TextOutline> {
+fn parse_text(text: &str, font: &FontInstance) -> anyhow::Result<TextOutline> {
     use unicode_segmentation::UnicodeSegmentation;
 
     let mut segmented: BTreeMap<usize, bool> = text
@@ -394,7 +490,7 @@ pub fn parse_text(text: &str, face: &ttf_parser::Face) -> anyhow::Result<TextOut
         .map(|(s, break_after)| -> anyhow::Result<ShardGroup> {
             let glyphs = s
                 .chars()
-                .map(|c| parse_char(c, face))
+                .map(|c| parse_char(c, font))
                 .collect::<anyhow::Result<Vec<_>>>()?;
             let advance = glyphs.iter().map(|glyph| glyph.advance as u64).sum();
             Ok(ShardGroup {
@@ -406,10 +502,27 @@ pub fn parse_text(text: &str, face: &ttf_parser::Face) -> anyhow::Result<TextOut
         })
         .collect::<anyhow::Result<Vec<_>>>()?;
 
+    let metrics = font.face.metrics(Size::unscaled(), &font.location);
+
     Ok(TextOutline {
-        em: face.units_per_em(),
-        ascender: face.ascender(),
-        descender: face.descender(),
+        em: metrics.units_per_em,
+        ascender: checked_i16(metrics.ascent).context("font ascender is out of range")?,
+        descender: checked_i16(metrics.descent).context("font descender is out of range")?,
         groups,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rejects_axis_tags_that_are_not_exactly_four_bytes() {
+        let error = axis_tag("wgt").unwrap_err();
+
+        assert_eq!(
+            error.to_string(),
+            "variation axis tag \"wgt\" must be exactly 4 bytes"
+        );
+    }
 }

@@ -26,17 +26,6 @@ struct FontLoadInfo {
     units_per_em: u16,
 }
 
-fn axis_tag(tag: &str) -> anyhow::Result<ttf_parser::Tag> {
-    let bytes = tag.as_bytes();
-    if bytes.len() != 4 {
-        anyhow::bail!("variation axis tag \"{}\" must be exactly 4 bytes", tag);
-    }
-
-    Ok(ttf_parser::Tag::from_bytes(&[
-        bytes[0], bytes[1], bytes[2], bytes[3],
-    ]))
-}
-
 fn parse_axes(input: &str) -> anyhow::Result<BTreeMap<String, f32>> {
     if input.trim().is_empty() {
         return Ok(BTreeMap::new());
@@ -92,8 +81,8 @@ unsafe fn read_str<'a>(ptr: *const u8, len: usize, label: &str) -> anyhow::Resul
 }
 
 fn set_font(bytes: &[u8]) -> anyhow::Result<FontLoadInfo> {
-    let face = ttf_parser::Face::parse(bytes, 0).context("failed to parse font")?;
-    let units_per_em = face.units_per_em();
+    let font = font::FontInstance::new(bytes, &BTreeMap::new())?;
+    let units_per_em = font.units_per_em();
 
     *FONT_BYTES
         .lock()
@@ -113,13 +102,7 @@ fn compile_title(text: &str, axes_input: &str) -> anyhow::Result<font::TextOutli
         .as_ref()
         .ok_or_else(|| anyhow::anyhow!("font has not been loaded"))?;
     let axes = parse_axes(axes_input)?;
-    let mut face = ttf_parser::Face::parse(font, 0).context("failed to parse font")?;
-
-    for (tag, value) in axes.iter() {
-        face.set_variation(axis_tag(tag)?, *value);
-    }
-
-    font::parse_text(text, &face)
+    font::FontInstance::new(font, &axes)?.parse_text(text)
 }
 
 #[no_mangle]
