@@ -1,7 +1,10 @@
 import type { FontAxes } from "@yuragi/core";
+import { playgroundAssetUrl } from "./playground-assets";
 
-export const DEFAULT_WASM_URL =
-  "/yuragi-wasm/yuragi_wasm_compiler.wasm";
+export const DEFAULT_WASM_URL = playgroundAssetUrl(
+  import.meta.env.BASE_URL,
+  "yuragi-wasm/yuragi_wasm_compiler.wasm",
+);
 
 const REMOTE_DEFAULT_FONT_URL =
   "https://raw.githubusercontent.com/adobe-fonts/source-han-serif/release/Variable/OTF/SourceHanSerifSC-VF.otf";
