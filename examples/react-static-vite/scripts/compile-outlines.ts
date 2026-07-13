@@ -3,7 +3,7 @@ import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { compileOutlines } from "@yuragi/compiler";
 import titles from "../src/titles.json" with { type: "json" };
-import { resolveFont } from "./resolve-font.mjs";
+import { resolveFont } from "./resolve-font";
 
 const font = await resolveFont();
 

@@ -22,7 +22,7 @@ for the font source and license.
 
 ## Regenerate Outlines
 
-Run the explicit compiler script:
+Run the explicit TypeScript compiler script:
 
 ```bash
 pnpm --filter @yuragi/example-react-static-vite generate

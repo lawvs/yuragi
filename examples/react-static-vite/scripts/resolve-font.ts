@@ -19,7 +19,7 @@ const cacheDir = fileURLToPath(
   new URL("../node_modules/.cache/yuragi/fonts/", import.meta.url),
 );
 
-async function fileExists(path) {
+async function fileExists(path: string): Promise<boolean> {
   try {
     await access(path, constants.R_OK);
     return true;
@@ -28,11 +28,11 @@ async function fileExists(path) {
   }
 }
 
-async function sha256(path) {
+async function sha256(path: string): Promise<string> {
   return createHash("sha256").update(await readFile(path)).digest("hex");
 }
 
-async function resolveRemoteFont(url) {
+async function resolveRemoteFont(url: string): Promise<string> {
   const filename = basename(new URL(url).pathname) || "font.otf";
   const destination = resolve(cacheDir, filename);
   const expectedHash = url === DEFAULT_FONT_URL ? DEFAULT_FONT_SHA256 : null;
@@ -75,7 +75,9 @@ async function resolveRemoteFont(url) {
   }
 }
 
-export async function resolveFont(source = process.env.YURAGI_FONT) {
+export async function resolveFont(
+  source = process.env.YURAGI_FONT,
+): Promise<string> {
   const resolvedSource = source || DEFAULT_FONT_URL;
 
   if (/^https?:\/\//.test(resolvedSource)) {

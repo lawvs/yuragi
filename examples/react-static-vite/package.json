@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "generate": "node scripts/compile-outlines.mjs",
+    "generate": "tsx scripts/compile-outlines.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -14,10 +14,12 @@
     "react-dom": "19.3.0-canary-e71a6393-20260702"
   },
   "devDependencies": {
+    "@types/node": "^26.1.0",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
     "@yuragi/compiler": "workspace:*",
+    "tsx": "^4.20.6",
     "typescript": "^6.0.3",
     "vite": "^8.1.3"
   }
