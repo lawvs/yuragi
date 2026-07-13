@@ -22,17 +22,21 @@ for the font source and license.
 
 ## Regenerate Outlines
 
-Set `YURAGI_FONT` to a local font file and run the explicit compiler script:
+Run the explicit compiler script:
 
 ```bash
-YURAGI_FONT=/absolute/path/to/title-font.otf \
-  pnpm --filter @yuragi/example-react-static-vite generate
+pnpm --filter @yuragi/example-react-static-vite generate
 ```
 
 The script reads [`src/titles.json`](src/titles.json), calls
 `compileOutlines`, and writes [`src/generated/outlines.json`](src/generated/outlines.json).
-It uses `wght: 900`; adjust the script when generating from a different font or
-axis configuration.
+By default it downloads Source Han Serif SC to
+`node_modules/.cache/yuragi/fonts`, verifies its SHA-256 checksum, and reuses
+the cached file on later runs. Set `YURAGI_FONT` to override the default with a
+local path or another `http:` or `https:` URL.
+
+The compiler uses `wght: 900`; adjust the script when generating from a
+different font or axis configuration.
 
 Regeneration requires Rust and Cargo because `@yuragi/compiler` invokes the
 native compiler. The Vite app itself only uses `@yuragi/react/static`.

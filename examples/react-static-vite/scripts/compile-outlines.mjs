@@ -3,14 +3,9 @@ import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { compileOutlines } from "@yuragi/compiler";
 import titles from "../src/titles.json" with { type: "json" };
+import { resolveFont } from "./resolve-font.mjs";
 
-const font = process.env.YURAGI_FONT;
-
-if (!font) {
-  throw new Error(
-    "Set YURAGI_FONT to a local font file before generating static outlines.",
-  );
-}
+const font = await resolveFont();
 
 const bundle = await compileOutlines({
   font,
