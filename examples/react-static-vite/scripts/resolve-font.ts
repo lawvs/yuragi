@@ -75,10 +75,8 @@ async function resolveRemoteFont(url: string): Promise<string> {
   }
 }
 
-export async function resolveFont(
-  source = process.env.YURAGI_FONT,
-): Promise<string> {
-  const resolvedSource = source || DEFAULT_FONT_URL;
+export async function resolveFont(source?: string): Promise<string> {
+  const resolvedSource = source || process.env.YURAGI_FONT || DEFAULT_FONT_URL;
 
   if (/^https?:\/\//.test(resolvedSource)) {
     return resolveRemoteFont(resolvedSource);
