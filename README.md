@@ -69,7 +69,7 @@ pnpm --filter @yuragi/example-react-static-vite dev
 - [`examples/react-runtime-vite`](examples/react-runtime-vite) demonstrates
   the recommended runtime WASM API with dynamic text.
 - [`examples/react-static-vite`](examples/react-static-vite) demonstrates an
-  explicit compiler script, committed outlines, and `@yuragi/react/static`.
+  explicit compiler script, generated outlines, and `@yuragi/react/static`.
 
 ## Static Precompile Escape Hatch
 

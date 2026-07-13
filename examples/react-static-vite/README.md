@@ -1,8 +1,8 @@
 # Yuragi React Static Vite Example
 
 Minimal Vite + React Canary example for Yuragi's static precompile escape hatch.
-The app imports committed outline data and does not load a font or WASM compiler
-at runtime.
+The app imports generated outline data and does not load a font or WASM compiler
+in the browser.
 
 ## Run
 
@@ -13,11 +13,10 @@ pnpm build
 pnpm --filter @yuragi/example-react-static-vite dev
 ```
 
-The generated outline JSON is committed so development, builds, and CI do not
-depend on a font download or a local Rust toolchain.
-
-The committed data was generated at `wght: 900` from Source Han Serif SC. See
-the [upstream Source Han Serif repository](https://github.com/adobe-fonts/source-han-serif)
+The generated outline JSON is ignored by Git and recreated automatically before
+`dev`, `build`, and `typecheck`. Generation uses Source Han Serif SC at
+`wght: 900`. See the
+[upstream Source Han Serif repository](https://github.com/adobe-fonts/source-han-serif)
 for the font source and license.
 
 ## Regenerate Outlines
@@ -29,7 +28,7 @@ pnpm --filter @yuragi/example-react-static-vite generate
 ```
 
 The script reads [`src/titles.json`](src/titles.json), calls
-`compileOutlines`, and writes [`src/generated/outlines.json`](src/generated/outlines.json).
+`compileOutlines`, and writes `src/generated/outlines.json`.
 By default it downloads Source Han Serif SC to
 `node_modules/.cache/yuragi/fonts`, verifies its SHA-256 checksum, and reuses
 the cached file on later runs. Set `YURAGI_FONT` to override the default with a

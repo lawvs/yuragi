@@ -3,9 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "pnpm generate",
     "dev": "vite",
+    "prebuild": "pnpm generate",
     "build": "tsc --noEmit && vite build",
     "generate": "tsx scripts/compile-outlines.ts",
+    "pretypecheck": "pnpm generate",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
