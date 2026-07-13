@@ -1,0 +1,29 @@
+{
+  "name": "@yuragi/example-react-static-vite",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "pnpm generate",
+    "dev": "vite",
+    "prebuild": "pnpm generate",
+    "build": "tsc --noEmit && vite build",
+    "generate": "tsx scripts/compile-outlines.ts",
+    "pretypecheck": "pnpm generate",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@yuragi/react": "workspace:*",
+    "react": "19.3.0-canary-e71a6393-20260702",
+    "react-dom": "19.3.0-canary-e71a6393-20260702"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "@yuragi/compiler": "workspace:*",
+    "tsx": "^4.20.6",
+    "typescript": "^6.0.3",
+    "vite": "^8.1.3"
+  }
+}

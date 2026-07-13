@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { YuragiTextProps } from "./types";
+import type { StaticYuragiTextProps } from "./types";
 
 const unitlessStyleProperties = new Set([
   "animationIterationCount",
@@ -131,8 +131,8 @@ export function applySvgStyle(
 }
 
 export function createTextFallbackStyle(
-  props: Required<Pick<YuragiTextProps, "size">> &
-    Pick<YuragiTextProps, "align" | "maxWidth" | "style">,
+  props: Required<Pick<StaticYuragiTextProps, "size">> &
+    Pick<StaticYuragiTextProps, "align" | "maxWidth" | "style">,
 ): CSSProperties {
   return {
     display: "block",

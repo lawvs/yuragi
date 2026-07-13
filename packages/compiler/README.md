@@ -21,24 +21,21 @@ const bundle = await compileOutlines({
 });
 ```
 
-`titles` can also be an async function:
-
-```ts
-const bundle = await compileOutlines({
-  font: "./fonts/title.otf",
-  titles: async () => ["Dashboard", "Settings"],
-});
-```
-
 The compiler deduplicates title strings before invoking the native compiler.
+Title discovery and output writing stay in the calling build script so this
+package is independent of any framework or bundler.
 
 ## Options
 
 - `font`: font file path.
 - `axes`: optional `FontAxes` variation axis values for variable fonts.
-- `titles`: explicit strings to compile, or an async function that returns them.
+- `titles`: a readonly array of explicit strings to compile.
 
 The output is a `TextOutlineBundle` from `@yuragi/core`.
+
+See [`examples/react-static-vite`](../../examples/react-static-vite) for a
+complete script that writes the outline map to JSON and renders it through
+`@yuragi/react/static`.
 
 ## Native Compiler
 

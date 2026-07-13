@@ -19,10 +19,6 @@ export default defineConfig({
         "../../packages/wasm/src/index.ts",
         import.meta.url,
       ).pathname,
-      "virtual:yuragi/outlines": new URL(
-        "./src/test-outlines.ts",
-        import.meta.url,
-      ).pathname,
     },
   },
   test: {

@@ -13,3 +13,4 @@ docs/superpowers
 apps/playground/public/*-wasm
 experiments/wasm-compiler/target
 packages/wasm/wasm
+examples/react-static-vite/src/generated/

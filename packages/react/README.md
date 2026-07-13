@@ -144,6 +144,8 @@ reliable.
 
 ## Runtime Props
 
+Import the runtime component props as `YuragiTextProps` from `@yuragi/react`.
+
 - `text`: rendered string.
 - `size`: text size in CSS pixels.
 - `maxWidth`: wrapping width.
@@ -170,7 +172,7 @@ avoid the runtime compiler:
 
 ```tsx
 import { YuragiStyles, YuragiText } from "@yuragi/react/static";
-import outlines from "virtual:yuragi/outlines";
+import outlines from "./yuragi-outlines.json";
 
 export function StaticTitle() {
   return (
@@ -194,7 +196,17 @@ export function StaticTitle() {
 Static `YuragiText` accepts the same visual and transition props as runtime
 `YuragiText`, plus:
 
-- `outline`: compiled shard outline, usually from `virtual:yuragi/outlines`.
+- `outline`: a compiled `TextOutline`, usually read from an outline map created
+  by `@yuragi/compiler`.
+
+Its props type is exported as `StaticYuragiTextProps` from
+`@yuragi/react/static`.
+
+The static entry does not discover titles or run a compiler. Call
+`compileOutlines` from your own build script and pass the generated outline
+explicitly. See [`@yuragi/compiler`](../compiler/README.md) for the low-level
+compiler API and [`examples/react-static-vite`](../../examples/react-static-vite)
+for a runnable Vite example.
 
 ## `YuragiStyles`
 

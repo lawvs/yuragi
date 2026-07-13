@@ -1,7 +1,8 @@
 # @yuragi/wasm
 
-Experimental runtime WASM compiler for Yuragi. Use it when titles are not known
-at build time or when users can provide their own text.
+Lower-level runtime WASM compiler for Yuragi. React applications should prefer
+`YuragiFontProvider` and `YuragiText` from `@yuragi/react`; use this package
+directly for custom runtime integrations.
 
 ## Font API
 

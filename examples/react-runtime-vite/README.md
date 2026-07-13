@@ -11,8 +11,7 @@ This example uses:
 - hover outline
 - settle/exit transition controls
 
-It intentionally does not use `@yuragi/react/static`, `@yuragi/unplugin`,
-`virtual:yuragi/outlines`, or a custom worker.
+It uses the public runtime API directly and does not require a custom worker.
 
 ## Run From This Repository
 

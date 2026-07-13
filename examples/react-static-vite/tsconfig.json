@@ -1,0 +1,7 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node", "react/canary", "vite/client"]
+  },
+  "include": ["scripts", "src", "vite.config.ts"]
+}

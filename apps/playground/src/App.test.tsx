@@ -181,26 +181,6 @@ describe("App", () => {
     expect(title).not.toBeNull();
   });
 
-  it("keeps the precompiled static demo behind an explicit tab", () => {
-    renderApp();
-
-    const staticTab = host.querySelector<HTMLButtonElement>(
-      'button[data-view="static-demo"]',
-    );
-    expect(staticTab).not.toBeNull();
-
-    act(() => {
-      staticTab?.click();
-    });
-
-    const missing = host.querySelector(
-      '[data-static-sharded-text="Missing Outline"]',
-    );
-
-    expect(host.querySelector("[data-yuragi-runtime-provider]")).toBeNull();
-    expect(missing?.getAttribute("data-fallback")).toBe("text");
-  });
-
   it("opens a detail view with controls and enter/exit shard animation settings", () => {
     renderApp();
 
@@ -242,50 +222,6 @@ describe("App", () => {
     const title = host.querySelector(
       '.preview-title [data-sharded-text="Dashboard"]',
     );
-    expect(title?.getAttribute("data-transition-speed")).toBe("0.8");
-  });
-
-  it("preserves static demo state across playground tab switches", () => {
-    renderApp();
-
-    const staticTab = host.querySelector<HTMLButtonElement>(
-      'button[data-view="static-demo"]',
-    );
-    expect(staticTab).not.toBeNull();
-
-    act(() => {
-      staticTab?.click();
-    });
-
-    act(() => {
-      host
-        .querySelector<HTMLButtonElement>('button[data-post-id="settings"]')
-        ?.click();
-    });
-
-    const transitionSpeed = host.querySelector<HTMLInputElement>(
-      'input[name="transition-speed"]',
-    );
-    expect(transitionSpeed).not.toBeNull();
-
-    act(() => {
-      setInputValue(transitionSpeed!, "0.8");
-    });
-
-    act(() => {
-      host
-        .querySelector<HTMLButtonElement>('button[data-view="wasm-lab"]')
-        ?.click();
-    });
-
-    act(() => {
-      staticTab?.click();
-    });
-
-    const title = host.querySelector(
-      '.preview-title [data-static-sharded-text="Settings"]',
-    );
-    expect(title).not.toBeNull();
     expect(title?.getAttribute("data-transition-speed")).toBe("0.8");
   });
 
@@ -368,7 +304,7 @@ describe("App", () => {
 
   it("constrains list shard SVG width for mobile cards", () => {
     const demoStyles = readFileSync(
-      join(testDir, "demo.css"),
+      join(testDir, "runtime-demo/RuntimeDemo.css"),
       "utf8",
     );
     const globalStyles = readFileSync(join(testDir, "styles.css"), "utf8");

@@ -1,16 +1,40 @@
-import { describe, expect, it } from "vitest";
-import { normalizeTitles } from "../src/index";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  compileOutlines,
+  type CompileOutlinesOptions,
+} from "../src/index";
 
-describe("normalizeTitles", () => {
-  it("deduplicates titles while preserving order", async () => {
-    await expect(
-      normalizeTitles(["Dashboard", "Settings", "Dashboard"]),
-    ).resolves.toEqual(["Dashboard", "Settings"]);
+const native = vi.hoisted(() => ({
+  runNativeCompiler: vi.fn(async () => ({})),
+}));
+
+vi.mock("../src/native", () => native);
+
+describe("compileOutlines", () => {
+  beforeEach(() => {
+    native.runNativeCompiler.mockClear();
   });
 
-  it("accepts async title functions", async () => {
-    await expect(
-      normalizeTitles(async () => ["A", "B", "A"]),
-    ).resolves.toEqual(["A", "B"]);
+  it("accepts readonly titles and deduplicates them while preserving order", async () => {
+    await compileOutlines({
+      font: "font.otf",
+      titles: ["Dashboard", "Settings", "Dashboard"] as const,
+    });
+
+    expect(native.runNativeCompiler).toHaveBeenCalledWith({
+      font: "font.otf",
+      axes: undefined,
+      titles: ["Dashboard", "Settings"],
+    });
+  });
+
+  it("rejects dynamic title callbacks at the type boundary", () => {
+    const invalidOptions = {
+      font: "font.otf",
+      // @ts-expect-error Dynamic title discovery belongs in user build scripts.
+      titles: async () => ["A"],
+    } satisfies CompileOutlinesOptions;
+
+    expect(invalidOptions.titles).toBeTypeOf("function");
   });
 });
