@@ -30,13 +30,28 @@ jobs:
       - name: Prepare Rust
         run: |
           rustup toolchain install 1.85.0 --profile minimal --target wasm32-unknown-unknown
+          cargo +1.85.0 fetch --locked --manifest-path packages/compiler/native/Cargo.toml
           cargo +1.85.0 fetch --locked --manifest-path experiments/wasm-compiler/Cargo.toml --target wasm32-unknown-unknown
+
+      - name: Audit native Rust dependencies
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check
+          command-arguments: advisories
+          manifest-path: packages/compiler/native/Cargo.toml
+
+      - name: Audit WASM Rust dependencies
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check
+          command-arguments: advisories
+          manifest-path: experiments/wasm-compiler/Cargo.toml
 
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build packages
-        run: pnpm build
+      - name: Build packages and examples
+        run: pnpm examples:build
 
       - name: Typecheck
         run: pnpm typecheck
@@ -46,6 +61,3 @@ jobs:
 
       - name: Build playground
         run: pnpm playground:build
-
-      - name: Build wasm lab asset
-        run: pnpm wasm-lab:build
