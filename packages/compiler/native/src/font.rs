@@ -4,12 +4,10 @@ use anyhow::Context;
 use itertools::Itertools;
 use lyon_path::PathEvent;
 use serde::Serialize;
-use skrifa::{
-    instance::{Location, Size},
-    outline::{DrawSettings, OutlinePen},
-    setting::VariationSetting,
-    FontRef, MetadataProvider, Tag,
-};
+use skrifa::instance::{Location, Size};
+use skrifa::outline::{DrawSettings, OutlinePen};
+use skrifa::setting::VariationSetting;
+use skrifa::{FontRef, MetadataProvider, Tag};
 
 use crate::direction;
 
@@ -104,7 +102,7 @@ pub struct FontInstance<'a> {
 
 impl<'a> FontInstance<'a> {
     pub fn new(bytes: &'a [u8], axes: &BTreeMap<String, f32>) -> anyhow::Result<Self> {
-        let face = FontRef::new(bytes).context("failed to parse font")?;
+        let face = parse_font(bytes)?;
         let settings = axes
             .iter()
             .map(|(tag, value)| axis_tag(tag).map(|tag| VariationSetting::new(tag, *value)))
@@ -123,6 +121,10 @@ impl<'a> FontInstance<'a> {
     pub fn parse_text(&self, text: &str) -> anyhow::Result<TextOutline> {
         parse_text(text, self)
     }
+}
+
+fn parse_font(bytes: &[u8]) -> anyhow::Result<FontRef<'_>> {
+    FontRef::from_index(bytes, 0).context("failed to parse font")
 }
 
 fn axis_tag(tag: &str) -> anyhow::Result<Tag> {
@@ -515,6 +517,21 @@ fn parse_text(text: &str, font: &FontInstance) -> anyhow::Result<TextOutline> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn empty_font_collection() -> Vec<u8> {
+        vec![
+            b't', b't', b'c', b'f', 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 16, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0,
+        ]
+    }
+
+    #[test]
+    fn loads_the_first_face_from_a_font_collection() {
+        let bytes = empty_font_collection();
+        let face = parse_font(&bytes).unwrap();
+
+        assert_eq!(face.ttc_index(), Some(0));
+    }
 
     #[test]
     fn rejects_axis_tags_that_are_not_exactly_four_bytes() {
