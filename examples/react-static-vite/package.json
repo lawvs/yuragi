@@ -13,8 +13,8 @@
   },
   "dependencies": {
     "@yuragi/react": "workspace:*",
-    "react": "19.3.0-canary-e71a6393-20260702",
-    "react-dom": "19.3.0-canary-e71a6393-20260702"
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
   },
   "devDependencies": {
     "@types/node": "^26.1.0",

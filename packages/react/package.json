@@ -21,8 +21,8 @@
   },
   "type": "module",
   "peerDependencies": {
-    "react": "19.3.0-canary-e71a6393-20260702",
-    "react-dom": "19.3.0-canary-e71a6393-20260702"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "dependencies": {
     "@yuragi/core": "workspace:*",
@@ -48,8 +48,8 @@
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
-    "react": "19.3.0-canary-e71a6393-20260702",
-    "react-dom": "19.3.0-canary-e71a6393-20260702",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
     "vitest": "^4.1.9"

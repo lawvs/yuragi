@@ -1,7 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "types": ["react/canary"],
+    "types": ["react"],
     "paths": {
       "@yuragi/core": ["../../packages/core/src/index.ts"],
       "@yuragi/react": ["../../packages/react/src/index.ts"],

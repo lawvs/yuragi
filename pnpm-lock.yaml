@@ -48,11 +48,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/wasm
       react:
-        specifier: 19.3.0-canary-e71a6393-20260702
-        version: 19.3.0-canary-e71a6393-20260702
+        specifier: 19.2.7
+        version: 19.2.7
       react-dom:
-        specifier: 19.3.0-canary-e71a6393-20260702
-        version: 19.3.0-canary-e71a6393-20260702(react@19.3.0-canary-e71a6393-20260702)
+        specifier: 19.2.7
+        version: 19.2.7(react@19.2.7)
       vite:
         specifier: ^8.1.3
         version: 8.1.3(@types/node@26.1.0)(esbuild@0.27.7)(tsx@4.23.0)
@@ -76,11 +76,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/react
       react:
-        specifier: 19.3.0-canary-e71a6393-20260702
-        version: 19.3.0-canary-e71a6393-20260702
+        specifier: 19.2.7
+        version: 19.2.7
       react-dom:
-        specifier: 19.3.0-canary-e71a6393-20260702
-        version: 19.3.0-canary-e71a6393-20260702(react@19.3.0-canary-e71a6393-20260702)
+        specifier: 19.2.7
+        version: 19.2.7(react@19.2.7)
     devDependencies:
       '@types/react':
         specifier: ^19.2.17
@@ -104,11 +104,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/react
       react:
-        specifier: 19.3.0-canary-e71a6393-20260702
-        version: 19.3.0-canary-e71a6393-20260702
+        specifier: 19.2.7
+        version: 19.2.7
       react-dom:
-        specifier: 19.3.0-canary-e71a6393-20260702
-        version: 19.3.0-canary-e71a6393-20260702(react@19.3.0-canary-e71a6393-20260702)
+        specifier: 19.2.7
+        version: 19.2.7(react@19.2.7)
     devDependencies:
       '@types/node':
         specifier: ^26.1.0
@@ -174,7 +174,7 @@ importers:
     devDependencies:
       '@testing-library/react':
         specifier: ^16.3.2
-        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.3.0-canary-e71a6393-20260702(react@19.3.0-canary-e71a6393-20260702))(react@19.3.0-canary-e71a6393-20260702)
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@types/react':
         specifier: ^19.2.17
         version: 19.2.17
@@ -182,11 +182,11 @@ importers:
         specifier: ^19.2.3
         version: 19.2.3(@types/react@19.2.17)
       react:
-        specifier: 19.3.0-canary-e71a6393-20260702
-        version: 19.3.0-canary-e71a6393-20260702
+        specifier: 19.2.7
+        version: 19.2.7
       react-dom:
-        specifier: 19.3.0-canary-e71a6393-20260702
-        version: 19.3.0-canary-e71a6393-20260702(react@19.3.0-canary-e71a6393-20260702)
+        specifier: 19.2.7
+        version: 19.2.7(react@19.2.7)
       tsup:
         specifier: ^8.5.1
         version: 8.5.1(postcss@8.5.16)(tsx@4.23.0)(typescript@6.0.3)
@@ -1287,16 +1287,16 @@ packages:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
 
-  react-dom@19.3.0-canary-e71a6393-20260702:
-    resolution: {integrity: sha512-/wOtppkK4HegPGakL5b3ddlF/UMDImaN0qEPJojeoKvGyzDdLYO0wereT/2LzkOmnU6ARhcGZ5gU1rWGYz+CVg==}
+  react-dom@19.2.7:
+    resolution: {integrity: sha512-t0BRVXvbiE/o20Hfw669rLbMCDWtYZLvmJigy2f0MxsXF+71pxhR3xOkspmsO8h3ZlNzyibAmtCa3l4lYKk6gQ==}
     peerDependencies:
-      react: 19.3.0-canary-e71a6393-20260702
+      react: ^19.2.7
 
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
 
-  react@19.3.0-canary-e71a6393-20260702:
-    resolution: {integrity: sha512-0Vzw1DrG7UJ0+WeGtk8IVoRDgGE2CTniOd1YNTBSPHUTov3b8W8Sbe4GO/Py7yZPSv5fbWD4THvaP8SuVSeAyg==}
+  react@19.2.7:
+    resolution: {integrity: sha512-HNe9WslTbXmFK8o8cmwgAeJFSBvt1bPdHCVKtaaV+WlAN36mpT4hcRpwbf3fY56ar2oIXzsBpOAiIRHAdY0OlQ==}
     engines: {node: '>=0.10.0'}
 
   readdirp@4.1.2:
@@ -1325,8 +1325,8 @@ packages:
     resolution: {integrity: sha512-xAg7SOnEhrm5zI3puOOKyy1OMcMlIJZYNJY7xLBwSze0UjhPLnWfj2GF2EpT0jmzaJKIWKHLsaSSajf35bcYnA==}
     engines: {node: '>=v12.22.7'}
 
-  scheduler@0.28.0-canary-e71a6393-20260702:
-    resolution: {integrity: sha512-aEk7resubbyux76OsvqMLlg/AZcv15gvbSFfaLapKaTQz9YnLeccrs4xSVR2GFn/Jb2CKa7+gwXj/VEvhuQmRQ==}
+  scheduler@0.27.0:
+    resolution: {integrity: sha512-eNv+WrVbKu1f3vbYJT/xtiF5syA5HPIMtf9IgY/nKg0sWqzAUEvqY/xm7OcZc/qafLx/iO9FgOmeSAp4v5ti/Q==}
 
   siginfo@2.0.0:
     resolution: {integrity: sha512-ybx0WO1/8bSBLEWXZvEd7gMW3Sn3JFlW3TvX1nREbDLRNQNaeNN8WK0meBwPdAaOI7TtRRRJn/Es1zhrrCHu7g==}
@@ -1950,12 +1950,12 @@ snapshots:
       picocolors: 1.1.1
       pretty-format: 27.5.1
 
-  '@testing-library/react@16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.3.0-canary-e71a6393-20260702(react@19.3.0-canary-e71a6393-20260702))(react@19.3.0-canary-e71a6393-20260702)':
+  '@testing-library/react@16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
       '@babel/runtime': 7.29.7
       '@testing-library/dom': 10.4.1
-      react: 19.3.0-canary-e71a6393-20260702
-      react-dom: 19.3.0-canary-e71a6393-20260702(react@19.3.0-canary-e71a6393-20260702)
+      react: 19.2.7
+      react-dom: 19.2.7(react@19.2.7)
     optionalDependencies:
       '@types/react': 19.2.17
       '@types/react-dom': 19.2.3(@types/react@19.2.17)
@@ -2351,14 +2351,14 @@ snapshots:
 
   punycode@2.3.1: {}
 
-  react-dom@19.3.0-canary-e71a6393-20260702(react@19.3.0-canary-e71a6393-20260702):
+  react-dom@19.2.7(react@19.2.7):
     dependencies:
-      react: 19.3.0-canary-e71a6393-20260702
-      scheduler: 0.28.0-canary-e71a6393-20260702
+      react: 19.2.7
+      scheduler: 0.27.0
 
   react-is@17.0.2: {}
 
-  react@19.3.0-canary-e71a6393-20260702: {}
+  react@19.2.7: {}
 
   readdirp@4.1.2: {}
 
@@ -2422,7 +2422,7 @@ snapshots:
     dependencies:
       xmlchars: 2.2.0
 
-  scheduler@0.28.0-canary-e71a6393-20260702: {}
+  scheduler@0.27.0: {}
 
   siginfo@2.0.0: {}
 
