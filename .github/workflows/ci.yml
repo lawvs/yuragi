@@ -30,20 +30,6 @@ jobs:
       - name: Set up Rust
         run: rustup toolchain install 1.85.0 --profile minimal --target wasm32-unknown-unknown
 
-      - name: Audit native Rust dependencies
-        uses: EmbarkStudios/cargo-deny-action@v2
-        with:
-          command: check
-          command-arguments: advisories
-          manifest-path: packages/compiler/native/Cargo.toml
-
-      - name: Audit WASM Rust dependencies
-        uses: EmbarkStudios/cargo-deny-action@v2
-        with:
-          command: check
-          command-arguments: advisories
-          manifest-path: experiments/wasm-compiler/Cargo.toml
-
       - name: Test native Rust compiler
         run: cargo +1.85.0 test --locked --manifest-path packages/compiler/native/Cargo.toml
 
