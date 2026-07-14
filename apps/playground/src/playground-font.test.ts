@@ -4,10 +4,8 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import {
-  DEFAULT_PLAYGROUND_FONT_URL,
-  resolvePlaygroundFont,
-} from "../playground-font";
+import { SOURCE_HAN_SERIF_URL } from "../../../shared/source-han-serif";
+import { resolvePlaygroundFont } from "../playground-font";
 
 const tempDirs: string[] = [];
 
@@ -39,7 +37,7 @@ describe("resolvePlaygroundFont", () => {
 
     expect(font).toBe(join(cacheDir, "SourceHanSerifSC-VF.otf"));
     expect(await readFile(font, "utf8")).toBe("font");
-    expect(downloadedUrl).toBe(DEFAULT_PLAYGROUND_FONT_URL);
+    expect(downloadedUrl).toBe(SOURCE_HAN_SERIF_URL);
   });
 
   it("allows YURAGI_FONT to load from a local file without caching", async () => {
@@ -86,12 +84,6 @@ describe("resolvePlaygroundFont", () => {
     expect(font).toBe(join(cacheDir, "title.otf"));
     expect(await readFile(font, "utf8")).toBe(
       "downloaded from https://example.test/title.otf",
-    );
-  });
-
-  it("exposes the layered-compatible default font URL", () => {
-    expect(DEFAULT_PLAYGROUND_FONT_URL).toBe(
-      "https://raw.githubusercontent.com/adobe-fonts/source-han-serif/7889f11bf31170b5d092a083b357c8c8130f89e0/Variable/OTF/SourceHanSerifSC-VF.otf",
     );
   });
 });
