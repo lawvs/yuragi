@@ -1,6 +1,17 @@
 {
   "name": "@yuragi/wasm",
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "WebAssembly font compiler for generating Yuragi text outlines at runtime.",
+  "keywords": ["yuragi", "webassembly", "wasm", "font", "typography", "svg"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lawvs/yuragi.git",
+    "directory": "packages/wasm"
+  },
+  "homepage": "https://github.com/lawvs/yuragi/tree/main/packages/wasm#readme",
+  "bugs": {
+    "url": "https://github.com/lawvs/yuragi/issues"
+  },
   "type": "module",
   "exports": {
     ".": {

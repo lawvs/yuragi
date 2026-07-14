@@ -1,6 +1,24 @@
 {
   "name": "@yuragi/react",
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "React components for rendering animated Yuragi text from static or runtime-compiled outlines.",
+  "keywords": [
+    "yuragi",
+    "react",
+    "typography",
+    "svg",
+    "animation",
+    "text-effects"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lawvs/yuragi.git",
+    "directory": "packages/react"
+  },
+  "homepage": "https://github.com/lawvs/yuragi/tree/main/packages/react#readme",
+  "bugs": {
+    "url": "https://github.com/lawvs/yuragi/issues"
+  },
   "type": "module",
   "peerDependencies": {
     "react": "19.3.0-canary-e71a6393-20260702",
