@@ -11,49 +11,8 @@ use skrifa::{FontRef, MetadataProvider, Tag};
 
 use crate::direction;
 
-#[derive(Serialize, PartialEq, Clone, Debug)]
-#[serde(rename_all = "lowercase")]
-#[serde(tag = "ty", content = "spec")]
-enum OutlineCmd {
-    Move(f64, f64),
-    Line(f64, f64),
-    Quad {
-        to: (f64, f64),
-        ctrl: (f64, f64),
-    },
-    Cubic {
-        to: (f64, f64),
-        ctrl_first: (f64, f64),
-        ctrl_second: (f64, f64),
-    },
-    Close,
-}
-
-impl OutlineCmd {
-    fn dst_pt(&self) -> Option<(f64, f64)> {
-        match self {
-            OutlineCmd::Move(x, y) => Some((*x, *y)),
-            OutlineCmd::Line(x, y) => Some((*x, *y)),
-            OutlineCmd::Quad { to, .. } => Some(*to),
-            OutlineCmd::Cubic { to, .. } => Some(*to),
-            OutlineCmd::Close => None,
-        }
-    }
-
-    fn may_be_inside(&self, path: impl Iterator<Item = PathEvent>) -> bool {
-        match self.dst_pt() {
-            None => true,
-            Some((x, y)) => lyon_algorithms::hit_test::hit_test_path(
-                &(x as f32, y as f32).into(),
-                path,
-                lyon_path::FillRule::EvenOdd,
-                1e-5,
-            ),
-        }
-    }
-}
-
-type Outline = Vec<OutlineCmd>;
+const CONTAINMENT_TOLERANCE: f32 = 1e-5;
+const DIRECTION_EPSILON: f32 = 1e-1;
 
 #[derive(Serialize, Clone, Copy, Debug)]
 pub struct GlyphBBox {
@@ -119,7 +78,109 @@ impl<'a> FontInstance<'a> {
     }
 
     pub fn parse_text(&self, text: &str) -> anyhow::Result<TextOutline> {
-        parse_text(text, self)
+        use unicode_segmentation::UnicodeSegmentation;
+
+        let mut segmented: BTreeMap<usize, bool> = text
+            .split_word_bound_indices()
+            .map(|(i, _)| (i, false))
+            .collect();
+
+        for (i, opportunity) in unicode_linebreak::linebreaks(text) {
+            if opportunity == unicode_linebreak::BreakOpportunity::Allowed || i == text.len() {
+                segmented.insert(i, true);
+            } else {
+                anyhow::bail!(
+                    "unexpected mandatory line break at byte {} before end of text {:?}",
+                    i,
+                    text
+                );
+            }
+        }
+
+        let segs = segmented
+            .iter()
+            .tuple_windows()
+            .map(|((aptr, _), (bptr, break_after))| (&text[*aptr..*bptr], *break_after));
+
+        let groups = segs
+            .map(|(s, break_after)| -> anyhow::Result<ShardGroup> {
+                let glyphs = s
+                    .chars()
+                    .map(|c| self.compile_glyph(c))
+                    .collect::<anyhow::Result<Vec<_>>>()?;
+                let advance = glyphs.iter().map(|glyph| glyph.advance as u64).sum();
+                Ok(ShardGroup {
+                    text: s.to_string(),
+                    advance,
+                    break_after,
+                    glyphs,
+                })
+            })
+            .collect::<anyhow::Result<Vec<_>>>()?;
+
+        let metrics = self.face.metrics(Size::unscaled(), &self.location);
+
+        Ok(TextOutline {
+            em: metrics.units_per_em,
+            ascender: checked_i16(metrics.ascent).context("font ascender is out of range")?,
+            descender: checked_i16(metrics.descent).context("font descender is out of range")?,
+            groups,
+        })
+    }
+
+    fn compile_glyph(&self, c: char) -> anyhow::Result<ShardGlyph> {
+        let glyph = self
+            .face
+            .charmap()
+            .map(c)
+            .ok_or_else(|| anyhow::anyhow!("Glyph \"{}\" not found in font", c))?;
+        let mut builder = OutlineBuilder::default();
+
+        if let Some(outline) = self.face.outline_glyphs().get(glyph) {
+            outline
+                .draw(
+                    DrawSettings::unhinted(Size::unscaled(), &self.location),
+                    &mut builder,
+                )
+                .with_context(|| format!("failed to draw glyph '{}'", c))?;
+        }
+
+        let (outline, bbox) = builder.finish()?;
+
+        let advance = self
+            .face
+            .glyph_metrics(Size::unscaled(), &self.location)
+            .advance_width(glyph)
+            .and_then(checked_u16)
+            .ok_or_else(|| anyhow::anyhow!("Glyph '{}' has no outline and hor adv", c))?;
+
+        let mut components = split_components(outline);
+        components.sort_by(|a, b| {
+            let a_bbox: lyon_path::geom::euclid::Box2D<f32, lyon_path::geom::euclid::UnknownUnit> =
+                lyon_algorithms::aabb::bounding_box(outline_to_path_events(a.iter().cloned()));
+            let b_bbox: lyon_path::geom::euclid::Box2D<f32, lyon_path::geom::euclid::UnknownUnit> =
+                lyon_algorithms::aabb::bounding_box(outline_to_path_events(b.iter().cloned()));
+            a_bbox.min.x.partial_cmp(&b_bbox.min.x).unwrap()
+        });
+
+        let shards = components
+            .iter()
+            .map(|component| {
+                let path = outline_to_svg_path_data(component);
+                let direction = direction::compute_direction(
+                    &lyon_path::Path::from_iter(outline_to_path_events(component.iter().cloned())),
+                    DIRECTION_EPSILON,
+                );
+                Shard { path, direction }
+            })
+            .collect();
+
+        Ok(ShardGlyph {
+            char: c,
+            advance,
+            bbox,
+            shards,
+        })
     }
 }
 
@@ -136,191 +197,35 @@ fn axis_tag(tag: &str) -> anyhow::Result<Tag> {
     Ok(Tag::new(&[bytes[0], bytes[1], bytes[2], bytes[3]]))
 }
 
-fn serialize_outline(outline: &Outline) -> String {
-    let mut ret = String::new();
-    for cmd in outline {
-        match cmd {
-            OutlineCmd::Move(x, y) => {
-                ret.push_str(&format!("M {} {}", x, -y));
-            }
-            OutlineCmd::Line(x, y) => {
-                ret.push_str(&format!("L {} {}", x, -y));
-            }
-            OutlineCmd::Quad { to, ctrl } => {
-                ret.push_str(&format!("Q {} {} {} {}", ctrl.0, -ctrl.1, to.0, -to.1));
-            }
-            OutlineCmd::Cubic {
-                to,
-                ctrl_first,
-                ctrl_second,
-            } => {
-                ret.push_str(&format!(
-                    "C {} {} {} {} {} {}",
-                    ctrl_first.0, -ctrl_first.1, ctrl_second.0, -ctrl_second.1, to.0, -to.1
-                ));
-            }
-            OutlineCmd::Close => {
-                ret.push('Z');
-            }
-        }
-    }
-    ret
+fn checked_i16(value: f32) -> Option<i16> {
+    (value.is_finite() && value >= i16::MIN as f32 && value <= i16::MAX as f32)
+        .then_some(value as i16)
 }
 
-fn split_closed_loop<I: Iterator<Item = OutlineCmd>>(outline: I) -> Vec<Outline> {
-    let mut output = Vec::new();
-    let mut cur = Vec::new();
-
-    for cmd in outline {
-        let is_close = cmd == OutlineCmd::Close;
-        cur.push(cmd);
-        if is_close {
-            output.push(cur);
-            cur = Vec::new();
-        }
-    }
-
-    if !cur.is_empty() {
-        cur.push(OutlineCmd::Close);
-        output.push(cur);
-    }
-
-    output
+fn checked_u16(value: f32) -> Option<u16> {
+    let value = value.round();
+    (value.is_finite() && value >= 0.0 && value <= u16::MAX as f32).then_some(value as u16)
 }
 
-fn component_to_lyon_path_ev<I: Iterator<Item = OutlineCmd>>(
-    outline: I,
-) -> impl Iterator<Item = PathEvent> {
-    let mut start = (0.0, 0.0).into();
-    let mut last = (0.0, 0.0).into();
-    outline.map(move |cmd| match cmd {
-        OutlineCmd::Move(x, y) => {
-            start = (x as f32, y as f32).into();
-            last = (x as f32, y as f32).into();
-            PathEvent::Begin {
-                at: (x as f32, y as f32).into(),
-            }
-        }
-        OutlineCmd::Line(x, y) => {
-            let current = (x as f32, y as f32).into();
-            let output = PathEvent::Line {
-                from: last,
-                to: current,
-            };
-            last = current;
-            output
-        }
-        OutlineCmd::Quad { to, ctrl } => {
-            let current = (to.0 as f32, to.1 as f32).into();
-            let output = PathEvent::Quadratic {
-                from: last,
-                to: current,
-                ctrl: (ctrl.0 as f32, ctrl.1 as f32).into(),
-            };
-            last = current;
-            output
-        }
-        OutlineCmd::Cubic {
-            to,
-            ctrl_first,
-            ctrl_second,
-        } => {
-            let current = (to.0 as f32, to.1 as f32).into();
-            let output = PathEvent::Cubic {
-                from: last,
-                to: current,
-                ctrl1: (ctrl_first.0 as f32, ctrl_first.1 as f32).into(),
-                ctrl2: (ctrl_second.0 as f32, ctrl_second.1 as f32).into(),
-            };
-            last = current;
-            output
-        }
-        OutlineCmd::Close => {
-            let output = PathEvent::End {
-                last,
-                first: start,
-                close: true,
-            };
-            start = (0.0, 0.0).into();
-            last = (0.0, 0.0).into();
-            output
-        }
-    })
+#[derive(Serialize, PartialEq, Clone, Debug)]
+#[serde(rename_all = "lowercase")]
+#[serde(tag = "ty", content = "spec")]
+enum OutlineCmd {
+    Move(f64, f64),
+    Line(f64, f64),
+    Quad {
+        to: (f64, f64),
+        ctrl: (f64, f64),
+    },
+    Cubic {
+        to: (f64, f64),
+        ctrl_first: (f64, f64),
+        ctrl_second: (f64, f64),
+    },
+    Close,
 }
 
-fn collect_outline(
-    id: usize,
-    outlines: &[Outline],
-    children: &[Vec<usize>],
-    collect: &mut Vec<Outline>,
-) {
-    let mut current = outlines[id].clone();
-    for child in children[id].iter() {
-        current.extend(outlines[*child].iter().cloned());
-        for double_child in children[*child].iter() {
-            collect_outline(*double_child, outlines, children, collect);
-        }
-    }
-    collect.push(current);
-}
-
-fn split_components(input: Outline) -> Vec<Outline> {
-    let loops = split_closed_loop(input.into_iter());
-    let mut inside: Vec<HashSet<usize>> = loops.iter().map(|_| HashSet::new()).collect();
-
-    for i in 0..loops.len() {
-        for j in 0..loops.len() {
-            if i == j {
-                continue;
-            }
-
-            let i_inside_j = loops[i]
-                .iter()
-                .all(|cmd| cmd.may_be_inside(component_to_lyon_path_ev(loops[j].iter().cloned())));
-            if i_inside_j {
-                inside[i].insert(j);
-            }
-        }
-    }
-
-    let mut processed: Vec<bool> = loops.iter().map(|_| false).collect();
-    let mut is_root: Vec<bool> = loops.iter().map(|_| true).collect();
-    let mut children: Vec<Vec<usize>> = loops.iter().map(|_| Vec::new()).collect();
-
-    loop {
-        let mut selected = None;
-        for i in 0..inside.len() {
-            if inside[i].is_empty() && !processed[i] {
-                selected = Some(i);
-                break;
-            }
-        }
-
-        let selected = if let Some(inner) = selected {
-            inner
-        } else {
-            break;
-        };
-
-        for i in 0..inside.len() {
-            if inside[i].remove(&selected) && inside[i].is_empty() {
-                children[selected].push(i);
-                is_root[i] = false;
-            }
-        }
-
-        processed[selected] = true;
-    }
-
-    let mut collected = Vec::new();
-    for i in 0..loops.len() {
-        if is_root[i] {
-            collect_outline(i, &loops, &children, &mut collected);
-        }
-    }
-
-    collected
-}
+type Outline = Vec<OutlineCmd>;
 
 #[derive(Default)]
 struct OutlineBuilder {
@@ -329,6 +234,11 @@ struct OutlineBuilder {
 }
 
 impl OutlineBuilder {
+    fn finish(self) -> anyhow::Result<(Outline, GlyphBBox)> {
+        let bbox = self.glyph_bbox()?;
+        Ok((self.outline, bbox))
+    }
+
     fn include(&mut self, x: f32, y: f32) {
         self.bounds = Some(match self.bounds {
             Some((x_min, y_min, x_max, y_max)) => {
@@ -398,120 +308,215 @@ impl OutlinePen for OutlineBuilder {
     }
 }
 
-fn checked_i16(value: f32) -> Option<i16> {
-    (value.is_finite() && value >= i16::MIN as f32 && value <= i16::MAX as f32)
-        .then(|| value as i16)
-}
-
-fn checked_u16(value: f32) -> Option<u16> {
-    let value = value.round();
-    (value.is_finite() && value >= 0.0 && value <= u16::MAX as f32).then(|| value as u16)
-}
-
-pub fn parse_char(c: char, font: &FontInstance) -> anyhow::Result<ShardGlyph> {
-    let glyph = font
-        .face
-        .charmap()
-        .map(c)
-        .ok_or_else(|| anyhow::anyhow!("Glyph \"{}\" not found in font", c))?;
-    let mut builder = OutlineBuilder::default();
-
-    if let Some(outline) = font.face.outline_glyphs().get(glyph) {
-        outline
-            .draw(
-                DrawSettings::unhinted(Size::unscaled(), &font.location),
-                &mut builder,
-            )
-            .with_context(|| format!("failed to draw glyph '{}'", c))?;
-    }
-
-    let bbox = builder.glyph_bbox()?;
-
-    let advance = font
-        .face
-        .glyph_metrics(Size::unscaled(), &font.location)
-        .advance_width(glyph)
-        .and_then(checked_u16)
-        .ok_or_else(|| anyhow::anyhow!("Glyph '{}' has no outline and hor adv", c))?;
-
-    let mut components = split_components(builder.outline);
-    components.sort_by(|a, b| {
-        let a_bbox: lyon_path::geom::euclid::Box2D<f32, lyon_path::geom::euclid::UnknownUnit> =
-            lyon_algorithms::aabb::bounding_box(component_to_lyon_path_ev(a.iter().cloned()));
-        let b_bbox: lyon_path::geom::euclid::Box2D<f32, lyon_path::geom::euclid::UnknownUnit> =
-            lyon_algorithms::aabb::bounding_box(component_to_lyon_path_ev(b.iter().cloned()));
-        a_bbox.min.x.partial_cmp(&b_bbox.min.x).unwrap()
-    });
-
-    let shards = components
-        .iter()
-        .map(|component| {
-            let path = serialize_outline(component);
-            let direction = direction::compute_direction(
-                &lyon_path::Path::from_iter(component_to_lyon_path_ev(component.iter().cloned())),
-                1e-1,
-            );
-            Shard { path, direction }
-        })
-        .collect();
-
-    Ok(ShardGlyph {
-        char: c,
-        advance,
-        bbox,
-        shards,
-    })
-}
-
-fn parse_text(text: &str, font: &FontInstance) -> anyhow::Result<TextOutline> {
-    use unicode_segmentation::UnicodeSegmentation;
-
-    let mut segmented: BTreeMap<usize, bool> = text
-        .split_word_bound_indices()
-        .map(|(i, _)| (i, false))
-        .collect();
-
-    for (i, opportunity) in unicode_linebreak::linebreaks(text) {
-        if opportunity == unicode_linebreak::BreakOpportunity::Allowed || i == text.len() {
-            segmented.insert(i, true);
-        } else {
-            anyhow::bail!(
-                "unexpected mandatory line break at byte {} before end of text {:?}",
-                i,
-                text
-            );
+impl OutlineCmd {
+    fn dst_pt(&self) -> Option<(f64, f64)> {
+        match self {
+            OutlineCmd::Move(x, y) => Some((*x, *y)),
+            OutlineCmd::Line(x, y) => Some((*x, *y)),
+            OutlineCmd::Quad { to, .. } => Some(*to),
+            OutlineCmd::Cubic { to, .. } => Some(*to),
+            OutlineCmd::Close => None,
         }
     }
 
-    let segs = segmented
-        .iter()
-        .tuple_windows()
-        .map(|((aptr, _), (bptr, break_after))| (&text[*aptr..*bptr], *break_after));
+    fn may_be_inside(&self, path: impl Iterator<Item = PathEvent>) -> bool {
+        match self.dst_pt() {
+            None => true,
+            Some((x, y)) => lyon_algorithms::hit_test::hit_test_path(
+                &(x as f32, y as f32).into(),
+                path,
+                lyon_path::FillRule::EvenOdd,
+                CONTAINMENT_TOLERANCE,
+            ),
+        }
+    }
+}
 
-    let groups = segs
-        .map(|(s, break_after)| -> anyhow::Result<ShardGroup> {
-            let glyphs = s
-                .chars()
-                .map(|c| parse_char(c, font))
-                .collect::<anyhow::Result<Vec<_>>>()?;
-            let advance = glyphs.iter().map(|glyph| glyph.advance as u64).sum();
-            Ok(ShardGroup {
-                text: s.to_string(),
-                advance,
-                break_after,
-                glyphs,
-            })
-        })
-        .collect::<anyhow::Result<Vec<_>>>()?;
+fn outline_to_svg_path_data(outline: &Outline) -> String {
+    let mut ret = String::new();
+    for cmd in outline {
+        match cmd {
+            OutlineCmd::Move(x, y) => {
+                ret.push_str(&format!("M {} {}", x, -y));
+            }
+            OutlineCmd::Line(x, y) => {
+                ret.push_str(&format!("L {} {}", x, -y));
+            }
+            OutlineCmd::Quad { to, ctrl } => {
+                ret.push_str(&format!("Q {} {} {} {}", ctrl.0, -ctrl.1, to.0, -to.1));
+            }
+            OutlineCmd::Cubic {
+                to,
+                ctrl_first,
+                ctrl_second,
+            } => {
+                ret.push_str(&format!(
+                    "C {} {} {} {} {} {}",
+                    ctrl_first.0, -ctrl_first.1, ctrl_second.0, -ctrl_second.1, to.0, -to.1
+                ));
+            }
+            OutlineCmd::Close => {
+                ret.push('Z');
+            }
+        }
+    }
+    ret
+}
 
-    let metrics = font.face.metrics(Size::unscaled(), &font.location);
+fn split_contours<I: Iterator<Item = OutlineCmd>>(outline: I) -> Vec<Outline> {
+    let mut output = Vec::new();
+    let mut cur = Vec::new();
 
-    Ok(TextOutline {
-        em: metrics.units_per_em,
-        ascender: checked_i16(metrics.ascent).context("font ascender is out of range")?,
-        descender: checked_i16(metrics.descent).context("font descender is out of range")?,
-        groups,
+    for cmd in outline {
+        let is_close = cmd == OutlineCmd::Close;
+        cur.push(cmd);
+        if is_close {
+            output.push(cur);
+            cur = Vec::new();
+        }
+    }
+
+    if !cur.is_empty() {
+        cur.push(OutlineCmd::Close);
+        output.push(cur);
+    }
+
+    output
+}
+
+fn outline_to_path_events<I: Iterator<Item = OutlineCmd>>(
+    outline: I,
+) -> impl Iterator<Item = PathEvent> {
+    let mut start = (0.0, 0.0).into();
+    let mut last = (0.0, 0.0).into();
+    outline.map(move |cmd| match cmd {
+        OutlineCmd::Move(x, y) => {
+            start = (x as f32, y as f32).into();
+            last = (x as f32, y as f32).into();
+            PathEvent::Begin {
+                at: (x as f32, y as f32).into(),
+            }
+        }
+        OutlineCmd::Line(x, y) => {
+            let current = (x as f32, y as f32).into();
+            let output = PathEvent::Line {
+                from: last,
+                to: current,
+            };
+            last = current;
+            output
+        }
+        OutlineCmd::Quad { to, ctrl } => {
+            let current = (to.0 as f32, to.1 as f32).into();
+            let output = PathEvent::Quadratic {
+                from: last,
+                to: current,
+                ctrl: (ctrl.0 as f32, ctrl.1 as f32).into(),
+            };
+            last = current;
+            output
+        }
+        OutlineCmd::Cubic {
+            to,
+            ctrl_first,
+            ctrl_second,
+        } => {
+            let current = (to.0 as f32, to.1 as f32).into();
+            let output = PathEvent::Cubic {
+                from: last,
+                to: current,
+                ctrl1: (ctrl_first.0 as f32, ctrl_first.1 as f32).into(),
+                ctrl2: (ctrl_second.0 as f32, ctrl_second.1 as f32).into(),
+            };
+            last = current;
+            output
+        }
+        OutlineCmd::Close => {
+            let output = PathEvent::End {
+                last,
+                first: start,
+                close: true,
+            };
+            start = (0.0, 0.0).into();
+            last = (0.0, 0.0).into();
+            output
+        }
     })
+}
+
+fn collect_outline(
+    id: usize,
+    outlines: &[Outline],
+    children: &[Vec<usize>],
+    collect: &mut Vec<Outline>,
+) {
+    let mut current = outlines[id].clone();
+    // Even-odd fill makes the root and direct children one component; grandchildren recurse separately.
+    for child in children[id].iter() {
+        current.extend(outlines[*child].iter().cloned());
+        for grandchild in children[*child].iter() {
+            collect_outline(*grandchild, outlines, children, collect);
+        }
+    }
+    collect.push(current);
+}
+
+fn split_components(input: Outline) -> Vec<Outline> {
+    let contours = split_contours(input.into_iter());
+    let mut containers: Vec<HashSet<usize>> = contours.iter().map(|_| HashSet::new()).collect();
+
+    for i in 0..contours.len() {
+        for j in 0..contours.len() {
+            if i == j {
+                continue;
+            }
+
+            let i_inside_j = contours[i]
+                .iter()
+                .all(|cmd| cmd.may_be_inside(outline_to_path_events(contours[j].iter().cloned())));
+            if i_inside_j {
+                containers[i].insert(j);
+            }
+        }
+    }
+
+    let mut processed: Vec<bool> = contours.iter().map(|_| false).collect();
+    let mut is_root: Vec<bool> = contours.iter().map(|_| true).collect();
+    let mut children: Vec<Vec<usize>> = contours.iter().map(|_| Vec::new()).collect();
+
+    loop {
+        let mut selected = None;
+        for i in 0..containers.len() {
+            if containers[i].is_empty() && !processed[i] {
+                selected = Some(i);
+                break;
+            }
+        }
+
+        let selected = if let Some(inner) = selected {
+            inner
+        } else {
+            break;
+        };
+
+        for i in 0..containers.len() {
+            if containers[i].remove(&selected) && containers[i].is_empty() {
+                children[selected].push(i);
+                is_root[i] = false;
+            }
+        }
+
+        processed[selected] = true;
+    }
+
+    let mut collected = Vec::new();
+    for (i, root) in is_root.iter().enumerate() {
+        if *root {
+            collect_outline(i, &contours, &children, &mut collected);
+        }
+    }
+
+    collected
 }
 
 #[cfg(test)]
