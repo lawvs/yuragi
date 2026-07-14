@@ -91,7 +91,7 @@ describe("resolvePlaygroundFont", () => {
 
   it("exposes the layered-compatible default font URL", () => {
     expect(DEFAULT_PLAYGROUND_FONT_URL).toBe(
-      "https://raw.githubusercontent.com/adobe-fonts/source-han-serif/release/Variable/OTF/SourceHanSerifSC-VF.otf",
+      "https://raw.githubusercontent.com/adobe-fonts/source-han-serif/7889f11bf31170b5d092a083b357c8c8130f89e0/Variable/OTF/SourceHanSerifSC-VF.otf",
     );
   });
 });
