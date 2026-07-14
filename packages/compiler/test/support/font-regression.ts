@@ -69,3 +69,12 @@ export function createSectionSnapshot(
     }),
   };
 }
+
+export {
+  assertSectionFileSnapshot,
+  compareSectionSnapshots,
+  renderSectionAtlas,
+  writeRegressionArtifacts,
+  type GlyphChange,
+  type GlyphChangeField,
+} from "./font-regression-artifacts";

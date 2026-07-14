@@ -1,6 +1,22 @@
+import {
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  writeFile,
+} from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { TextOutlineBundle } from "@yuragi/core";
-import { describe, expect, it } from "vitest";
-import { createSectionSnapshot } from "./support/font-regression";
+import { afterEach, describe, expect, it } from "vitest";
+import {
+  assertSectionFileSnapshot,
+  compareSectionSnapshots,
+  createSectionSnapshot,
+  renderSectionAtlas,
+  writeRegressionArtifacts,
+  type GlyphSectionSnapshot,
+} from "./support/font-regression";
 
 const outline = {
   em: 1000,
@@ -61,5 +77,158 @@ describe("createSectionSnapshot", () => {
         { wght: 900 },
       ),
     ).toThrow('Missing compiled outline for "missing"');
+  });
+});
+
+const tempDirs: string[] = [];
+
+async function makeTempDir() {
+  const dir = await mkdtemp(join(tmpdir(), "yuragi-regression-test-"));
+  tempDirs.push(dir);
+  return dir;
+}
+
+function detailedSnapshot(): GlyphSectionSnapshot {
+  return {
+    schemaVersion: 1,
+    font: {
+      sha256: "font-sha",
+      axes: { wght: 900 },
+      unitsPerEm: 1000,
+    },
+    section: { id: "latin", label: "Latin" },
+    glyphs: [
+      {
+        char: "a",
+        codePoints: ["U+0061"],
+        outline: {
+          em: 1000,
+          ascender: 800,
+          descender: -200,
+          groups: [
+            {
+              text: "a",
+              advance: 500,
+              breakAfter: false,
+              glyphs: [
+                {
+                  char: "a",
+                  advance: 500,
+                  bbox: { top: -700, bottom: 0, left: 10, right: 490 },
+                  shards: [
+                    {
+                      path: "M 10 0L 490 0L 250 -700Z",
+                      direction: [1, 0],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ],
+  };
+}
+
+describe("font regression diagnostics", () => {
+  afterEach(async () => {
+    await Promise.all(
+      tempDirs.splice(0).map((dir) => rm(dir, { recursive: true })),
+    );
+  });
+
+  it("classifies the fields changed for a glyph", () => {
+    const expected = detailedSnapshot();
+    const actual = structuredClone(expected);
+    const glyph = actual.glyphs[0]!.outline.groups[0]!.glyphs[0]!;
+    actual.glyphs[0]!.outline.groups[0]!.advance = 510;
+    glyph.advance = 510;
+    glyph.bbox.right = 500;
+    glyph.shards[0]!.path = "M 10 0L 500 0L 250 -700Z";
+    glyph.shards[0]!.direction = [0, 1];
+    glyph.shards.push({ path: "M 0 0Z", direction: [-1, 0] });
+
+    expect(compareSectionSnapshots(expected, actual)).toEqual([
+      {
+        char: "a",
+        codePoints: ["U+0061"],
+        fields: ["advance", "bbox", "shard-count", "path", "direction"],
+      },
+    ]);
+  });
+
+  it("renders deterministic atlas and overlay SVGs", () => {
+    const expected = detailedSnapshot();
+    const actual = structuredClone(expected);
+    actual.glyphs[0]!.outline.groups[0]!.glyphs[0]!.shards[0]!.path =
+      "M 10 0L 500 0L 250 -700Z";
+
+    const atlas = renderSectionAtlas(expected, { mode: "snapshot" });
+    const diff = renderSectionAtlas(actual, {
+      mode: "diff",
+      expected,
+    });
+
+    expect(atlas).toContain("U+0061");
+    expect(atlas).toContain('data-guide="baseline"');
+    expect(atlas).toContain('data-guide="bbox"');
+    expect(diff).toContain("#ef4444");
+    expect(diff).toContain("#06b6d4");
+  });
+
+  it("writes section and changed-glyph artifacts", async () => {
+    const outputDir = await makeTempDir();
+    const expected = detailedSnapshot();
+    const actual = structuredClone(expected);
+    actual.glyphs[0]!.outline.groups[0]!.glyphs[0]!.shards[0]!.path =
+      "M 10 0L 500 0L 250 -700Z";
+
+    const sectionDir = await writeRegressionArtifacts({
+      expected,
+      actual,
+      outputDir,
+    });
+
+    expect(await readdir(sectionDir)).toEqual([
+      "actual.json",
+      "actual.svg",
+      "diff.svg",
+      "expected.svg",
+      "glyphs",
+      "summary.txt",
+    ]);
+    expect(await readdir(join(sectionDir, "glyphs"))).toEqual([
+      "u0061.diff.svg",
+    ]);
+    expect(await readFile(join(sectionDir, "summary.txt"), "utf8")).toContain(
+      "a (U+0061): path",
+    );
+  });
+
+  it("preserves the snapshot assertion error after writing diagnostics", async () => {
+    const outputDir = await makeTempDir();
+    const snapshotPath = join(outputDir, "latin.json");
+    const expected = detailedSnapshot();
+    const actual = structuredClone(expected);
+    actual.glyphs[0]!.outline.groups[0]!.glyphs[0]!.shards[0]!.path =
+      "M 10 0L 500 0L 250 -700Z";
+    await writeFile(snapshotPath, `${JSON.stringify(expected, null, 2)}\n`);
+    const mismatch = new Error("snapshot mismatch");
+
+    await expect(
+      assertSectionFileSnapshot({
+        actual,
+        snapshotPath,
+        outputDir,
+        match: async () => {
+          throw mismatch;
+        },
+      }),
+    ).rejects.toBe(mismatch);
+
+    expect(
+      await readFile(join(outputDir, "latin", "summary.txt"), "utf8"),
+    ).toContain("a (U+0061): path");
   });
 });

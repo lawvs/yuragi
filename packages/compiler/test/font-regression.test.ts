@@ -11,7 +11,14 @@ import {
   SOURCE_HAN_SERIF_SHA256,
 } from "../../../shared/source-han-serif";
 import { compileOutlines } from "../src/index";
-import { createSectionSnapshot } from "./support/font-regression";
+import {
+  assertSectionFileSnapshot,
+  createSectionSnapshot,
+} from "./support/font-regression";
+
+const artifactDir =
+  process.env.YURAGI_FONT_ARTIFACT_DIR ??
+  fileURLToPath(new URL("../../../.artifacts/font-regression/", import.meta.url));
 
 describe("Source Han Serif common glyph outlines", () => {
   let bundle: TextOutlineBundle;
@@ -37,7 +44,6 @@ describe("Source Han Serif common glyph outlines", () => {
         bundle,
         SOURCE_HAN_SERIF_AXES,
       );
-      const json = `${JSON.stringify(snapshot, null, 2)}\n`;
       const snapshotPath = fileURLToPath(
         new URL(
           `./fixtures/source-han-serif/snapshots/${section.id}.json`,
@@ -45,7 +51,12 @@ describe("Source Han Serif common glyph outlines", () => {
         ),
       );
 
-      await expect(json).toMatchFileSnapshot(snapshotPath);
+      await assertSectionFileSnapshot({
+        actual: snapshot,
+        snapshotPath,
+        outputDir: artifactDir,
+        match: (json, path) => expect(json).toMatchFileSnapshot(path),
+      });
     },
   );
 });
