@@ -42,17 +42,6 @@ fn parse_axes(input: Option<String>) -> anyhow::Result<BTreeMap<String, f32>> {
     }
 }
 
-fn axis_tag(tag: &str) -> anyhow::Result<ttf_parser::Tag> {
-    let bytes = tag.as_bytes();
-    if bytes.len() != 4 {
-        anyhow::bail!("variation axis tag \"{}\" must be exactly 4 bytes", tag);
-    }
-
-    Ok(ttf_parser::Tag::from_bytes(&[
-        bytes[0], bytes[1], bytes[2], bytes[3],
-    ]))
-}
-
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     let titles_json = std::fs::read_to_string(&args.titles)
@@ -65,14 +54,14 @@ fn main() -> anyhow::Result<()> {
     let hash = format!("{:x}", Sha256::digest(&font_buf));
     let axes = parse_axes(args.axes)?;
 
-    let mut face = ttf_parser::Face::parse(&font_buf, 0).context("failed to parse font")?;
-    for (tag, value) in axes.iter() {
-        face.set_variation(axis_tag(tag)?, *value);
-    }
+    let font = font::FontInstance::new(&font_buf, &axes)?;
 
     let outlines = titles
         .iter()
-        .map(|title| font::parse_text(title, &face).map(|outline| (title.clone(), outline)))
+        .map(|title| {
+            font.parse_text(title)
+                .map(|outline| (title.clone(), outline))
+        })
         .collect::<anyhow::Result<BTreeMap<_, _>>>()?;
 
     let bundle = Bundle {
@@ -80,7 +69,7 @@ fn main() -> anyhow::Result<()> {
         font: FontInfo {
             source: args.font.to_string_lossy().into_owned(),
             axes,
-            units_per_em: face.units_per_em(),
+            units_per_em: font.units_per_em(),
             hash,
         },
         outlines,

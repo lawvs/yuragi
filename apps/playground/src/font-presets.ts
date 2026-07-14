@@ -1,15 +1,16 @@
 import type { FontAxes } from "@yuragi/core";
+import {
+  SOURCE_HAN_SERIF_AXES,
+  SOURCE_HAN_SERIF_URL,
+} from "../../../shared/source-han-serif";
 
 export const DEFAULT_WASM_URL =
-  "/yuragi-wasm/yuragi_wasm_compiler.wasm";
-
-const REMOTE_DEFAULT_FONT_URL =
-  "https://raw.githubusercontent.com/adobe-fonts/source-han-serif/release/Variable/OTF/SourceHanSerifSC-VF.otf";
+  `${import.meta.env.BASE_URL}yuragi-wasm/yuragi_wasm_compiler.wasm`;
 
 export const DEFAULT_FONT_URL =
-  import.meta.env.YURAGI_PLAYGROUND_FONT_URL || REMOTE_DEFAULT_FONT_URL;
+  import.meta.env.YURAGI_PLAYGROUND_FONT_URL || SOURCE_HAN_SERIF_URL;
 
-export const DEFAULT_AXES = { wght: 900 } satisfies FontAxes;
+export const DEFAULT_AXES = SOURCE_HAN_SERIF_AXES satisfies FontAxes;
 
 export type FontPreset = {
   id: string;

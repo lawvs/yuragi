@@ -79,7 +79,7 @@ async function main() {
   await run("cargo", [
     "build",
     "--release",
-    "--offline",
+    "--locked",
     "--target",
     "wasm32-unknown-unknown",
     "--manifest-path",

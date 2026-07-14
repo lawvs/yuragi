@@ -29,7 +29,7 @@ pnpm --filter @yuragi/example-react-static-vite generate
 
 The script reads [`src/titles.json`](src/titles.json), calls
 `compileOutlines`, and writes `src/generated/outlines.json`.
-By default it downloads Source Han Serif SC to
+By default it downloads Source Han Serif SC to the repository-root
 `node_modules/.cache/yuragi/fonts`, verifies its SHA-256 checksum, and reuses
 the cached file on later runs. Set `YURAGI_FONT` to override the default with a
 local path or another `http:` or `https:` URL.
