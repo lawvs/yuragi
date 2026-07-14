@@ -27,7 +27,7 @@ production build, and ignored by Git.
 
 The default title font is `SourceHanSerifSC-VF.otf` at `wght: 900`, matching
 the font used by Layered. During local development it is downloaded on first
-run and cached under `apps/playground/node_modules/.vite/yuragi`.
+run and cached under the repository-root `node_modules/.cache/yuragi/fonts`.
 
 Use a local font instead:
 
@@ -36,7 +36,7 @@ YURAGI_FONT="/path/to/title-font.otf" pnpm dev
 ```
 
 `YURAGI_FONT` also accepts an `http:` or `https:` URL. Remote fonts are
-downloaded into the same Vite cache. Production builds use the configured
+downloaded into the same shared cache. Production builds use the configured
 remote default and do not commit font files to the repository.
 
 ## Requirements
