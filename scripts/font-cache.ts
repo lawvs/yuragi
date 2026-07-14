@@ -10,10 +10,13 @@ import {
 } from "node:fs/promises";
 import { basename, isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { EnvHttpProxyAgent, fetch, setGlobalDispatcher } from "undici";
 import {
   SOURCE_HAN_SERIF_SHA256,
   SOURCE_HAN_SERIF_URL,
 } from "../shared/source-han-serif";
+
+setGlobalDispatcher(new EnvHttpProxyAgent());
 
 export * from "../shared/source-han-serif";
 
