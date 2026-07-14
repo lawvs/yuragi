@@ -1,7 +1,5 @@
 # Compiler Fixtures
 
-Compiler integration tests need a small font fixture with a license that allows
-redistribution in this repository.
-
-Use a compact Latin font for automated tests. CJK behavior is covered by the
-playground and by manual tests with user-provided fonts.
+Compiler integration tests download a pinned Source Han Serif font into the
+repository's ignored cache. The font binary is not committed; only licensed
+common-glyph snapshots and attribution are stored under `source-han-serif/`.
