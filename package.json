@@ -10,6 +10,7 @@
     "dev": "pnpm --filter @yuragi/playground dev",
     "playground:build": "pnpm --filter @yuragi/playground build",
     "examples:build": "pnpm build && pnpm -r --filter './examples/*' build",
+    "release:check": "pnpm examples:build && pnpm typecheck && pnpm test && node scripts/check-release.mjs",
     "wasm-lab:build": "pnpm --filter @yuragi/playground wasm-lab:build"
   },
   "devDependencies": {
