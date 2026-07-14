@@ -10,19 +10,13 @@ import {
 } from "node:fs/promises";
 import { basename, isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { fetch, ProxyAgent, setGlobalDispatcher } from "undici";
+import { EnvHttpProxyAgent, fetch, setGlobalDispatcher } from "undici";
 import {
   SOURCE_HAN_SERIF_SHA256,
   SOURCE_HAN_SERIF_URL,
 } from "../shared/source-han-serif";
 
-const proxy = process.env.https_proxy || process.env.http_proxy;
-
-if (proxy) {
-  // eslint-disable-next-line no-console
-  console.log("using proxy server %j", proxy);
-  setGlobalDispatcher(new ProxyAgent(proxy));
-}
+setGlobalDispatcher(new EnvHttpProxyAgent());
 
 export * from "../shared/source-han-serif";
 
