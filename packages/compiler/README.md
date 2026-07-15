@@ -1,4 +1,4 @@
-# @yuragi/compiler
+# @yuragi-labs/compiler
 
 Build-time compiler wrapper for Yuragi text outlines.
 
@@ -10,7 +10,7 @@ inside the installed package.
 ## API
 
 ```ts
-import { compileOutlines, type FontAxes } from "@yuragi/compiler";
+import { compileOutlines, type FontAxes } from "@yuragi-labs/compiler";
 
 const axes = { wght: 900 } satisfies FontAxes;
 
@@ -31,11 +31,11 @@ package is independent of any framework or bundler.
 - `axes`: optional `FontAxes` variation axis values for variable fonts.
 - `titles`: a readonly array of explicit strings to compile.
 
-The output is a `TextOutlineBundle` from `@yuragi/core`.
+The output is a `TextOutlineBundle` from `@yuragi-labs/core`.
 
 See [`examples/react-static-vite`](../../examples/react-static-vite) for a
 complete script that writes the outline map to JSON and renders it through
-`@yuragi/react/static`.
+`@yuragi-labs/react/static`.
 
 ## Native Compiler
 

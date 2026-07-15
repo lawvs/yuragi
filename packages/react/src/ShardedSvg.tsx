@@ -4,7 +4,7 @@ import {
   createShardedSvg,
   layoutShardedText,
   type TextOutline,
-} from "@yuragi/core";
+} from "@yuragi-labs/core";
 import { createSettleAnimationOptions } from "./animation-options";
 import {
   animateSvgExit,

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createYuragiFont } from "../src/index";
-import type { TextOutline } from "@yuragi/core";
+import type { TextOutline } from "@yuragi-labs/core";
 
 const outline: TextOutline = {
   em: 1000,

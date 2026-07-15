@@ -1,5 +1,5 @@
 {
-  "name": "@yuragi/wasm",
+  "name": "@yuragi-labs/wasm",
   "version": "0.1.0",
   "description": "WebAssembly font compiler for generating Yuragi text outlines at runtime.",
   "keywords": ["yuragi", "webassembly", "wasm", "font", "typography", "svg"],
@@ -31,7 +31,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@yuragi/core": "workspace:*"
+    "@yuragi-labs/core": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.5.1",

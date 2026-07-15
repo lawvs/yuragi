@@ -3,8 +3,8 @@
   "compilerOptions": {
     "types": ["react"],
     "paths": {
-      "@yuragi/core": ["../core/src/index.ts"],
-      "@yuragi/wasm": ["../wasm/src/index.ts"]
+      "@yuragi-labs/core": ["../core/src/index.ts"],
+      "@yuragi-labs/wasm": ["../wasm/src/index.ts"]
     }
   },
   "include": ["src", "test", "vitest.config.ts"]

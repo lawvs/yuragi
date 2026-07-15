@@ -1,5 +1,5 @@
 {
-  "name": "@yuragi/core",
+  "name": "@yuragi-labs/core",
   "version": "0.1.0",
   "description": "Core types, layout, SVG, animation, and styles for Yuragi text effects.",
   "keywords": ["yuragi", "typography", "svg", "animation", "text-effects"],

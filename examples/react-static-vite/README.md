@@ -1,6 +1,6 @@
 # Yuragi React Static Vite Example
 
-Minimal Vite + React Canary example for Yuragi's static precompile escape hatch.
+Minimal Vite + React 19 example for Yuragi's static precompile escape hatch.
 The app imports generated outline data and does not load a font or WASM compiler
 in the browser.
 
@@ -10,7 +10,7 @@ Build the workspace packages, then start the example:
 
 ```bash
 pnpm build
-pnpm --filter @yuragi/example-react-static-vite dev
+pnpm --filter @yuragi-labs/example-react-static-vite dev
 ```
 
 The generated outline JSON is ignored by Git and recreated automatically before
@@ -24,7 +24,7 @@ for the font source and license.
 Run the explicit TypeScript compiler script:
 
 ```bash
-pnpm --filter @yuragi/example-react-static-vite generate
+pnpm --filter @yuragi-labs/example-react-static-vite generate
 ```
 
 The script reads [`src/titles.json`](src/titles.json), calls
@@ -37,5 +37,5 @@ local path or another `http:` or `https:` URL.
 The compiler uses `wght: 900`; adjust the script when generating from a
 different font or axis configuration.
 
-Regeneration requires Rust and Cargo because `@yuragi/compiler` invokes the
-native compiler. The Vite app itself only uses `@yuragi/react/static`.
+Regeneration requires Rust and Cargo because `@yuragi-labs/compiler` invokes the
+native compiler. The Vite app itself only uses `@yuragi-labs/react/static`.

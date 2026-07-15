@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { TextOutline } from "@yuragi/core";
-import { YuragiText } from "@yuragi/react/static";
+import type { TextOutline } from "@yuragi-labs/core";
+import { YuragiText } from "@yuragi-labs/react/static";
 import "./WasmLab.css";
 import {
   DEFAULT_FONT_PRESET_ID,

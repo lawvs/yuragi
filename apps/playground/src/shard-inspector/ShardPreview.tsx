@@ -8,7 +8,7 @@ import {
   animateShards,
   createShardedSvg,
   layoutShardedText,
-} from "@yuragi/core";
+} from "@yuragi-labs/core";
 import type { InspectorGlyph } from "./model";
 
 export type InspectorMode = "assembled" | "colored" | "exploded";

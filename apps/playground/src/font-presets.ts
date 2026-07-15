@@ -1,4 +1,4 @@
-import type { FontAxes } from "@yuragi/core";
+import type { FontAxes } from "@yuragi-labs/core";
 import {
   SOURCE_HAN_SERIF_AXES,
   SOURCE_HAN_SERIF_URL,

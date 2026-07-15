@@ -1,5 +1,5 @@
-import { YuragiWasmRuntime } from "@yuragi/wasm/runtime";
-import type { FontAxes, TextOutline } from "@yuragi/core";
+import { YuragiWasmRuntime } from "@yuragi-labs/wasm/runtime";
+import type { FontAxes, TextOutline } from "@yuragi-labs/core";
 
 type LoadWasmMessage = {
   type: "load-wasm";

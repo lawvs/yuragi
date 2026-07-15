@@ -15,22 +15,22 @@ The name comes from Japanese `揺らぎ`, a gentle swaying or flicker that echoe
 
 | Package | Purpose |
 | --- | --- |
-| `@yuragi/react` | Recommended React Canary runtime API and static renderer. |
-| `@yuragi/core` | Shared outline types, layout helpers, SVG helpers, and CSS. |
-| `@yuragi/compiler` | Native build-time outline compiler. |
-| `@yuragi/wasm` | Lower-level runtime WASM compiler. |
+| `@yuragi-labs/react` | Recommended React 19 runtime API and static renderer. |
+| `@yuragi-labs/core` | Shared outline types, layout helpers, SVG helpers, and CSS. |
+| `@yuragi-labs/compiler` | Native build-time outline compiler. |
+| `@yuragi-labs/wasm` | Lower-level runtime WASM compiler. |
 
 Package-specific options and lower-level APIs live in the package READMEs:
 
-- [`@yuragi/react`](packages/react/README.md)
-- [`@yuragi/core`](packages/core/README.md)
-- [`@yuragi/compiler`](packages/compiler/README.md)
-- [`@yuragi/wasm`](packages/wasm/README.md)
+- [`@yuragi-labs/react`](packages/react/README.md)
+- [`@yuragi-labs/core`](packages/core/README.md)
+- [`@yuragi-labs/compiler`](packages/compiler/README.md)
+- [`@yuragi-labs/wasm`](packages/wasm/README.md)
 
 ## Install
 
 ```bash
-pnpm add @yuragi/react
+pnpm add @yuragi-labs/react
 ```
 
 ## Quick Start
@@ -39,7 +39,7 @@ Use the runtime React API when titles are dynamic or you want the simplest
 setup:
 
 ```tsx
-import { YuragiFontProvider, YuragiText } from "@yuragi/react";
+import { YuragiFontProvider, YuragiText } from "@yuragi-labs/react";
 
 export function Title() {
   return (
@@ -62,7 +62,7 @@ export function Title() {
 outlines in memory, and renders fallback text until the outline is ready.
 
 For build-time generated outlines, see the
-[`@yuragi/compiler` documentation](packages/compiler/README.md) and the
+[`@yuragi-labs/compiler` documentation](packages/compiler/README.md) and the
 [static Vite example](examples/react-static-vite).
 
 ## Examples
@@ -82,8 +82,8 @@ pnpm examples:build
 Run an example locally:
 
 ```bash
-pnpm --filter @yuragi/example-react-runtime-vite dev
-pnpm --filter @yuragi/example-react-static-vite dev
+pnpm --filter @yuragi-labs/example-react-runtime-vite dev
+pnpm --filter @yuragi-labs/example-react-static-vite dev
 ```
 
 ## Playground

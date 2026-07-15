@@ -10,13 +10,13 @@ import {
   createYuragiFont,
   type BinarySource,
   type YuragiFont,
-} from "@yuragi/wasm";
-import type { FontAxes } from "@yuragi/core";
+} from "@yuragi-labs/wasm";
+import type { FontAxes } from "@yuragi-labs/core";
 import { YuragiStyles } from "./YuragiStyles";
 import { YuragiText as StaticYuragiText } from "./YuragiText";
 import type { StaticYuragiTextProps } from "./types";
 
-export type { FontAxes, FontAxisTag, KnownFontAxisTag } from "@yuragi/core";
+export type { FontAxes, FontAxisTag, KnownFontAxisTag } from "@yuragi-labs/core";
 
 export type YuragiFontStatus = "loading" | "ready" | "error";
 
@@ -171,7 +171,7 @@ export function useYuragiFont() {
   const context = useContext(YuragiFontContext);
   if (!context) {
     throw new Error(
-      "useYuragiFont from @yuragi/react requires YuragiFontProvider",
+      "useYuragiFont from @yuragi-labs/react requires YuragiFontProvider",
     );
   }
 

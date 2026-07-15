@@ -1,5 +1,5 @@
 {
-  "name": "@yuragi/compiler",
+  "name": "@yuragi-labs/compiler",
   "version": "0.1.0",
   "description": "Native build-time font compiler for generating Yuragi text outlines.",
   "keywords": ["yuragi", "font", "compiler", "typography", "svg", "rust"],
@@ -33,7 +33,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@yuragi/core": "workspace:*"
+    "@yuragi-labs/core": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.5.1",

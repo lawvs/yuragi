@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "paths": {
-      "@yuragi/core": ["../core/src/index.ts"]
+      "@yuragi-labs/core": ["../core/src/index.ts"]
     }
   },
   "include": ["src", "test", "vitest.config.ts"]

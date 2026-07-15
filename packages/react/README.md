@@ -1,15 +1,15 @@
-# @yuragi/react
+# @yuragi-labs/react
 
-React Canary components for rendering Yuragi text. The recommended entry uses
+React 19 components for rendering Yuragi text. The recommended entry uses
 the runtime WASM compiler so text can be compiled on demand without a build-time
 title list. Precompiled static outlines remain available as an escape hatch.
 
 ## Runtime WASM Entry
 
-Import from `@yuragi/react` for the default runtime path:
+Import from `@yuragi-labs/react` for the default runtime path:
 
 ```tsx
-import { YuragiFontProvider, YuragiText } from "@yuragi/react";
+import { YuragiFontProvider, YuragiText } from "@yuragi-labs/react";
 
 export function RuntimeTitle({ title }: { title: string }) {
   return (
@@ -33,7 +33,7 @@ export function RuntimeTitle({ title }: { title: string }) {
 memory, and renders fallback text until an outline is ready. It includes
 Yuragi's required styles by default.
 
-Pass `includeStyles={false}` if your app imports `@yuragi/core/style.css`
+Pass `includeStyles={false}` if your app imports `@yuragi-labs/core/style.css`
 manually, and pass `styleNonce` when your CSP requires a style nonce.
 
 ## Font Axes
@@ -43,7 +43,7 @@ such as `wght`, `wdth`, `opsz`, `slnt`, and `ital`, while still allowing custom
 4-character tags from specific fonts:
 
 ```tsx
-import type { FontAxes } from "@yuragi/react";
+import type { FontAxes } from "@yuragi-labs/react";
 
 const axes = {
   wght: 900,
@@ -59,7 +59,7 @@ Use `useYuragiFont()` inside `YuragiFontProvider` when UI needs to know whether
 the runtime compiler and font are ready:
 
 ```tsx
-import { useYuragiFont } from "@yuragi/react";
+import { useYuragiFont } from "@yuragi-labs/react";
 
 function PlayButton() {
   const font = useYuragiFont();
@@ -144,7 +144,7 @@ reliable.
 
 ## Runtime Props
 
-Import the runtime component props as `YuragiTextProps` from `@yuragi/react`.
+Import the runtime component props as `YuragiTextProps` from `@yuragi-labs/react`.
 
 - `text`: rendered string.
 - `size`: text size in CSS pixels.
@@ -167,11 +167,11 @@ animations; Yuragi does not move text between separate page locations in v1.
 
 ## Static Precompiled Escape Hatch
 
-Use `@yuragi/react/static` when titles are known at build time and you want to
+Use `@yuragi-labs/react/static` when titles are known at build time and you want to
 avoid the runtime compiler:
 
 ```tsx
-import { YuragiStyles, YuragiText } from "@yuragi/react/static";
+import { YuragiStyles, YuragiText } from "@yuragi-labs/react/static";
 import outlines from "./yuragi-outlines.json";
 
 export function StaticTitle() {
@@ -197,14 +197,14 @@ Static `YuragiText` accepts the same visual and transition props as runtime
 `YuragiText`, plus:
 
 - `outline`: a compiled `TextOutline`, usually read from an outline map created
-  by `@yuragi/compiler`.
+  by `@yuragi-labs/compiler`.
 
 Its props type is exported as `StaticYuragiTextProps` from
-`@yuragi/react/static`.
+`@yuragi-labs/react/static`.
 
 The static entry does not discover titles or run a compiler. Call
 `compileOutlines` from your own build script and pass the generated outline
-explicitly. See [`@yuragi/compiler`](../compiler/README.md) for the low-level
+explicitly. See [`@yuragi-labs/compiler`](../compiler/README.md) for the low-level
 compiler API and [`examples/react-static-vite`](../../examples/react-static-vite)
 for a runnable Vite example.
 
@@ -217,10 +217,10 @@ Render it once near your app root when using the static entry.
 <YuragiStyles nonce={nonce} />
 ```
 
-If your app imports `@yuragi/core/style.css` directly, do not render
+If your app imports `@yuragi-labs/core/style.css` directly, do not render
 `YuragiStyles`.
 
 ## Requirements
 
-- React Canary and React DOM Canary.
+- React 19 and React DOM 19.
 - A font file that can be loaded by the runtime provider or the static compiler.

@@ -72,10 +72,10 @@ try {
   }
 
   const reactPackage = packages.find(
-    ({ manifest }) => manifest.name === "@yuragi/react",
+    ({ manifest }) => manifest.name === "@yuragi-labs/react",
   );
   if (!reactPackage) {
-    throw new Error("@yuragi/react is missing from the release package set");
+    throw new Error("@yuragi-labs/react is missing from the release package set");
   }
 
   const dependencies = Object.fromEntries(
@@ -150,21 +150,21 @@ try {
 
 const [core, wasm, wasmRuntime, compiler, react, reactStatic] =
   await Promise.all([
-    import("@yuragi/core"),
-    import("@yuragi/wasm"),
-    import("@yuragi/wasm/runtime"),
-    import("@yuragi/compiler"),
-    import("@yuragi/react"),
-    import("@yuragi/react/static"),
+    import("@yuragi-labs/core"),
+    import("@yuragi-labs/wasm"),
+    import("@yuragi-labs/wasm/runtime"),
+    import("@yuragi-labs/compiler"),
+    import("@yuragi-labs/react"),
+    import("@yuragi-labs/react/static"),
   ]);
 
 for (const [name, value] of [
-  ["@yuragi/core#createShardedSvg", core.createShardedSvg],
-  ["@yuragi/wasm#createYuragiFont", wasm.createYuragiFont],
-  ["@yuragi/wasm/runtime#YuragiWasmRuntime", wasmRuntime.YuragiWasmRuntime],
-  ["@yuragi/compiler#compileOutlines", compiler.compileOutlines],
-  ["@yuragi/react#YuragiFontProvider", react.YuragiFontProvider],
-  ["@yuragi/react/static#YuragiText", reactStatic.YuragiText],
+  ["@yuragi-labs/core#createShardedSvg", core.createShardedSvg],
+  ["@yuragi-labs/wasm#createYuragiFont", wasm.createYuragiFont],
+  ["@yuragi-labs/wasm/runtime#YuragiWasmRuntime", wasmRuntime.YuragiWasmRuntime],
+  ["@yuragi-labs/compiler#compileOutlines", compiler.compileOutlines],
+  ["@yuragi-labs/react#YuragiFontProvider", react.YuragiFontProvider],
+  ["@yuragi-labs/react/static#YuragiText", reactStatic.YuragiText],
 ]) {
   if (typeof value !== "function") {
     throw new Error(name + " is not a function");
@@ -172,7 +172,7 @@ for (const [name, value] of [
 }
 
 const wasmUrl = import.meta.resolve(
-  "@yuragi/wasm/yuragi_wasm_compiler.wasm",
+  "@yuragi-labs/wasm/yuragi_wasm_compiler.wasm",
 );
 await WebAssembly.compile(await readFile(new URL(wasmUrl)));
 console.log("Release tarball smoke test passed.");

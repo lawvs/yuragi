@@ -7,7 +7,7 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { TextOutlineBundle } from "@yuragi/core";
+import type { TextOutlineBundle } from "@yuragi-labs/core";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   assertSectionFileSnapshot,

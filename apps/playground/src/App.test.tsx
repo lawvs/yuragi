@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
-import type { FontAxes } from "@yuragi/core";
+import type { FontAxes } from "@yuragi-labs/core";
 
 const testDir = dirname(fileURLToPath(import.meta.url));
 const reactMocks = vi.hoisted(() => ({
@@ -24,7 +24,7 @@ vi.mock("react", async () => {
   };
 });
 
-vi.mock("@yuragi/react", () => ({
+vi.mock("@yuragi-labs/react", () => ({
   useYuragiFont: () => ({
     status: "ready",
     ready: true,
@@ -77,7 +77,7 @@ vi.mock("@yuragi/react", () => ({
   ),
 }));
 
-vi.mock("@yuragi/react/static", () => ({
+vi.mock("@yuragi-labs/react/static", () => ({
   YuragiText: ({
     text,
     fallback,

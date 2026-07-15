@@ -1,4 +1,4 @@
-import type { Shard, TextOutline } from "@yuragi/core";
+import type { Shard, TextOutline } from "@yuragi-labs/core";
 
 export type InspectorGlyph = {
   char: string;

@@ -3,11 +3,11 @@
   "compilerOptions": {
     "types": ["react"],
     "paths": {
-      "@yuragi/core": ["../../packages/core/src/index.ts"],
-      "@yuragi/react": ["../../packages/react/src/index.ts"],
-      "@yuragi/react/static": ["../../packages/react/src/static.ts"],
-      "@yuragi/wasm": ["../../packages/wasm/src/index.ts"],
-      "@yuragi/wasm/runtime": ["../../packages/wasm/src/runtime.ts"]
+      "@yuragi-labs/core": ["../../packages/core/src/index.ts"],
+      "@yuragi-labs/react": ["../../packages/react/src/index.ts"],
+      "@yuragi-labs/react/static": ["../../packages/react/src/static.ts"],
+      "@yuragi-labs/wasm": ["../../packages/wasm/src/index.ts"],
+      "@yuragi-labs/wasm/runtime": ["../../packages/wasm/src/runtime.ts"]
     }
   },
   "include": ["src", "vite.config.ts", "vitest.config.ts"]

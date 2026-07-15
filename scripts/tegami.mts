@@ -5,9 +5,9 @@ import { github } from "tegami/plugins/github";
 const paper = tegami({
   ignore: [
     "yuragi",
-    "@yuragi/playground",
-    "@yuragi/example-react-runtime-vite",
-    "@yuragi/example-react-static-vite",
+    "@yuragi-labs/playground",
+    "@yuragi-labs/example-react-runtime-vite",
+    "@yuragi-labs/example-react-static-vite",
   ],
   plugins: [
     github({
@@ -30,10 +30,10 @@ const paper = tegami({
     },
   },
   packages: {
-    "@yuragi/core": { group: "yuragi" },
-    "@yuragi/wasm": { group: "yuragi" },
-    "@yuragi/compiler": { group: "yuragi" },
-    "@yuragi/react": { group: "yuragi" },
+    "@yuragi-labs/core": { group: "yuragi" },
+    "@yuragi-labs/wasm": { group: "yuragi" },
+    "@yuragi-labs/compiler": { group: "yuragi" },
+    "@yuragi-labs/react": { group: "yuragi" },
   },
 });
 

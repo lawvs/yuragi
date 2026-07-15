@@ -21,6 +21,6 @@ Run the test normally and inspect those diagnostics before accepting an
 intentional change with Vitest's snapshot update flag:
 
 ```sh
-pnpm --filter @yuragi/compiler exec vitest run test/font-regression.test.ts
-pnpm --filter @yuragi/compiler exec vitest run test/font-regression.test.ts -u
+pnpm --filter @yuragi-labs/compiler exec vitest run test/font-regression.test.ts
+pnpm --filter @yuragi-labs/compiler exec vitest run test/font-regression.test.ts -u
 ```

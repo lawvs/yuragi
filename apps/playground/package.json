@@ -1,5 +1,5 @@
 {
-  "name": "@yuragi/playground",
+  "name": "@yuragi-labs/playground",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,9 +12,9 @@
     "wasm-lab:build": "node scripts/build-wasm-lab.mjs"
   },
   "dependencies": {
-    "@yuragi/core": "workspace:*",
-    "@yuragi/react": "workspace:*",
-    "@yuragi/wasm": "workspace:*",
+    "@yuragi-labs/core": "workspace:*",
+    "@yuragi-labs/react": "workspace:*",
+    "@yuragi-labs/wasm": "workspace:*",
     "@vitejs/plugin-react": "^6.0.3",
     "react": "19.2.7",
     "react-dom": "19.2.7",
