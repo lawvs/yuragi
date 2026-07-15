@@ -6,11 +6,11 @@
   "scripts": {
     "build": "pnpm -r --filter './packages/*' build",
     "test": "vitest run",
-    "typecheck": "pnpm -r --filter './packages/*' typecheck && pnpm --filter @yuragi-labs/playground typecheck",
+    "typecheck": "pnpm exec tsc -p scripts/tsconfig.json && pnpm -r --filter './packages/*' typecheck && pnpm --filter @yuragi-labs/playground typecheck",
     "dev": "pnpm --filter @yuragi-labs/playground dev",
     "playground:build": "pnpm --filter @yuragi-labs/playground build",
     "examples:build": "pnpm build && pnpm -r --filter './examples/*' build",
-    "release:check": "pnpm examples:build && pnpm typecheck && pnpm test && node scripts/check-release.mjs",
+    "release:check": "pnpm examples:build && pnpm typecheck && pnpm test && node scripts/check-release.mts",
     "tegami": "node scripts/tegami.mts",
     "wasm-lab:build": "pnpm --filter @yuragi-labs/playground wasm-lab:build"
   },

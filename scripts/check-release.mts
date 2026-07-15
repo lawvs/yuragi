@@ -14,12 +14,32 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const repoRoot = fileURLToPath(new URL("../", import.meta.url));
 const packageDirectories = ["core", "wasm", "compiler", "react"];
 
-function run(command, args, options = {}) {
+interface PackageManifest {
+  name: string;
+  version: string;
+  dependencies?: Record<string, string>;
+  devDependencies: Record<string, string>;
+}
+
+interface PackedPackage {
+  manifest: PackageManifest;
+  tarball: string;
+}
+
+interface RunOptions {
+  cwd?: string;
+}
+
+function run(
+  command: string,
+  args: readonly string[],
+  options: RunOptions = {},
+): Promise<void> {
   console.log(
     `> ${command} ${args.map((argument) => JSON.stringify(argument)).join(" ")}`,
   );
 
-  return new Promise((resolvePromise, reject) => {
+  return new Promise<void>((resolvePromise, reject) => {
     const child = spawn(command, args, {
       cwd: options.cwd ?? repoRoot,
       env: process.env,
@@ -41,11 +61,11 @@ function run(command, args, options = {}) {
   });
 }
 
-async function readJson(path) {
-  return JSON.parse(await readFile(path, "utf8"));
+async function readJson<T>(path: string): Promise<T> {
+  return JSON.parse(await readFile(path, "utf8")) as T;
 }
 
-function tarballName(manifest) {
+function tarballName(manifest: PackageManifest): string {
   const slug = manifest.name.replace(/^@/, "").replace("/", "-");
   return `${slug}-${manifest.version}.tgz`;
 }
@@ -58,10 +78,12 @@ try {
   await mkdir(packDirectory, { recursive: true });
   await mkdir(consumerDirectory, { recursive: true });
 
-  const packages = [];
+  const packages: PackedPackage[] = [];
   for (const directory of packageDirectories) {
     const packageRoot = resolve(repoRoot, "packages", directory);
-    const manifest = await readJson(resolve(packageRoot, "package.json"));
+    const manifest = await readJson<PackageManifest>(
+      resolve(packageRoot, "package.json"),
+    );
     await run("pnpm", ["pack", "--pack-destination", packDirectory], {
       cwd: packageRoot,
     });
@@ -118,7 +140,7 @@ try {
   );
   for (const { manifest } of packages) {
     const [scope, name] = manifest.name.split("/");
-    const installed = await readJson(
+    const installed = await readJson<PackageManifest>(
       resolve(consumerDirectory, "node_modules", scope, name, "package.json"),
     );
     if (installed.version !== manifest.version) {
