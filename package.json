@@ -11,12 +11,14 @@
     "playground:build": "pnpm --filter @yuragi/playground build",
     "examples:build": "pnpm build && pnpm -r --filter './examples/*' build",
     "release:check": "pnpm examples:build && pnpm typecheck && pnpm test && node scripts/check-release.mjs",
+    "tegami": "node scripts/tegami.mts",
     "wasm-lab:build": "pnpm --filter @yuragi/playground wasm-lab:build"
   },
   "devDependencies": {
     "@types/node": "^26.1.0",
     "@vitejs/plugin-react": "^6.0.3",
     "jsdom": "^29.1.1",
+    "tegami": "1.2.5",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
     "undici": "7.28.0",
