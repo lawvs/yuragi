@@ -3,9 +3,9 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   resolve: {
     alias: {
-      "@yuragi/core": new URL("../core/src/index.ts", import.meta.url)
+      "@yuragi-labs/core": new URL("../core/src/index.ts", import.meta.url)
         .pathname,
-      "@yuragi/wasm": new URL("../wasm/src/index.ts", import.meta.url)
+      "@yuragi-labs/wasm": new URL("../wasm/src/index.ts", import.meta.url)
         .pathname,
     },
   },

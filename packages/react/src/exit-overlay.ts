@@ -1,4 +1,4 @@
-import { animateShards } from "@yuragi/core";
+import { animateShards } from "@yuragi-labs/core";
 import { createScatterAnimationOptions } from "./animation-options";
 
 export type SvgExitSnapshot = {

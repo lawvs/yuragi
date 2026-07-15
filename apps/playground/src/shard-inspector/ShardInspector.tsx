@@ -4,8 +4,8 @@ import {
   useState,
   type FormEvent,
 } from "react";
-import type { FontAxes, TextOutline } from "@yuragi/core";
-import { YuragiText } from "@yuragi/react/static";
+import type { FontAxes, TextOutline } from "@yuragi-labs/core";
+import { YuragiText } from "@yuragi-labs/react/static";
 import "./ShardInspector.css";
 import {
   DEFAULT_FONT_PRESET_ID,

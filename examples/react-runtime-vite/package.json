@@ -1,5 +1,5 @@
 {
-  "name": "@yuragi/example-react-runtime-vite",
+  "name": "@yuragi-labs/example-react-runtime-vite",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,9 +8,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@yuragi/react": "workspace:*",
-    "react": "19.3.0-canary-e71a6393-20260702",
-    "react-dom": "19.3.0-canary-e71a6393-20260702"
+    "@yuragi-labs/react": "workspace:*",
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
   },
   "devDependencies": {
     "@types/react": "^19.2.17",

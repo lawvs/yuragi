@@ -3,7 +3,7 @@ import {
   YuragiStyles,
   YuragiText,
   type StaticYuragiTextProps,
-} from "@yuragi/react/static";
+} from "@yuragi-labs/react/static";
 import generatedOutlines from "./generated/outlines.json";
 import titles from "./titles.json";
 

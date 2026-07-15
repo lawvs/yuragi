@@ -1,7 +1,7 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { TextOutline } from "@yuragi/core";
+import type { TextOutline } from "@yuragi-labs/core";
 import { ShardInspector } from "./ShardInspector";
 
 (

@@ -1,4 +1,4 @@
-import { useYuragiFont } from "@yuragi/react";
+import { useYuragiFont } from "@yuragi-labs/react";
 
 type RuntimeControlsProps = {
   title: string;

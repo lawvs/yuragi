@@ -5,9 +5,9 @@ import {
   YuragiFontProvider,
   YuragiText,
 } from "../src/index";
-import { createYuragiFont } from "@yuragi/wasm";
-import type { YuragiFont } from "@yuragi/wasm";
-import type { TextOutline } from "@yuragi/core";
+import { createYuragiFont } from "@yuragi-labs/wasm";
+import type { YuragiFont } from "@yuragi-labs/wasm";
+import type { TextOutline } from "@yuragi-labs/core";
 
 const outline: TextOutline = {
   em: 1000,
@@ -16,7 +16,7 @@ const outline: TextOutline = {
   groups: [],
 };
 
-vi.mock("@yuragi/wasm", () => ({
+vi.mock("@yuragi-labs/wasm", () => ({
   createYuragiFont: vi.fn(),
 }));
 
@@ -72,7 +72,7 @@ function FontStateProbe() {
   );
 }
 
-describe("@yuragi/react runtime", () => {
+describe("@yuragi-labs/react runtime", () => {
   afterEach(() => {
     cleanup();
     vi.mocked(createYuragiFont).mockReset();
@@ -336,7 +336,7 @@ describe("@yuragi/react runtime", () => {
 
   it("throws when YuragiText is rendered without a YuragiFontProvider", () => {
     expect(() => render(<YuragiText text="Missing Provider" />)).toThrow(
-      "useYuragiFont from @yuragi/react requires YuragiFontProvider",
+      "useYuragiFont from @yuragi-labs/react requires YuragiFontProvider",
     );
   });
 });

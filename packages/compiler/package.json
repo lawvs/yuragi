@@ -1,6 +1,17 @@
 {
-  "name": "@yuragi/compiler",
-  "version": "0.0.0",
+  "name": "@yuragi-labs/compiler",
+  "version": "0.1.0",
+  "description": "Native build-time font compiler for generating Yuragi text outlines.",
+  "keywords": ["yuragi", "font", "compiler", "typography", "svg", "rust"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lawvs/yuragi.git",
+    "directory": "packages/compiler"
+  },
+  "homepage": "https://github.com/lawvs/yuragi/tree/main/packages/compiler#readme",
+  "bugs": {
+    "url": "https://github.com/lawvs/yuragi/issues"
+  },
   "type": "module",
   "exports": {
     ".": {
@@ -22,7 +33,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@yuragi/core": "workspace:*"
+    "@yuragi-labs/core": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.5.1",

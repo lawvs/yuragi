@@ -3,7 +3,7 @@ import {
   useYuragiFont,
   YuragiFontProvider,
   YuragiText,
-} from "@yuragi/react";
+} from "@yuragi-labs/react";
 import { demoPosts } from "../data";
 import { alignOptions, type Align } from "../demo-options";
 import "./RuntimeDemo.css";

@@ -1,13 +1,13 @@
-# @yuragi/wasm
+# @yuragi-labs/wasm
 
 Lower-level runtime WASM compiler for Yuragi. React applications should prefer
-`YuragiFontProvider` and `YuragiText` from `@yuragi/react`; use this package
+`YuragiFontProvider` and `YuragiText` from `@yuragi-labs/react`; use this package
 directly for custom runtime integrations.
 
 ## Font API
 
 ```ts
-import { createYuragiFont, type FontAxes } from "@yuragi/wasm";
+import { createYuragiFont, type FontAxes } from "@yuragi-labs/wasm";
 
 const axes = { wght: 900 } satisfies FontAxes;
 
@@ -54,7 +54,7 @@ fonts.
 For advanced control, instantiate the runtime directly:
 
 ```ts
-import { YuragiWasmRuntime } from "@yuragi/wasm";
+import { YuragiWasmRuntime } from "@yuragi-labs/wasm";
 
 const runtime = await YuragiWasmRuntime.load(wasmBytes);
 const info = runtime.setFont(fontBytes);
@@ -63,4 +63,4 @@ const outline = runtime.compileTitle("Dashboard", { wght: 900 });
 
 Most applications should use `createYuragiFont` directly only for custom
 runtime integrations. React applications should use the provider from
-`@yuragi/react`.
+`@yuragi-labs/react`.

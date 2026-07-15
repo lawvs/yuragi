@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { YuragiFontProvider, YuragiText } from "@yuragi/react";
-import type { FontAxes } from "@yuragi/react";
+import { YuragiFontProvider, YuragiText } from "@yuragi-labs/react";
+import type { FontAxes } from "@yuragi-labs/react";
 import { SOURCE_HAN_SERIF_URL } from "../../../shared/source-han-serif";
 import { RuntimeControls } from "./RuntimeControls";
 

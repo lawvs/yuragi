@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { compileOutlines } from "@yuragi/compiler";
+import { compileOutlines } from "@yuragi-labs/compiler";
 import titles from "../src/titles.json" with { type: "json" };
 import { resolveFont } from "./resolve-font";
 

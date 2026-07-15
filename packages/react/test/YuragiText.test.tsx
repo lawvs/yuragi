@@ -2,11 +2,11 @@ import { StrictMode, type CSSProperties } from "react";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { YuragiText } from "../src/YuragiText";
-import { animateShards, type TextOutline } from "@yuragi/core";
+import { animateShards, type TextOutline } from "@yuragi-labs/core";
 
-vi.mock("@yuragi/core", async () => {
-  const actual = await vi.importActual<typeof import("@yuragi/core")>(
-    "@yuragi/core",
+vi.mock("@yuragi-labs/core", async () => {
+  const actual = await vi.importActual<typeof import("@yuragi-labs/core")>(
+    "@yuragi-labs/core",
   );
   return {
     ...actual,

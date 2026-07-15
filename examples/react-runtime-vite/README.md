@@ -1,10 +1,10 @@
 # Yuragi React Runtime Vite Example
 
-Minimal Vite + React Canary example for Yuragi's recommended runtime WASM API.
+Minimal Vite + React 19 example for Yuragi's recommended runtime WASM API.
 
 This example uses:
 
-- `YuragiFontProvider` from `@yuragi/react`
+- `YuragiFontProvider` from `@yuragi-labs/react`
 - runtime `YuragiText`
 - provider font status through `useYuragiFont`
 - dynamic title input
@@ -21,13 +21,13 @@ that a user project will use:
 ```bash
 pnpm install
 pnpm build
-pnpm --filter @yuragi/example-react-runtime-vite dev
+pnpm --filter @yuragi-labs/example-react-runtime-vite dev
 ```
 
 Build the example:
 
 ```bash
-pnpm --filter @yuragi/example-react-runtime-vite build
+pnpm --filter @yuragi-labs/example-react-runtime-vite build
 ```
 
 Or run the root helper:

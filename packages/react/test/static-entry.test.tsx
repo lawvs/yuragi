@@ -16,7 +16,7 @@ const outline = {
   groups: [],
 };
 
-describe("@yuragi/react/static", () => {
+describe("@yuragi-labs/react/static", () => {
   it("exports the static text renderer separately from the runtime entry", () => {
     expect(YuragiStyles).toBeTypeOf("function");
     expect(YuragiText).toBeTypeOf("function");

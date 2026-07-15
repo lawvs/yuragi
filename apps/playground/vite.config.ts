@@ -13,19 +13,19 @@ export default defineConfig(async ({ command }) => {
     },
     resolve: {
       alias: {
-        "@yuragi/react/static": new URL(
+        "@yuragi-labs/react/static": new URL(
           "../../packages/react/src/static.ts",
           import.meta.url,
         ).pathname,
-        "@yuragi/react": new URL(
+        "@yuragi-labs/react": new URL(
           "../../packages/react/src/index.ts",
           import.meta.url,
         ).pathname,
-        "@yuragi/wasm/runtime": new URL(
+        "@yuragi-labs/wasm/runtime": new URL(
           "../../packages/wasm/src/runtime.ts",
           import.meta.url,
         ).pathname,
-        "@yuragi/wasm": new URL(
+        "@yuragi-labs/wasm": new URL(
           "../../packages/wasm/src/index.ts",
           import.meta.url,
         ).pathname,

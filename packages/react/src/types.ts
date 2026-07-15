@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { ShardTransitionOptions, TextOutline } from "@yuragi/core";
+import type { ShardTransitionOptions, TextOutline } from "@yuragi-labs/core";
 
 export type StaticYuragiTextProps = {
   text: string;

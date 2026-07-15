@@ -1,4 +1,4 @@
-import { YURAGI_STYLE_TEXT } from "@yuragi/core";
+import { YURAGI_STYLE_TEXT } from "@yuragi-labs/core";
 
 export type YuragiStylesProps = {
   nonce?: string;

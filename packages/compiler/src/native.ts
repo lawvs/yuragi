@@ -4,7 +4,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { FontAxes, TextOutlineBundle } from "@yuragi/core";
+import type { FontAxes, TextOutlineBundle } from "@yuragi-labs/core";
 
 type NativeCompilerOptions = {
   font: string;

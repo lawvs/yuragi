@@ -1,9 +1,9 @@
 import { runNativeCompiler } from "./native";
-import type { TextOutlineBundle } from "@yuragi/core";
+import type { TextOutlineBundle } from "@yuragi-labs/core";
 import type { CompileOutlinesOptions } from "./types";
 
 export type { CompileOutlinesOptions };
-export type { FontAxes, FontAxisTag, KnownFontAxisTag } from "@yuragi/core";
+export type { FontAxes, FontAxisTag, KnownFontAxisTag } from "@yuragi-labs/core";
 
 function normalizeTitles(titles: readonly string[]): string[] {
   return Array.from(new Set(titles));

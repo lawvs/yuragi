@@ -1,14 +1,32 @@
 {
-  "name": "@yuragi/react",
-  "version": "0.0.0",
+  "name": "@yuragi-labs/react",
+  "version": "0.1.0",
+  "description": "React components for rendering animated Yuragi text from static or runtime-compiled outlines.",
+  "keywords": [
+    "yuragi",
+    "react",
+    "typography",
+    "svg",
+    "animation",
+    "text-effects"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lawvs/yuragi.git",
+    "directory": "packages/react"
+  },
+  "homepage": "https://github.com/lawvs/yuragi/tree/main/packages/react#readme",
+  "bugs": {
+    "url": "https://github.com/lawvs/yuragi/issues"
+  },
   "type": "module",
   "peerDependencies": {
-    "react": "19.3.0-canary-e71a6393-20260702",
-    "react-dom": "19.3.0-canary-e71a6393-20260702"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "dependencies": {
-    "@yuragi/core": "workspace:*",
-    "@yuragi/wasm": "workspace:*"
+    "@yuragi-labs/core": "workspace:*",
+    "@yuragi-labs/wasm": "workspace:*"
   },
   "exports": {
     ".": {
@@ -30,8 +48,8 @@
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
-    "react": "19.3.0-canary-e71a6393-20260702",
-    "react-dom": "19.3.0-canary-e71a6393-20260702",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
     "vitest": "^4.1.9"

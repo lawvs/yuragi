@@ -1,6 +1,17 @@
 {
-  "name": "@yuragi/core",
-  "version": "0.0.0",
+  "name": "@yuragi-labs/core",
+  "version": "0.1.0",
+  "description": "Core types, layout, SVG, animation, and styles for Yuragi text effects.",
+  "keywords": ["yuragi", "typography", "svg", "animation", "text-effects"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lawvs/yuragi.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/lawvs/yuragi/tree/main/packages/core#readme",
+  "bugs": {
+    "url": "https://github.com/lawvs/yuragi/issues"
+  },
   "type": "module",
   "sideEffects": ["./dist/style.css"],
   "exports": {

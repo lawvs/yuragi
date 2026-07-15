@@ -1,4 +1,4 @@
-import type { FontAxes, TextOutline } from "@yuragi/core";
+import type { FontAxes, TextOutline } from "@yuragi-labs/core";
 import {
   YuragiWasmRuntime,
   type YuragiFontInfo,
@@ -7,7 +7,7 @@ import {
 
 export { YuragiWasmRuntime };
 export type { YuragiFontInfo, YuragiRuntime };
-export type { FontAxes, FontAxisTag, KnownFontAxisTag } from "@yuragi/core";
+export type { FontAxes, FontAxisTag, KnownFontAxisTag } from "@yuragi-labs/core";
 
 export type BinarySource =
   | string

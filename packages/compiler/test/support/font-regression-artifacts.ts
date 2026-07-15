@@ -1,6 +1,6 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { ShardGlyph, TextOutline } from "@yuragi/core";
+import type { ShardGlyph, TextOutline } from "@yuragi-labs/core";
 import type { GlyphSectionSnapshot } from "./font-regression";
 
 export type GlyphChangeField =

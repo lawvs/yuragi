@@ -2,7 +2,7 @@ import type {
   FontAxes,
   TextOutline,
   TextOutlineBundle,
-} from "@yuragi/core";
+} from "@yuragi-labs/core";
 
 export type SnapshotGlyphSection = {
   id: string;

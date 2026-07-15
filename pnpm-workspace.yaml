@@ -4,7 +4,3 @@ packages:
   - "examples/*"
 allowBuilds:
   esbuild: true
-minimumReleaseAgeExclude:
-  - react-dom@19.3.0-canary-e71a6393-20260702
-  - react@19.3.0-canary-e71a6393-20260702
-  - scheduler@0.28.0-canary-e71a6393-20260702

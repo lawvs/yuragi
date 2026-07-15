@@ -1,5 +1,5 @@
 import { fileURLToPath } from "node:url";
-import type { TextOutlineBundle } from "@yuragi/core";
+import type { TextOutlineBundle } from "@yuragi-labs/core";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   DEFAULT_GLYPHS,
