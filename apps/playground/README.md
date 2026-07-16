@@ -1,7 +1,9 @@
 # Yuragi Playground
 
 The playground contains Yuragi's runtime demo, shard inspector, and
-experimental WASM lab.
+experimental WASM lab. Its landing title is rendered by Yuragi itself using a
+precompiled static outline, so the first visual does not wait for the runtime
+font or WASM compiler.
 
 ## Run locally
 
@@ -22,6 +24,22 @@ Both commands compile the Rust WASM module before Vite starts. The generated
 module is written to
 `apps/playground/public/yuragi-wasm/yuragi_wasm_compiler.wasm`, copied into the
 production build, and ignored by Git.
+
+## Hero outline
+
+The committed `src/hero/hero-outline.json` asset is generated from the pinned
+Source Han Serif font through `@yuragi-labs/compiler` and rendered through
+`@yuragi-labs/react/static`.
+
+Regenerate it after changing the font or outline compiler:
+
+```bash
+pnpm build
+pnpm --filter @yuragi-labs/playground hero:generate
+```
+
+Keeping this small outline in the repository makes the landing title available
+immediately and keeps production builds independent of the font download.
 
 ## Playground font
 

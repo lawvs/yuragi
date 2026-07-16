@@ -79,12 +79,18 @@ vi.mock("@yuragi-labs/react", () => ({
 
 vi.mock("@yuragi-labs/react/static", () => ({
   YuragiText: ({
+    className,
     text,
     fallback,
+    hover,
+    outline,
     transition,
   }: {
+    className?: string;
     text: string;
     fallback?: string;
+    hover?: string;
+    outline?: unknown;
     transition?: {
       enter?: string;
       exit?: string;
@@ -92,7 +98,10 @@ vi.mock("@yuragi-labs/react/static", () => ({
     };
   }) => (
     <span
+      className={className}
       data-fallback={fallback}
+      data-has-outline={outline ? "true" : "false"}
+      data-hover={hover}
       data-static-sharded-text={text}
       data-sharded-text={text}
       data-transition-enter={transition?.enter}
@@ -138,6 +147,24 @@ describe("App", () => {
     select.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
+  it("renders a self-hosted Yuragi hero from a static outline", () => {
+    renderApp();
+
+    const hero = host.querySelector(".hero");
+    const title = hero?.querySelector(
+      'h1 [data-static-sharded-text="yuragi"]',
+    );
+
+    expect(title?.getAttribute("data-has-outline")).toBe("true");
+    expect(title?.getAttribute("data-fallback")).toBe("error");
+    expect(title?.getAttribute("data-hover")).toBe("outline");
+    expect(title?.getAttribute("data-transition-enter")).toBe("settle");
+    expect(
+      hero?.querySelector('a[href="#playground"]')?.textContent,
+    ).toContain("Playground");
+    expect(host.querySelector("section#playground")).not.toBeNull();
+  });
+
   it("renders the runtime demo by default through the public React API", () => {
     renderApp();
 
@@ -159,7 +186,9 @@ describe("App", () => {
     expect(provider?.getAttribute("data-axes")).toBe('{"wght":900}');
     expect(dashboard).not.toBeNull();
     expect(host.querySelector(".font-status")?.textContent).toBe("Font ready");
-    expect(host.querySelector("[data-static-sharded-text]")).toBeNull();
+    expect(
+      host.querySelector(".preview-title [data-static-sharded-text]"),
+    ).toBeNull();
     expect(host.textContent).not.toContain("Missing Outline");
   });
 
