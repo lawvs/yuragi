@@ -1,17 +1,7 @@
-import { useState } from "react";
 import { Hero } from "./hero/Hero";
-import { RuntimeDemo } from "./runtime-demo/RuntimeDemo";
-import { ShardInspector } from "./shard-inspector/ShardInspector";
-import { WasmLab } from "./wasm-lab/WasmLab";
-
-type PlaygroundView =
-  | "runtime-demo"
-  | "shard-inspector"
-  | "wasm-lab";
+import { PlaygroundSection } from "./playground/PlaygroundSection";
 
 export function App() {
-  const [view, setView] = useState<PlaygroundView>("runtime-demo");
-
   return (
     <main className="playground-shell">
       <header className="site-header">
@@ -27,44 +17,7 @@ export function App() {
 
       <Hero />
 
-      <section className="playground-section" id="playground">
-        <header className="playground-header">
-          <div>
-            <p className="eyebrow">Interactive tools</p>
-            <h2>Playground</h2>
-          </div>
-          <nav className="view-tabs" aria-label="Playground views">
-            <button
-              type="button"
-              data-view="shard-inspector"
-              aria-pressed={view === "shard-inspector"}
-              onClick={() => setView("shard-inspector")}
-            >
-              Shard Inspector
-            </button>
-            <button
-              type="button"
-              data-view="runtime-demo"
-              aria-pressed={view === "runtime-demo"}
-              onClick={() => setView("runtime-demo")}
-            >
-              Runtime Demo
-            </button>
-            <button
-              type="button"
-              data-view="wasm-lab"
-              aria-pressed={view === "wasm-lab"}
-              onClick={() => setView("wasm-lab")}
-            >
-              WASM Lab
-            </button>
-          </nav>
-        </header>
-
-        {view === "runtime-demo" ? <RuntimeDemo /> : null}
-        {view === "shard-inspector" ? <ShardInspector /> : null}
-        {view === "wasm-lab" ? <WasmLab /> : null}
-      </section>
+      <PlaygroundSection />
 
       <footer className="site-footer">
         <span>Built with Yuragi.</span>
