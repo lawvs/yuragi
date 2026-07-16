@@ -225,5 +225,5 @@ If your app imports `@yuragi-labs/core/style.css` directly, do not render
 
 ## Requirements
 
-- React 19 and React DOM 19.
+- React 19.2 and React DOM 19.2.
 - A font file that can be loaded by the runtime provider or the static compiler.

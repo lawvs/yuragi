@@ -1,5 +1,17 @@
-import { StrictMode, type CSSProperties } from "react";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  startTransition,
+  StrictMode,
+  Suspense,
+  type CSSProperties,
+  type ComponentProps,
+} from "react";
+import {
+  act,
+  cleanup,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { YuragiText } from "../src/YuragiText";
 import { animateShards, type TextOutline } from "@yuragi-labs/core";
@@ -62,6 +74,24 @@ function deferred<T>() {
     resolve = nextResolve;
   });
   return { promise, resolve };
+}
+
+const never = new Promise<never>(() => undefined);
+
+function SuspendForever(): never {
+  throw never;
+}
+
+function SuspendingYuragiText({
+  suspend,
+  ...props
+}: ComponentProps<typeof YuragiText> & { suspend: boolean }) {
+  return (
+    <Suspense fallback="Loading">
+      <YuragiText {...props} />
+      {suspend ? <SuspendForever /> : null}
+    </Suspense>
+  );
 }
 
 function rect(
@@ -200,6 +230,51 @@ describe("YuragiText", () => {
     await Promise.resolve();
 
     expect(onEnterComplete).toHaveBeenCalledOnce();
+  });
+
+  it("uses the latest committed completion callback", async () => {
+    const settleFinished = deferred<void>();
+    const committedCallback = vi.fn();
+    const suspendedCallback = vi.fn();
+    vi.mocked(animateShards).mockImplementation(async (_root, options) => {
+      if (options.type === "settle") {
+        await settleFinished.promise;
+      }
+    });
+
+    const { rerender } = render(
+      <SuspendingYuragiText
+        text="A"
+        outline={outline}
+        transition={{ enter: "settle" }}
+        onEnterComplete={committedCallback}
+        suspend={false}
+      />,
+    );
+
+    act(() => {
+      startTransition(() => {
+        rerender(
+          <SuspendingYuragiText
+            text="A"
+            outline={outline}
+            transition={{ enter: "settle" }}
+            onEnterComplete={suspendedCallback}
+            suspend
+          />,
+        );
+      });
+    });
+
+    expect(screen.queryByText("Loading")).toBeNull();
+
+    await act(async () => {
+      settleFinished.resolve();
+      await settleFinished.promise;
+    });
+
+    expect(suspendedCallback).not.toHaveBeenCalled();
+    expect(committedCallback).toHaveBeenCalledOnce();
   });
 
   it("animates shards with scatter transition on exit", async () => {
@@ -380,6 +455,44 @@ describe("YuragiText", () => {
 
     expect(exitSvg?.isConnected).toBe(false);
     await waitFor(() => expect(onExitComplete).toHaveBeenCalledOnce());
+  });
+
+  it("uses the latest committed exit transition when unmounted", async () => {
+    const { rerender, unmount } = render(
+      <SuspendingYuragiText
+        text="A"
+        outline={outline}
+        transition={{ exit: "scatter", speed: 0.8 }}
+        suspend={false}
+      />,
+    );
+
+    act(() => {
+      startTransition(() => {
+        rerender(
+          <SuspendingYuragiText
+            text="A"
+            outline={outline}
+            transition={{ exit: "none", speed: 0.8 }}
+            suspend
+          />,
+        );
+      });
+    });
+
+    expect(screen.queryByText("Loading")).toBeNull();
+
+    unmount();
+    await Promise.resolve();
+
+    expect(animateShards).toHaveBeenCalledWith(
+      expect.any(SVGSVGElement),
+      {
+        type: "scatter",
+        stagger: "by-x",
+        speed: 0.8,
+      },
+    );
   });
 
   it("does not scatter during StrictMode initial mount", async () => {

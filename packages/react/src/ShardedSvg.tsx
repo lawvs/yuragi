@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from "react";
+import { useEffectEvent, useLayoutEffect, useRef } from "react";
 import {
   animateShards,
   createShardedSvg,
@@ -44,13 +44,38 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const renderedSvgRef = useRef<RenderedSvgState | null>(null);
   const pendingScatterRef = useRef<{ cancelled: boolean } | null>(null);
-  const latestTransitionRef = useRef(props.transition);
-  const latestOnEnterCompleteRef = useRef(props.onEnterComplete);
-  const latestOnExitCompleteRef = useRef(props.onExitComplete);
   const mountedRef = useRef(false);
-  latestTransitionRef.current = props.transition;
-  latestOnEnterCompleteRef.current = props.onEnterComplete;
-  latestOnExitCompleteRef.current = props.onExitComplete;
+  const notifyEnterComplete = useEffectEvent(() => {
+    props.onEnterComplete?.();
+  });
+  const notifyExitComplete = useEffectEvent(() => {
+    props.onExitComplete?.();
+  });
+  const animateUnmountedSvgExit = useEffectEvent(() => {
+    const transition = props.transition;
+    if (transition?.exit !== "scatter") return;
+    const renderedSvg = renderedSvgRef.current;
+    const svg = renderedSvg?.svg ?? svgRef.current;
+    if (!svg) return;
+    const exitSnapshot = pickSvgExitSnapshot(
+      svg,
+      renderedSvg?.exitSnapshot,
+    );
+
+    const nextPending = { cancelled: false };
+    pendingScatterRef.current = nextPending;
+    queueMicrotask(() => {
+      if (!nextPending.cancelled) {
+        void animateSvgExit(svg, {
+          snapshot: exitSnapshot,
+          speed: transition.speed,
+        }).then(() => notifyExitComplete());
+      }
+      if (pendingScatterRef.current === nextPending) {
+        pendingScatterRef.current = null;
+      }
+    });
+  });
 
   useLayoutEffect(() => {
     mountedRef.current = true;
@@ -110,7 +135,7 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
       void animateSvgExit(previousSvg, {
         snapshot: exitSnapshot,
         speed: props.transition?.speed,
-      }).then(() => latestOnExitCompleteRef.current?.());
+      }).then(() => notifyExitComplete());
     } else {
       host.replaceChildren(svg);
     }
@@ -122,7 +147,7 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
         createSettleAnimationOptions(props.transition.speed),
       ).then(() => {
         if (mountedRef.current && renderedSvgRef.current?.svg === svg) {
-          latestOnEnterCompleteRef.current?.();
+          notifyEnterComplete();
         }
       });
     }
@@ -145,29 +170,7 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
     if (pending) pending.cancelled = true;
 
     return () => {
-      const transition = latestTransitionRef.current;
-      if (transition?.exit !== "scatter") return;
-      const renderedSvg = renderedSvgRef.current;
-      const svg = renderedSvg?.svg ?? svgRef.current;
-      if (!svg) return;
-      const exitSnapshot = pickSvgExitSnapshot(
-        svg,
-        renderedSvg?.exitSnapshot,
-      );
-
-      const nextPending = { cancelled: false };
-      pendingScatterRef.current = nextPending;
-      queueMicrotask(() => {
-        if (!nextPending.cancelled) {
-          void animateSvgExit(svg, {
-            snapshot: exitSnapshot,
-            speed: transition.speed,
-          }).then(() => latestOnExitCompleteRef.current?.());
-        }
-        if (pendingScatterRef.current === nextPending) {
-          pendingScatterRef.current = null;
-        }
-      });
+      animateUnmountedSvgExit();
     };
   }, [props.transition?.exit]);
 
