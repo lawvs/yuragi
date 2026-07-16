@@ -45,7 +45,19 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
   const renderedSvgRef = useRef<RenderedSvgState | null>(null);
   const pendingScatterRef = useRef<{ cancelled: boolean } | null>(null);
   const latestTransitionRef = useRef(props.transition);
+  const latestOnEnterCompleteRef = useRef(props.onEnterComplete);
+  const latestOnExitCompleteRef = useRef(props.onExitComplete);
+  const mountedRef = useRef(false);
   latestTransitionRef.current = props.transition;
+  latestOnEnterCompleteRef.current = props.onEnterComplete;
+  latestOnExitCompleteRef.current = props.onExitComplete;
+
+  useLayoutEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useLayoutEffect(() => {
     const host = hostRef.current;
@@ -95,10 +107,10 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
         previous?.exitSnapshot,
       );
       host.replaceChildren(svg);
-      animateSvgExit(previousSvg, {
+      void animateSvgExit(previousSvg, {
         snapshot: exitSnapshot,
         speed: props.transition?.speed,
-      });
+      }).then(() => latestOnExitCompleteRef.current?.());
     } else {
       host.replaceChildren(svg);
     }
@@ -108,7 +120,11 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
       void animateShards(
         svg,
         createSettleAnimationOptions(props.transition.speed),
-      );
+      ).then(() => {
+        if (mountedRef.current && renderedSvgRef.current?.svg === svg) {
+          latestOnEnterCompleteRef.current?.();
+        }
+      });
     }
   }, [
     props.align,
@@ -143,10 +159,10 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
       pendingScatterRef.current = nextPending;
       queueMicrotask(() => {
         if (!nextPending.cancelled) {
-          animateSvgExit(svg, {
+          void animateSvgExit(svg, {
             snapshot: exitSnapshot,
             speed: transition.speed,
-          });
+          }).then(() => latestOnExitCompleteRef.current?.());
         }
         if (pendingScatterRef.current === nextPending) {
           pendingScatterRef.current = null;

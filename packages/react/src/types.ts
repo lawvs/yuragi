@@ -9,6 +9,8 @@ export type StaticYuragiTextProps = {
   align?: "start" | "center" | "end";
   hover?: "none" | "outline";
   transition?: ShardTransitionOptions;
+  onEnterComplete?: () => void;
+  onExitComplete?: () => void;
   fallback?: "text" | "hidden" | "error";
   className?: string;
   style?: CSSProperties;

@@ -104,12 +104,12 @@ export function animateSvgExit(
     snapshot?: SvgExitSnapshot;
     speed?: number;
   } = {},
-): void {
+): Promise<void> {
   const snapshot = options.snapshot ?? captureSvgExitSnapshot(sourceSvg);
   const overlay = createSvgExitOverlay(sourceSvg, snapshot);
   const animatedSvg = overlay ?? sourceSvg;
 
-  void animateShards(
+  return animateShards(
     animatedSvg,
     createScatterAnimationOptions(options.speed),
   ).finally(() => {

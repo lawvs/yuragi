@@ -23,15 +23,60 @@
   line-height: 0;
 }
 
+.hero-wordmark-stage {
+  position: relative;
+  width: min(100%, 900px);
+  padding-bottom: 34px;
+}
+
 .hero-title > span {
   display: block;
 }
 
 .hero-title [data-yuragi-root] {
   display: block;
-  width: min(100%, 900px);
+  width: 100%;
   height: auto;
   overflow: visible;
+}
+
+.hero-replay {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  padding: 4px 0;
+  background: transparent;
+  color: var(--color-fg-secondary);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  animation: hero-replay-in 700ms 150ms ease-out both;
+}
+
+.hero-replay:hover {
+  color: var(--color-fg);
+}
+
+.hero-replay:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--color-fg);
+  outline-offset: 4px;
+}
+
+@keyframes hero-replay-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .hero-details {
@@ -114,5 +159,11 @@
 
   .hero-actions a {
     justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-replay {
+    animation: none;
   }
 }

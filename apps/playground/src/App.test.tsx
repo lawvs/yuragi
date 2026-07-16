@@ -11,6 +11,10 @@ const testDir = dirname(fileURLToPath(import.meta.url));
 const reactMocks = vi.hoisted(() => ({
   startTransition: vi.fn((callback: () => void) => callback()),
 }));
+const staticYuragiMocks = vi.hoisted(() => ({
+  mountCount: 0,
+  onEnterComplete: undefined as (() => void) | undefined,
+}));
 
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -77,41 +81,54 @@ vi.mock("@yuragi-labs/react", () => ({
   ),
 }));
 
-vi.mock("@yuragi-labs/react/static", () => ({
-  YuragiText: ({
-    className,
-    text,
-    fallback,
-    hover,
-    outline,
-    transition,
-  }: {
-    className?: string;
-    text: string;
-    fallback?: string;
-    hover?: string;
-    outline?: unknown;
-    transition?: {
-      enter?: string;
-      exit?: string;
-      speed?: number;
-    };
-  }) => (
-    <span
-      className={className}
-      data-fallback={fallback}
-      data-has-outline={outline ? "true" : "false"}
-      data-hover={hover}
-      data-static-sharded-text={text}
-      data-sharded-text={text}
-      data-transition-enter={transition?.enter}
-      data-transition-exit={transition?.exit}
-      data-transition-speed={transition?.speed}
-    >
-      {text}
-    </span>
-  ),
-}));
+vi.mock("@yuragi-labs/react/static", async () => {
+  const { useEffect } = await vi.importActual<typeof import("react")>("react");
+
+  return {
+    YuragiText: ({
+      className,
+      text,
+      fallback,
+      hover,
+      outline,
+      transition,
+      onEnterComplete,
+    }: {
+      className?: string;
+      text: string;
+      fallback?: string;
+      hover?: string;
+      outline?: unknown;
+      transition?: {
+        enter?: string;
+        exit?: string;
+        speed?: number;
+      };
+      onEnterComplete?: () => void;
+    }) => {
+      useEffect(() => {
+        staticYuragiMocks.mountCount += 1;
+      }, []);
+      staticYuragiMocks.onEnterComplete = onEnterComplete;
+
+      return (
+        <span
+          className={className}
+          data-fallback={fallback}
+          data-has-outline={outline ? "true" : "false"}
+          data-hover={hover}
+          data-static-sharded-text={text}
+          data-sharded-text={text}
+          data-transition-enter={transition?.enter}
+          data-transition-exit={transition?.exit}
+          data-transition-speed={transition?.speed}
+        >
+          {text}
+        </span>
+      );
+    },
+  };
+});
 
 describe("App", () => {
   let host: HTMLDivElement;
@@ -119,6 +136,8 @@ describe("App", () => {
   afterEach(() => {
     host.remove();
     reactMocks.startTransition.mockClear();
+    staticYuragiMocks.mountCount = 0;
+    staticYuragiMocks.onEnterComplete = undefined;
   });
 
   function renderApp() {
@@ -163,6 +182,23 @@ describe("App", () => {
       hero?.querySelector('a[href="#playground"]')?.textContent,
     ).toContain("Playground");
     expect(host.querySelector("section#playground")).not.toBeNull();
+  });
+
+  it("reveals Replay after enter completes and remounts the wordmark", () => {
+    renderApp();
+
+    expect(host.querySelector(".hero-replay")).toBeNull();
+    expect(staticYuragiMocks.mountCount).toBe(1);
+
+    act(() => staticYuragiMocks.onEnterComplete?.());
+
+    const replay = host.querySelector<HTMLButtonElement>(".hero-replay");
+    expect(replay?.textContent).toContain("Replay");
+
+    act(() => replay?.click());
+
+    expect(host.querySelector(".hero-replay")).toBeNull();
+    expect(staticYuragiMocks.mountCount).toBe(2);
   });
 
   it("renders the runtime demo by default through the public React API", () => {

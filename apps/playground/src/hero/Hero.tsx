@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { TextOutline } from "@yuragi-labs/core";
 import { YuragiText } from "@yuragi-labs/react/static";
 import heroAsset from "./hero-outline.json";
@@ -6,22 +7,45 @@ import "./Hero.css";
 const heroOutline = heroAsset.outline as unknown as TextOutline;
 
 export function Hero() {
+  const [animationKey, setAnimationKey] = useState(0);
+  const [canReplay, setCanReplay] = useState(false);
+
+  function replayAnimation() {
+    setCanReplay(false);
+    setAnimationKey((key) => key + 1);
+  }
+
   return (
     <section className="hero" aria-labelledby="hero-title">
       <p className="hero-eyebrow">揺らぎ · Text in motion</p>
 
-      <h1 className="hero-title" id="hero-title">
-        <YuragiText
-          className="hero-wordmark"
-          text={heroAsset.text}
-          outline={heroOutline}
-          size={190}
-          maxWidth={900}
-          fallback="error"
-          hover="outline"
-          transition={{ enter: "settle", speed: 0.8 }}
-        />
-      </h1>
+      <div className="hero-wordmark-stage">
+        <h1 className="hero-title" id="hero-title">
+          <YuragiText
+            key={animationKey}
+            className="hero-wordmark"
+            text={heroAsset.text}
+            outline={heroOutline}
+            size={190}
+            maxWidth={900}
+            fallback="error"
+            hover="outline"
+            transition={{ enter: "settle", speed: 1.4 }}
+            onEnterComplete={() => setCanReplay(true)}
+          />
+        </h1>
+
+        {canReplay ? (
+          <button
+            className="hero-replay"
+            type="button"
+            onClick={replayAnimation}
+          >
+            <span aria-hidden="true">↻</span>
+            Replay animation
+          </button>
+        ) : null}
+      </div>
 
       <div className="hero-details">
         <p className="hero-summary">
