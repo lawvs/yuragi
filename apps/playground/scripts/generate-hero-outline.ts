@@ -2,8 +2,11 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { compileOutlines } from "@yuragi-labs/compiler";
-import { SOURCE_HAN_SERIF_AXES } from "../../../shared/source-han-serif";
-import { resolvePlaygroundFont } from "../playground-font";
+import {
+  SOURCE_HAN_SERIF_AXES,
+  SOURCE_HAN_SERIF_SHA256,
+} from "../../../shared/source-han-serif";
+import { resolveHeroFont } from "../playground-font";
 
 const HERO_TEXT = "yuragi";
 const output = fileURLToPath(
@@ -11,11 +14,17 @@ const output = fileURLToPath(
 );
 
 const bundle = await compileOutlines({
-  font: await resolvePlaygroundFont(),
+  font: await resolveHeroFont(),
   axes: SOURCE_HAN_SERIF_AXES,
   titles: [HERO_TEXT],
 });
 const outline = bundle.outlines[HERO_TEXT];
+
+if (bundle.font.hash !== SOURCE_HAN_SERIF_SHA256) {
+  throw new Error(
+    `Unexpected hero font checksum: ${bundle.font.hash}`,
+  );
+}
 
 if (!outline) {
   throw new Error(`Missing generated outline for "${HERO_TEXT}"`);

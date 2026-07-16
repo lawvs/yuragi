@@ -40,6 +40,8 @@ pnpm --filter @yuragi-labs/playground hero:generate
 
 Keeping this small outline in the repository makes the landing title available
 immediately and keeps production builds independent of the font download.
+Hero generation ignores `YURAGI_FONT` and verifies the pinned font checksum so
+local playground overrides cannot change the committed baseline.
 
 ## Playground font
 
