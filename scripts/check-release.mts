@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import {
   access,
+  copyFile,
   mkdir,
   mkdtemp,
   readFile,
@@ -12,6 +13,7 @@ import { resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repoRoot = fileURLToPath(new URL("../", import.meta.url));
+const smokeScriptPath = resolve(repoRoot, "scripts/release-smoke.mjs");
 const packageDirectories = ["core", "wasm", "compiler", "react"];
 
 interface PackageManifest {
@@ -166,40 +168,7 @@ try {
     }
   }
 
-  await writeFile(
-    resolve(consumerDirectory, "smoke.mjs"),
-    `import { readFile } from "node:fs/promises";
-
-const [core, wasm, wasmRuntime, compiler, react, reactStatic] =
-  await Promise.all([
-    import("@yuragi-labs/core"),
-    import("@yuragi-labs/wasm"),
-    import("@yuragi-labs/wasm/runtime"),
-    import("@yuragi-labs/compiler"),
-    import("@yuragi-labs/react"),
-    import("@yuragi-labs/react/static"),
-  ]);
-
-for (const [name, value] of [
-  ["@yuragi-labs/core#createShardedSvg", core.createShardedSvg],
-  ["@yuragi-labs/wasm#createYuragiFont", wasm.createYuragiFont],
-  ["@yuragi-labs/wasm/runtime#YuragiWasmRuntime", wasmRuntime.YuragiWasmRuntime],
-  ["@yuragi-labs/compiler#compileOutlines", compiler.compileOutlines],
-  ["@yuragi-labs/react#YuragiFontProvider", react.YuragiFontProvider],
-  ["@yuragi-labs/react/static#YuragiText", reactStatic.YuragiText],
-]) {
-  if (typeof value !== "function") {
-    throw new Error(name + " is not a function");
-  }
-}
-
-const wasmUrl = import.meta.resolve(
-  "@yuragi-labs/wasm/yuragi_wasm_compiler.wasm",
-);
-await WebAssembly.compile(await readFile(new URL(wasmUrl)));
-console.log("Release tarball smoke test passed.");
-`,
-  );
+  await copyFile(smokeScriptPath, resolve(consumerDirectory, "smoke.mjs"));
 
   await run(process.execPath, ["smoke.mjs"], { cwd: consumerDirectory });
 } finally {

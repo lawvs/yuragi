@@ -21,9 +21,8 @@ pnpm playground:build
 ```
 
 Both commands compile the Rust WASM module before Vite starts. The generated
-module is written to
-`apps/playground/public/yuragi-wasm/yuragi_wasm_compiler.wasm`, copied into the
-production build, and ignored by Git.
+module is written to `packages/wasm/wasm/yuragi_wasm_compiler.wasm` and Vite
+serves or bundles it as an asset.
 
 ## Hero outline
 
@@ -63,5 +62,3 @@ remote default and do not commit font files to the repository.
 
 - Node.js 24 and pnpm 11.
 - Rust 1.85 through `rustup`.
-- The `wasm32-unknown-unknown` target; the WASM build script installs it when
-  needed.

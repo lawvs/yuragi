@@ -106,7 +106,7 @@ describe("ShardInspector", () => {
     const worker = FakeWorker.instances[0]!;
     expect(worker.postMessage).toHaveBeenCalledWith({
       type: "load-wasm",
-      wasmUrl: "/yuragi-wasm/yuragi_wasm_compiler.wasm",
+      wasmUrl: expect.stringContaining("yuragi_wasm_compiler.wasm"),
     });
     expect(host.querySelector(".inspector-status")?.textContent).toBe(
       "Loading WASM...",

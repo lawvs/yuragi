@@ -2,6 +2,11 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { resolvePlaygroundFont } from "./playground-font";
 
+const wasmCompilerAsset = new URL(
+  "../../packages/wasm/wasm/yuragi_wasm_compiler.wasm",
+  import.meta.url,
+).pathname;
+
 export default defineConfig(async ({ command }) => {
   const font = command === "serve" ? await resolvePlaygroundFont() : "";
 
@@ -25,6 +30,9 @@ export default defineConfig(async ({ command }) => {
           "../../packages/wasm/src/runtime.ts",
           import.meta.url,
         ).pathname,
+        "@yuragi-labs/wasm/yuragi_wasm_compiler.wasm?url":
+          `${wasmCompilerAsset}?url`,
+        "@yuragi-labs/wasm/yuragi_wasm_compiler.wasm": wasmCompilerAsset,
         "@yuragi-labs/wasm": new URL(
           "../../packages/wasm/src/index.ts",
           import.meta.url,
