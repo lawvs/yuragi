@@ -1,5 +1,10 @@
 import { defineConfig } from "vitest/config";
 
+const wasmCompilerAsset = new URL(
+  "../../packages/wasm/wasm/yuragi_wasm_compiler.wasm",
+  import.meta.url,
+).pathname;
+
 export default defineConfig({
   resolve: {
     alias: {
@@ -15,6 +20,9 @@ export default defineConfig({
         "../../packages/wasm/src/runtime.ts",
         import.meta.url,
       ).pathname,
+      "@yuragi-labs/wasm/yuragi_wasm_compiler.wasm?url":
+        `${wasmCompilerAsset}?url`,
+      "@yuragi-labs/wasm/yuragi_wasm_compiler.wasm": wasmCompilerAsset,
       "@yuragi-labs/wasm": new URL(
         "../../packages/wasm/src/index.ts",
         import.meta.url,

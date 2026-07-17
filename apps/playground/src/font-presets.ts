@@ -3,7 +3,7 @@ import {
   SOURCE_HAN_SERIF_AXES,
   SOURCE_HAN_SERIF_URL,
 } from "../../../shared/source-han-serif";
-import wasmUrl from "../../../packages/wasm/wasm/yuragi_wasm_compiler.wasm?url";
+import wasmUrl from "@yuragi-labs/wasm/yuragi_wasm_compiler.wasm?url";
 
 export const DEFAULT_WASM_URL = wasmUrl;
 
