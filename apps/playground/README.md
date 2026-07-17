@@ -63,5 +63,3 @@ remote default and do not commit font files to the repository.
 
 - Node.js 24 and pnpm 11.
 - Rust 1.85 through `rustup`.
-- The `wasm32-unknown-unknown` target; the WASM build script installs it when
-  needed.

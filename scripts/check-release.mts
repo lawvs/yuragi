@@ -196,7 +196,23 @@ for (const [name, value] of [
 const wasmUrl = import.meta.resolve(
   "@yuragi-labs/wasm/yuragi_wasm_compiler.wasm",
 );
-await WebAssembly.compile(await readFile(new URL(wasmUrl)));
+const wasmModule = await WebAssembly.compile(await readFile(new URL(wasmUrl)));
+const wasmExports = new Map(
+  WebAssembly.Module.exports(wasmModule).map(({ name, kind }) => [name, kind]),
+);
+for (const [name, kind] of [
+  ["memory", "memory"],
+  ["yuragi_alloc", "function"],
+  ["yuragi_free", "function"],
+  ["yuragi_set_font", "function"],
+  ["yuragi_compile_title", "function"],
+]) {
+  if (wasmExports.get(name) !== kind) {
+    throw new Error(
+      "@yuragi-labs/wasm expected " + name + " to be a " + kind + " export",
+    );
+  }
+}
 console.log("Release tarball smoke test passed.");
 `,
   );

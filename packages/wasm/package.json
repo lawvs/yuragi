@@ -26,7 +26,8 @@
   },
   "files": ["dist"],
   "scripts": {
-    "build": "node scripts/build-wasm.mjs && tsup src/index.ts src/runtime.ts --format esm --dts --sourcemap --clean --target es2022 && cp wasm/yuragi_wasm_compiler.wasm dist/yuragi_wasm_compiler.wasm",
+    "build": "pnpm build:wasm && tsup src/index.ts src/runtime.ts --format esm --dts --sourcemap --clean --target es2022 && cp wasm/yuragi_wasm_compiler.wasm dist/yuragi_wasm_compiler.wasm",
+    "build:wasm": "node scripts/build-wasm.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

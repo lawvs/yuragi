@@ -1,7 +1,7 @@
 [package]
 name = "yuragi-wasm-compiler"
-version = "0.0.0"
-edition = "2021"
+version = "0.1.0"
+edition = "2024"
 publish = false
 
 [lib]
@@ -9,14 +9,9 @@ crate-type = ["cdylib"]
 
 [dependencies]
 anyhow = "1.0.103"
-itertools = "0.14.0"
-lyon_algorithms = "1.0.5"
-lyon_path = "1.0.6"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
-skrifa = { version = "0.44.0", default-features = false, features = ["std"] }
-unicode-linebreak = "0.1.5"
-unicode-segmentation = "1.12.0"
+yuragi-compiler = { path = "../../compiler/native", default-features = false }
 
 [profile.release]
 codegen-units = 1

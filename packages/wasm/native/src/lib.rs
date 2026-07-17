@@ -3,11 +3,7 @@ use std::sync::Mutex;
 
 use anyhow::Context;
 use serde::Serialize;
-
-#[path = "../../../packages/compiler/native/src/direction.rs"]
-mod direction;
-#[path = "../../../packages/compiler/native/src/font.rs"]
-mod font;
+use yuragi_compiler::{FontInstance, TextOutline};
 
 static FONT_BYTES: Mutex<Option<Vec<u8>>> = Mutex::new(None);
 
@@ -72,16 +68,16 @@ unsafe fn read_bytes<'a>(ptr: *const u8, len: usize) -> anyhow::Result<&'a [u8]>
         anyhow::bail!("received null pointer for non-empty input");
     }
 
-    Ok(std::slice::from_raw_parts(ptr, len))
+    Ok(unsafe { std::slice::from_raw_parts(ptr, len) })
 }
 
 unsafe fn read_str<'a>(ptr: *const u8, len: usize, label: &str) -> anyhow::Result<&'a str> {
-    std::str::from_utf8(read_bytes(ptr, len)?)
+    std::str::from_utf8(unsafe { read_bytes(ptr, len)? })
         .with_context(|| format!("{} is not valid UTF-8", label))
 }
 
 fn set_font(bytes: &[u8]) -> anyhow::Result<FontLoadInfo> {
-    let font = font::FontInstance::new(bytes, &BTreeMap::new())?;
+    let font = FontInstance::new(bytes, &BTreeMap::new())?;
     let units_per_em = font.units_per_em();
 
     *FONT_BYTES
@@ -94,7 +90,7 @@ fn set_font(bytes: &[u8]) -> anyhow::Result<FontLoadInfo> {
     })
 }
 
-fn compile_title(text: &str, axes_input: &str) -> anyhow::Result<font::TextOutline> {
+fn compile_title(text: &str, axes_input: &str) -> anyhow::Result<TextOutline> {
     let font = FONT_BYTES
         .lock()
         .map_err(|_| anyhow::anyhow!("font store lock is poisoned"))?;
@@ -102,10 +98,10 @@ fn compile_title(text: &str, axes_input: &str) -> anyhow::Result<font::TextOutli
         .as_ref()
         .ok_or_else(|| anyhow::anyhow!("font has not been loaded"))?;
     let axes = parse_axes(axes_input)?;
-    font::FontInstance::new(font, &axes)?.parse_text(text)
+    FontInstance::new(font, &axes)?.parse_text(text)
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn yuragi_alloc(len: usize) -> *mut u8 {
     let mut bytes = Vec::<u8>::with_capacity(len);
     let ptr = bytes.as_mut_ptr();
@@ -113,25 +109,28 @@ pub extern "C" fn yuragi_alloc(len: usize) -> *mut u8 {
     ptr
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn yuragi_free(ptr: *mut u8, len: usize) {
     if ptr.is_null() {
         return;
     }
 
-    let _ = Vec::from_raw_parts(ptr, 0, len);
+    let _ = unsafe { Vec::from_raw_parts(ptr, 0, len) };
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn yuragi_set_font(
     font_ptr: *const u8,
     font_len: usize,
     out_len: *mut usize,
 ) -> *mut u8 {
-    response(read_bytes(font_ptr, font_len).and_then(set_font), out_len)
+    response(
+        unsafe { read_bytes(font_ptr, font_len) }.and_then(set_font),
+        out_len,
+    )
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn yuragi_compile_title(
     text_ptr: *const u8,
     text_len: usize,
@@ -139,8 +138,8 @@ pub unsafe extern "C" fn yuragi_compile_title(
     axes_len: usize,
     out_len: *mut usize,
 ) -> *mut u8 {
-    let result = read_str(text_ptr, text_len, "text").and_then(|text| {
-        read_str(axes_ptr, axes_len, "axes").and_then(|axes| compile_title(text, axes))
+    let result = unsafe { read_str(text_ptr, text_len, "text") }.and_then(|text| {
+        unsafe { read_str(axes_ptr, axes_len, "axes") }.and_then(|axes| compile_title(text, axes))
     });
 
     response(result, out_len)

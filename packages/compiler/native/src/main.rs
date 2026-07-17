@@ -5,9 +5,7 @@ use anyhow::Context;
 use clap::Parser;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
-
-mod direction;
-mod font;
+use yuragi_compiler::{FontInstance, TextOutline};
 
 #[derive(Parser)]
 struct Args {
@@ -23,7 +21,7 @@ struct Args {
 struct Bundle {
     version: u8,
     font: FontInfo,
-    outlines: BTreeMap<String, font::TextOutline>,
+    outlines: BTreeMap<String, TextOutline>,
 }
 
 #[derive(Serialize)]
@@ -54,7 +52,7 @@ fn main() -> anyhow::Result<()> {
     let hash = format!("{:x}", Sha256::digest(&font_buf));
     let axes = parse_axes(args.axes)?;
 
-    let font = font::FontInstance::new(&font_buf, &axes)?;
+    let font = FontInstance::new(&font_buf, &axes)?;
 
     let outlines = titles
         .iter()

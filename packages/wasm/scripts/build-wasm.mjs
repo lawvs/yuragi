@@ -5,10 +5,9 @@ import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 
 const packageDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const repoRoot = resolve(packageDir, "../..");
-const experimentDir = resolve(repoRoot, "experiments/wasm-compiler");
-const manifestPath = resolve(experimentDir, "Cargo.toml");
-const targetDir = resolve(experimentDir, "target");
+const nativeDir = resolve(packageDir, "native");
+const manifestPath = resolve(nativeDir, "Cargo.toml");
+const targetDir = resolve(nativeDir, "target");
 const wasmSource = resolve(
   targetDir,
   "wasm32-unknown-unknown/release/yuragi_wasm_compiler.wasm",
@@ -16,12 +15,11 @@ const wasmSource = resolve(
 const wasmDir = resolve(packageDir, "wasm");
 const wasmDestination = resolve(wasmDir, "yuragi_wasm_compiler.wasm");
 
-function run(command, args, options = {}) {
+function run(command, args) {
   return new Promise((resolveRun, reject) => {
     const child = spawn(command, args, {
-      cwd: options.cwd ?? repoRoot,
+      cwd: nativeDir,
       stdio: "inherit",
-      ...options,
     });
 
     child.on("error", reject);
@@ -39,7 +37,7 @@ function run(command, args, options = {}) {
 async function targetInstalled() {
   return new Promise((resolveInstalled, reject) => {
     const child = spawn("rustup", ["target", "list", "--installed"], {
-      cwd: experimentDir,
+      cwd: nativeDir,
       stdio: ["ignore", "pipe", "inherit"],
     });
     let stdout = "";
@@ -62,9 +60,7 @@ async function targetInstalled() {
 
 async function main() {
   if (!(await targetInstalled())) {
-    await run("rustup", ["target", "add", "wasm32-unknown-unknown"], {
-      cwd: experimentDir,
-    });
+    await run("rustup", ["target", "add", "wasm32-unknown-unknown"]);
   }
 
   await run(
@@ -80,7 +76,6 @@ async function main() {
       "--target-dir",
       targetDir,
     ],
-    { cwd: experimentDir },
   );
 
   await access(wasmSource, constants.R_OK);
