@@ -159,6 +159,9 @@ Import the runtime component props as `YuragiTextProps` from `@yuragi-labs/react
   changes or unmounts.
 - `transition.speed`: playback speed multiplier. `1` is the default, values
   below `1` are slower, and values above `1` are faster.
+- `onEnterComplete`: called after the settle animation finishes.
+- `onExitComplete`: called after the scatter animation finishes, including
+  exits caused by text changes or unmounting.
 - `className`, `style`: applied to the root element.
 
 Exit scatter is rendered in a fixed viewport overlay so the old title keeps its
@@ -222,5 +225,5 @@ If your app imports `@yuragi-labs/core/style.css` directly, do not render
 
 ## Requirements
 
-- React 19 and React DOM 19.
+- React 19.2 and React DOM 19.2.
 - A font file that can be loaded by the runtime provider or the static compiler.

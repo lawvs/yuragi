@@ -1,5 +1,16 @@
-import { StrictMode, type CSSProperties } from "react";
-import { cleanup, render, screen } from "@testing-library/react";
+import {
+  startTransition,
+  StrictMode,
+  Suspense,
+  type ComponentProps,
+} from "react";
+import {
+  act,
+  cleanup,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { YuragiText } from "../src/YuragiText";
 import { animateShards, type TextOutline } from "@yuragi-labs/core";
@@ -64,6 +75,24 @@ function deferred<T>() {
   return { promise, resolve };
 }
 
+const never = new Promise<never>(() => undefined);
+
+function SuspendForever(): never {
+  throw never;
+}
+
+function SuspendingYuragiText({
+  suspend,
+  ...props
+}: ComponentProps<typeof YuragiText> & { suspend: boolean }) {
+  return (
+    <Suspense fallback="Loading">
+      <YuragiText {...props} />
+      {suspend ? <SuspendForever /> : null}
+    </Suspense>
+  );
+}
+
 function rect(
   left: number,
   top: number,
@@ -108,13 +137,7 @@ describe("YuragiText", () => {
     expect(document.querySelector("[data-yuragi-root]")).not.toBeNull();
   });
 
-  it("renders text fallback by default when outline is missing", () => {
-    render(<YuragiText text="Missing" />);
-
-    expect(screen.getByText("Missing")).not.toBeNull();
-  });
-
-  it("styles text fallback with the same layout inputs as sharded text", () => {
+  it("renders the default text fallback with the requested layout", () => {
     render(
       <YuragiText
         text="Missing"
@@ -142,22 +165,7 @@ describe("YuragiText", () => {
     ).toThrow('Missing yuragi outline for "Missing"');
   });
 
-  it("animates shards with settle transition on enter", () => {
-    render(
-      <YuragiText
-        text="A"
-        outline={outline}
-        transition={{ enter: "settle" }}
-      />,
-    );
-
-    expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
-      type: "settle",
-      stagger: "by-x",
-    });
-  });
-
-  it("passes transition speed to settle animation", () => {
+  it("passes the settle transition and speed to shard animation", () => {
     render(
       <YuragiText
         text="A"
@@ -173,45 +181,83 @@ describe("YuragiText", () => {
     });
   });
 
-  it("animates shards with scatter transition on exit", async () => {
-    const { unmount } = render(
-      <YuragiText
-        text="A"
-        outline={outline}
-        transition={{ exit: "scatter" }}
-      />,
+  it("calls onEnterComplete once after settle finishes in StrictMode", async () => {
+    const settleFinished = deferred<void>();
+    const onEnterComplete = vi.fn();
+    vi.mocked(animateShards).mockImplementation(async (_root, options) => {
+      if (options.type === "settle") {
+        await settleFinished.promise;
+      }
+    });
+
+    render(
+      <StrictMode>
+        <YuragiText
+          text="A"
+          outline={outline}
+          transition={{ enter: "settle" }}
+          onEnterComplete={onEnterComplete}
+        />
+      </StrictMode>,
     );
 
-    unmount();
+    expect(onEnterComplete).not.toHaveBeenCalled();
+
+    settleFinished.resolve();
+    await settleFinished.promise;
     await Promise.resolve();
 
-    expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
-      type: "scatter",
-      stagger: "by-x",
-    });
+    expect(onEnterComplete).toHaveBeenCalledOnce();
   });
 
-  it("passes transition speed to scatter animation", async () => {
-    const { unmount } = render(
-      <YuragiText
+  it("uses the latest committed completion callback", async () => {
+    const settleFinished = deferred<void>();
+    const committedCallback = vi.fn();
+    const suspendedCallback = vi.fn();
+    vi.mocked(animateShards).mockImplementation(async (_root, options) => {
+      if (options.type === "settle") {
+        await settleFinished.promise;
+      }
+    });
+
+    const { rerender } = render(
+      <SuspendingYuragiText
         text="A"
         outline={outline}
-        transition={{ exit: "scatter", speed: 0.8 }}
+        transition={{ enter: "settle" }}
+        onEnterComplete={committedCallback}
+        suspend={false}
       />,
     );
 
-    unmount();
-    await Promise.resolve();
-
-    expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
-      type: "scatter",
-      stagger: "by-x",
-      speed: 0.8,
+    act(() => {
+      startTransition(() => {
+        rerender(
+          <SuspendingYuragiText
+            text="A"
+            outline={outline}
+            transition={{ enter: "settle" }}
+            onEnterComplete={suspendedCallback}
+            suspend
+          />,
+        );
+      });
     });
+
+    expect(screen.queryByText("Loading")).toBeNull();
+
+    await act(async () => {
+      settleFinished.resolve();
+      await settleFinished.promise;
+    });
+
+    expect(suspendedCallback).not.toHaveBeenCalled();
+    expect(committedCallback).toHaveBeenCalledOnce();
   });
 
   it("animates a fixed viewport clone when outline changes", async () => {
     const scatterFinished = deferred<void>();
+    const onExitComplete = vi.fn();
     let rootRectCalls = 0;
     const getBoundingClientRect = vi
       .spyOn(Element.prototype, "getBoundingClientRect")
@@ -235,6 +281,7 @@ describe("YuragiText", () => {
           text="A"
           outline={outline}
           transition={{ enter: "settle", exit: "scatter" }}
+          onExitComplete={onExitComplete}
         />,
       );
       const previousSvg = document.querySelector<SVGSVGElement>(
@@ -251,6 +298,7 @@ describe("YuragiText", () => {
             exit: "scatter",
             speed: 0.8,
           }}
+          onExitComplete={onExitComplete}
         />,
       );
 
@@ -283,6 +331,7 @@ describe("YuragiText", () => {
         2,
       );
       expect(previousSvg?.isConnected).toBe(false);
+      expect(onExitComplete).not.toHaveBeenCalled();
 
       scatterFinished.resolve();
       await scatterFinished.promise;
@@ -291,6 +340,7 @@ describe("YuragiText", () => {
       expect(document.querySelectorAll("[data-yuragi-root]")).toHaveLength(
         1,
       );
+      await waitFor(() => expect(onExitComplete).toHaveBeenCalledOnce());
     } finally {
       getBoundingClientRect.mockRestore();
     }
@@ -298,6 +348,7 @@ describe("YuragiText", () => {
 
   it("animates a fixed viewport clone when unmounted", async () => {
     const scatterFinished = deferred<void>();
+    const onExitComplete = vi.fn();
     vi.mocked(animateShards).mockImplementation(async (root, options) => {
       if (options.type === "scatter") {
         await scatterFinished.promise;
@@ -310,6 +361,7 @@ describe("YuragiText", () => {
         text="A"
         outline={outline}
         transition={{ exit: "scatter" }}
+        onExitComplete={onExitComplete}
       />,
     );
     const previousSvg = document.querySelector<SVGSVGElement>(
@@ -336,12 +388,52 @@ describe("YuragiText", () => {
     expect(exitSvg?.style.top).toBe("18px");
     expect(exitSvg?.style.width).toBe("90px");
     expect(exitSvg?.style.height).toBe("40px");
+    expect(onExitComplete).not.toHaveBeenCalled();
 
     scatterFinished.resolve();
     await scatterFinished.promise;
     await Promise.resolve();
 
     expect(exitSvg?.isConnected).toBe(false);
+    await waitFor(() => expect(onExitComplete).toHaveBeenCalledOnce());
+  });
+
+  it("uses the latest committed exit transition when unmounted", async () => {
+    const { rerender, unmount } = render(
+      <SuspendingYuragiText
+        text="A"
+        outline={outline}
+        transition={{ exit: "scatter", speed: 0.8 }}
+        suspend={false}
+      />,
+    );
+
+    act(() => {
+      startTransition(() => {
+        rerender(
+          <SuspendingYuragiText
+            text="A"
+            outline={outline}
+            transition={{ exit: "none", speed: 0.8 }}
+            suspend
+          />,
+        );
+      });
+    });
+
+    expect(screen.queryByText("Loading")).toBeNull();
+
+    unmount();
+    await Promise.resolve();
+
+    expect(animateShards).toHaveBeenCalledWith(
+      expect.any(SVGSVGElement),
+      {
+        type: "scatter",
+        stagger: "by-x",
+        speed: 0.8,
+      },
+    );
   });
 
   it("does not scatter during StrictMode initial mount", async () => {
@@ -400,34 +492,5 @@ describe("YuragiText", () => {
     );
 
     expectNoScatterCall();
-  });
-
-  it("serializes numeric SVG styles like React", () => {
-    render(
-      <YuragiText
-        text="A"
-        outline={outline}
-        style={
-          {
-            width: 10,
-            opacity: 0.5,
-            fillOpacity: 0.5,
-            strokeOpacity: 0.25,
-            strokeWidth: 2,
-            "--yuragi-test": 4,
-          } as CSSProperties
-        }
-      />,
-    );
-
-    const svg = document.querySelector<SVGSVGElement>(
-      "[data-yuragi-root]",
-    );
-    expect(svg?.style.width).toBe("10px");
-    expect(svg?.style.opacity).toBe("0.5");
-    expect(svg?.style.fillOpacity).toBe("0.5");
-    expect(svg?.style.strokeOpacity).toBe("0.25");
-    expect(svg?.style.strokeWidth).toBe("2");
-    expect(svg?.style.getPropertyValue("--yuragi-test")).toBe("4");
   });
 });

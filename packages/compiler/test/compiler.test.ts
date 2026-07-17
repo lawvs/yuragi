@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 import {
   compileOutlines,
   type CompileOutlinesOptions,
@@ -29,12 +29,9 @@ describe("compileOutlines", () => {
   });
 
   it("rejects dynamic title callbacks at the type boundary", () => {
-    const invalidOptions = {
-      font: "font.otf",
-      // @ts-expect-error Dynamic title discovery belongs in user build scripts.
-      titles: async () => ["A"],
-    } satisfies CompileOutlinesOptions;
+    type Titles = CompileOutlinesOptions["titles"];
 
-    expect(invalidOptions.titles).toBeTypeOf("function");
+    expectTypeOf<readonly string[]>().toMatchTypeOf<Titles>();
+    expectTypeOf<() => Promise<string[]>>().not.toMatchTypeOf<Titles>();
   });
 });

@@ -5,7 +5,10 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { SOURCE_HAN_SERIF_URL } from "../../../shared/source-han-serif";
-import { resolvePlaygroundFont } from "../playground-font";
+import {
+  resolveHeroFont,
+  resolvePlaygroundFont,
+} from "../playground-font";
 
 const tempDirs: string[] = [];
 
@@ -40,16 +43,31 @@ describe("resolvePlaygroundFont", () => {
     expect(downloadedUrl).toBe(SOURCE_HAN_SERIF_URL);
   });
 
-  it("allows YURAGI_FONT to load from a local file without caching", async () => {
-    const dir = await makeTempDir();
-    const localFont = join(dir, "local.otf");
-    await writeFile(localFont, "local-font");
+  it("pins hero generation to Source Han Serif and verifies its checksum", async () => {
+    const cacheDir = await makeTempDir();
+    const previousFont = process.env.YURAGI_FONT;
+    let downloadedUrl = "";
+    process.env.YURAGI_FONT = "https://example.test/custom.otf";
 
-    const font = await resolvePlaygroundFont({
-      YURAGI_FONT: localFont,
-    });
+    try {
+      await expect(
+        resolveHeroFont({
+          cacheDir,
+          download: async ({ destination, url }) => {
+            downloadedUrl = url;
+            await writeFile(destination, "not-source-han-serif");
+          },
+        }),
+      ).rejects.toThrow("downloaded font checksum mismatch");
+    } finally {
+      if (previousFont === undefined) {
+        delete process.env.YURAGI_FONT;
+      } else {
+        process.env.YURAGI_FONT = previousFont;
+      }
+    }
 
-    expect(font).toBe(localFont);
+    expect(downloadedUrl).toBe(SOURCE_HAN_SERIF_URL);
   });
 
   it("resolves relative YURAGI_FONT paths from a local base directory", async () => {

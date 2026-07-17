@@ -61,17 +61,6 @@ describe("layoutShardedText", () => {
     expect(layout.dimensions.height).toBe(44);
   });
 
-  it("computes centered line offsets", () => {
-    const layout = layoutShardedText(outline, {
-      size: 20,
-      maxWidth: 40,
-      lineHeight: 24,
-      align: "center",
-    });
-
-    expect(layout.lines[0].x).toBe(5);
-  });
-
   it("includes centered line offsets in rendered dimensions", () => {
     const layout = layoutShardedText(outline, {
       size: 20,
@@ -80,6 +69,7 @@ describe("layoutShardedText", () => {
       align: "center",
     });
 
+    expect(layout.lines[0].x).toBe(5);
     expect(layout.dimensions.width).toBe(35);
   });
 
@@ -95,7 +85,7 @@ describe("layoutShardedText", () => {
     expect(layout.dimensions.width).toBe(40);
   });
 
-  it("throws when a group cannot fit on an empty line", () => {
+  it("rejects any breakable group wider than maxWidth", () => {
     expect(() =>
       layoutShardedText(outline, {
         size: 20,
@@ -104,9 +94,7 @@ describe("layoutShardedText", () => {
         align: "start",
       }),
     ).toThrow("Cannot fit group");
-  });
 
-  it("throws when a later group cannot fit within maxWidth", () => {
     const wideLaterOutline: TextOutline = {
       ...outline,
       groups: [group("A", 250), group("B", 750), group("C", 250)],

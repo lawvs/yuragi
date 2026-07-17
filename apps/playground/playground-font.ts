@@ -1,5 +1,6 @@
 import {
   resolveFont,
+  SOURCE_HAN_SERIF_SHA256,
   type DownloadFont,
   type ResolveFontOptions,
 } from "../../scripts/font-cache";
@@ -12,4 +13,13 @@ export function resolvePlaygroundFont(
   options: ResolvePlaygroundFontOptions = {},
 ) {
   return resolveFont(env, options);
+}
+
+export function resolveHeroFont(
+  options: Omit<ResolvePlaygroundFontOptions, "expectedSha256"> = {},
+) {
+  return resolveFont(
+    {},
+    { ...options, expectedSha256: SOURCE_HAN_SERIF_SHA256 },
+  );
 }

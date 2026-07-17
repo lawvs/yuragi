@@ -180,11 +180,14 @@ export function useYuragiFont() {
 
 export function YuragiText(props: YuragiTextProps) {
   const { error, font } = useYuragiFont();
-  const [outline, setOutline] =
-    useState<StaticYuragiTextProps["outline"]>();
+  const [compiled, setCompiled] = useState<{
+    text: string;
+    outline: NonNullable<StaticYuragiTextProps["outline"]>;
+  }>();
   const previousFontRef = useRef(font);
   const previousErrorRef = useRef(error);
   const hasDisplayedOutlineRef = useRef(false);
+  const outline = compiled?.text === props.text ? compiled.outline : undefined;
 
   useEffect(() => {
     let cancelled = false;
@@ -196,7 +199,7 @@ export function YuragiText(props: YuragiTextProps) {
       previousErrorRef.current = error;
       hasDisplayedOutlineRef.current = false;
     }
-    setOutline(undefined);
+    setCompiled(undefined);
 
     if (!font || error) return;
 
@@ -204,12 +207,12 @@ export function YuragiText(props: YuragiTextProps) {
       .compile(props.text)
       .then((compiledOutline) => {
         if (!cancelled) {
-          setOutline(compiledOutline);
+          setCompiled({ text: props.text, outline: compiledOutline });
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setOutline(undefined);
+          setCompiled(undefined);
         }
       });
 

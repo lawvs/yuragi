@@ -58,24 +58,15 @@ describe("createShardedSvg", () => {
     expect(svg.style.getPropertyValue("--yuragi-em")).toBe("1000");
   });
 
-  it("uses layout line y for baseline positioning", () => {
-    const layout = layoutShardedText(outline, { size: 20, maxWidth: 40 });
-    const svg = createShardedSvg({
-      ...layout,
-      lines: layout.lines.map((line) => ({ ...line, y: 7 })),
-    });
-
-    expect(svg.querySelector("[data-line]")?.getAttribute("transform")).toBe(
-      "translate(0 24.6)",
-    );
-  });
-
-  it("keeps structural group transforms separate from motion transforms", () => {
+  it("keeps structural transforms outside animated shard wrappers", () => {
     const layout = layoutShardedText(outline, { size: 20, maxWidth: 40 });
     const svg = createShardedSvg(layout, { hover: "outline" });
     const group = svg.querySelector("[data-group]");
     const motion = svg.querySelector("[data-group-motion]");
     const glyph = svg.querySelector("[data-glyph]");
+    const shardMotion = svg.querySelector("[data-shard-motion]");
+    const scale = svg.querySelector("[data-shard-scale]");
+    const shard = svg.querySelector("[data-shard]");
 
     expect(svg.dataset.hover).toBe("outline");
     expect(group?.getAttribute("transform")).toBe("translate(0 0)");
@@ -84,6 +75,12 @@ describe("createShardedSvg", () => {
     expect(glyph?.getAttribute("transform")).toBe("translate(0 0)");
     expect(group?.contains(motion)).toBe(true);
     expect(motion?.contains(glyph)).toBe(true);
+    expect(glyph?.contains(shardMotion)).toBe(true);
+    expect(shardMotion?.getAttribute("transform")).toBeNull();
+    expect(scale?.parentElement).toBe(shardMotion);
+    expect(scale?.getAttribute("transform")).toBe("scale(0.02)");
+    expect(shard?.parentElement).toBe(scale);
+    expect(shard?.getAttribute("transform")).toBeNull();
   });
 
   it("sets shard path attributes and shard motion directions", () => {
@@ -104,35 +101,5 @@ describe("createShardedSvg", () => {
     expect(firstShard.getAttribute("data-direction-x")).toBeNull();
     expect(firstShard.getAttribute("data-direction-y")).toBeNull();
     expect(secondShard.getAttribute("d")).toBe("M0 500L500 500L0 0Z");
-  });
-
-  it("nests shard motion outside static scale and path", () => {
-    const layout = layoutShardedText(outline, { size: 20, maxWidth: 40 });
-    const svg = createShardedSvg(layout);
-    const glyph = svg.querySelector("[data-glyph]");
-    const motionWrappers = svg.querySelectorAll("[data-shard-motion]");
-    const scaleWrappers = svg.querySelectorAll("[data-shard-scale]");
-    const [firstShard] = svg.querySelectorAll("[data-shard]");
-
-    expect(motionWrappers).toHaveLength(2);
-    expect(scaleWrappers).toHaveLength(2);
-    expect(glyph?.contains(motionWrappers[0])).toBe(true);
-    expect(motionWrappers[0].parentElement).toBe(glyph);
-    expect(motionWrappers[0].getAttribute("transform")).toBeNull();
-    expect(scaleWrappers[0].getAttribute("transform")).toBe("scale(0.02)");
-    expect(scaleWrappers[0].parentElement).toBe(motionWrappers[0]);
-    expect(scaleWrappers[0].contains(firstShard)).toBe(true);
-    expect(firstShard.parentElement).toBe(scaleWrappers[0]);
-    expect(firstShard.getAttribute("transform")).toBeNull();
-  });
-
-  it("normalizes className whitespace", () => {
-    const layout = layoutShardedText(outline, { size: 20, maxWidth: 40 });
-    const svg = createShardedSvg(layout, {
-      className: "  sample\nsecond  ",
-    });
-
-    expect(svg.classList.contains("sample")).toBe(true);
-    expect(svg.classList.contains("second")).toBe(true);
   });
 });

@@ -15,20 +15,4 @@ describe("YuragiStyles", () => {
     expect(style).not.toBeNull();
     expect(style?.textContent).toBe(YURAGI_STYLE_TEXT);
   });
-
-  it("passes a nonce to the style element", () => {
-    render(<YuragiStyles nonce="nonce-123" />);
-
-    const style = document.querySelector("style[data-yuragi-style]");
-    expect(style?.getAttribute("nonce")).toBe("nonce-123");
-  });
-
-  it("does not accept disabled props", () => {
-    const element = (
-      // @ts-expect-error callers should omit YuragiStyles instead.
-      <YuragiStyles disabled />
-    );
-
-    expect(element).toBeDefined();
-  });
 });

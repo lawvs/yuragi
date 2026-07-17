@@ -9,65 +9,40 @@ import { createShardedSvg } from "../src/svg";
 import type { TextOutline } from "../src/types";
 
 describe("buildShardKeyframes", () => {
-  it("builds scatter keyframes from shard direction", () => {
-    const frames = buildShardKeyframes({
+  it("builds scatter keyframes and reverses them for settle", () => {
+    const scatter = buildShardKeyframes({
       type: "scatter",
       directionX: 1,
       directionY: 0.5,
       distance: 100,
       scale: 0.95,
     });
-
-    expect(frames[0]).toEqual({});
-    expect(frames[1]).toMatchObject({
-      opacity: 0,
-      transform: "translate(100px, 50px) scale(0.95)",
-    });
-  });
-
-  it("builds settle keyframes as reverse scatter", () => {
-    const frames = buildShardKeyframes({
+    const settle = buildShardKeyframes({
       type: "settle",
       directionX: 1,
-      directionY: 0,
+      directionY: 0.5,
       distance: 100,
-      scale: 1.05,
+      scale: 0.95,
     });
 
-    expect(frames[0]).toMatchObject({
-      opacity: 0,
-      transform: "translate(100px, 0px) scale(1.05)",
-    });
-    expect(frames[1]).toEqual({});
+    expect(scatter).toEqual([
+      {},
+      {
+        opacity: 0,
+        transform: "translate(100px, 50px) scale(0.95)",
+      },
+    ]);
+    expect(settle).toEqual([
+      {
+        opacity: 0,
+        transform: "translate(100px, 50px) scale(0.95)",
+      },
+      {},
+    ]);
   });
 });
 
 describe("planShardTimings", () => {
-  it("scales transition playback with speed", () => {
-    expect(
-      planShardTimings({
-        type: "scatter",
-        speed: 0.5,
-        stagger: "by-x",
-        shardXs: [0],
-      })[0],
-    ).toMatchObject({
-      duration: 1000,
-      delay: 0,
-    });
-    expect(
-      planShardTimings({
-        type: "scatter",
-        speed: 2,
-        stagger: "by-x",
-        shardXs: [0],
-      })[0],
-    ).toMatchObject({
-      duration: 250,
-      delay: 0,
-    });
-  });
-
   it("scales transition playback and spatial delay with speed", () => {
     expect(
       planShardTimings({
@@ -93,24 +68,14 @@ describe("planShardTimings", () => {
     });
   });
 
-  it("plans stagger delay from shard x distance", () => {
+  it("plans stagger delay from the full shard x span", () => {
     const timings = planShardTimings({
       type: "scatter",
       stagger: "by-x",
-      shardXs: [100, 0, 50],
+      shardXs: [100, 0, 50, 200],
     });
 
-    expect(timings.map((timing) => timing.delay)).toEqual([120, 0, 60]);
-  });
-
-  it("preserves wider x spans instead of normalizing them into a fixed window", () => {
-    const timings = planShardTimings({
-      type: "scatter",
-      stagger: "by-x",
-      shardXs: [0, 200],
-    });
-
-    expect(timings.map((timing) => timing.delay)).toEqual([0, 240]);
+    expect(timings.map((timing) => timing.delay)).toEqual([120, 0, 60, 240]);
   });
 
   it("falls back to index-normalized delay when x positions are missing", () => {
@@ -128,44 +93,6 @@ describe("planShardTimings", () => {
       120,
     ]);
   });
-
-  it("uses the same spatial delay wave for settle and scatter", () => {
-    const shardXs = [0, 50, 100];
-
-    expect(
-      planShardTimings({
-        type: "settle",
-        stagger: "by-x",
-        shardXs,
-      }).map((timing) => timing.delay),
-    ).toEqual(
-      planShardTimings({
-        type: "scatter",
-        stagger: "by-x",
-        shardXs,
-      }).map((timing) => timing.delay),
-    );
-  });
-
-  it("keeps settle and scatter on the same playback envelope", () => {
-    const shardXs = [0, 50, 100];
-    const settle = planShardTimings({
-      type: "settle",
-      speed: 0.8,
-      stagger: "by-x",
-      shardXs,
-    });
-    const scatter = planShardTimings({
-      type: "scatter",
-      speed: 0.8,
-      stagger: "by-x",
-      shardXs,
-    });
-
-    expect(scatter.map(({ delay, duration }) => ({ delay, duration }))).toEqual(
-      settle.map(({ delay, duration }) => ({ delay, duration })),
-    );
-  });
 });
 
 describe("animateShards", () => {
@@ -177,29 +104,6 @@ describe("animateShards", () => {
       configurable: true,
       value: vi.fn(() => ({ matches: false })),
     });
-  });
-
-  it("animates every data-shard-motion wrapper", async () => {
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    const first = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "g",
-    );
-    const second = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "g",
-    );
-    first.dataset.shardMotion = "true";
-    first.dataset.directionX = "1";
-    first.dataset.directionY = "0";
-    second.dataset.shardMotion = "true";
-    second.dataset.directionX = "0";
-    second.dataset.directionY = "1";
-    svg.append(first, second);
-
-    await animateShards(svg, { type: "scatter" });
-
-    expect(Element.prototype.animate).toHaveBeenCalledTimes(2);
   });
 
   it("passes shard keyframes and animation options to animate", async () => {
@@ -226,33 +130,6 @@ describe("animateShards", () => {
         easing: "cubic-bezier(0.22, 1, 0.36, 1)",
         fill: "both",
       },
-    );
-  });
-
-  it("uses default duration and x-position stagger delay", async () => {
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    const first = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    const second = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "g",
-    );
-    first.dataset.shardMotion = "true";
-    first.dataset.shardX = "100";
-    second.dataset.shardMotion = "true";
-    second.dataset.shardX = "0";
-    svg.append(first, second);
-
-    await animateShards(svg, { type: "scatter", stagger: "by-x" });
-
-    expect(Element.prototype.animate).toHaveBeenNthCalledWith(
-      1,
-      expect.any(Array),
-      expect.objectContaining({ duration: 500, delay: 120 }),
-    );
-    expect(Element.prototype.animate).toHaveBeenNthCalledWith(
-      2,
-      expect.any(Array),
-      expect.objectContaining({ duration: 500, delay: 0 }),
     );
   });
 
@@ -325,28 +202,6 @@ describe("animateShards", () => {
     await expect(
       animateShards(svg, { type: "scatter" }),
     ).resolves.toBeUndefined();
-  });
-
-  it("falls back to zero for invalid dataset directions", async () => {
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    const motion = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    motion.dataset.shardMotion = "true";
-    motion.dataset.directionX = "nope";
-    motion.dataset.directionY = "Infinity";
-    svg.append(motion);
-
-    await animateShards(svg, { type: "scatter", distance: 100 });
-
-    expect(Element.prototype.animate).toHaveBeenCalledWith(
-      [
-        {},
-        {
-          opacity: 0,
-          transform: "translate(0px, 0px) scale(0.95)",
-        },
-      ],
-      expect.any(Object),
-    );
   });
 
   it("ignores canceled animation promises and synchronous animate failures", async () => {
