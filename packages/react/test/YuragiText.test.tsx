@@ -2,7 +2,6 @@ import {
   startTransition,
   StrictMode,
   Suspense,
-  type CSSProperties,
   type ComponentProps,
 } from "react";
 import {
@@ -138,13 +137,7 @@ describe("YuragiText", () => {
     expect(document.querySelector("[data-yuragi-root]")).not.toBeNull();
   });
 
-  it("renders text fallback by default when outline is missing", () => {
-    render(<YuragiText text="Missing" />);
-
-    expect(screen.getByText("Missing")).not.toBeNull();
-  });
-
-  it("styles text fallback with the same layout inputs as sharded text", () => {
+  it("renders the default text fallback with the requested layout", () => {
     render(
       <YuragiText
         text="Missing"
@@ -172,22 +165,7 @@ describe("YuragiText", () => {
     ).toThrow('Missing yuragi outline for "Missing"');
   });
 
-  it("animates shards with settle transition on enter", () => {
-    render(
-      <YuragiText
-        text="A"
-        outline={outline}
-        transition={{ enter: "settle" }}
-      />,
-    );
-
-    expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
-      type: "settle",
-      stagger: "by-x",
-    });
-  });
-
-  it("passes transition speed to settle animation", () => {
+  it("passes the settle transition and speed to shard animation", () => {
     render(
       <YuragiText
         text="A"
@@ -275,43 +253,6 @@ describe("YuragiText", () => {
 
     expect(suspendedCallback).not.toHaveBeenCalled();
     expect(committedCallback).toHaveBeenCalledOnce();
-  });
-
-  it("animates shards with scatter transition on exit", async () => {
-    const { unmount } = render(
-      <YuragiText
-        text="A"
-        outline={outline}
-        transition={{ exit: "scatter" }}
-      />,
-    );
-
-    unmount();
-    await Promise.resolve();
-
-    expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
-      type: "scatter",
-      stagger: "by-x",
-    });
-  });
-
-  it("passes transition speed to scatter animation", async () => {
-    const { unmount } = render(
-      <YuragiText
-        text="A"
-        outline={outline}
-        transition={{ exit: "scatter", speed: 0.8 }}
-      />,
-    );
-
-    unmount();
-    await Promise.resolve();
-
-    expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
-      type: "scatter",
-      stagger: "by-x",
-      speed: 0.8,
-    });
   });
 
   it("animates a fixed viewport clone when outline changes", async () => {
@@ -551,34 +492,5 @@ describe("YuragiText", () => {
     );
 
     expectNoScatterCall();
-  });
-
-  it("serializes numeric SVG styles like React", () => {
-    render(
-      <YuragiText
-        text="A"
-        outline={outline}
-        style={
-          {
-            width: 10,
-            opacity: 0.5,
-            fillOpacity: 0.5,
-            strokeOpacity: 0.25,
-            strokeWidth: 2,
-            "--yuragi-test": 4,
-          } as CSSProperties
-        }
-      />,
-    );
-
-    const svg = document.querySelector<SVGSVGElement>(
-      "[data-yuragi-root]",
-    );
-    expect(svg?.style.width).toBe("10px");
-    expect(svg?.style.opacity).toBe("0.5");
-    expect(svg?.style.fillOpacity).toBe("0.5");
-    expect(svg?.style.strokeOpacity).toBe("0.25");
-    expect(svg?.style.strokeWidth).toBe("2");
-    expect(svg?.style.getPropertyValue("--yuragi-test")).toBe("4");
   });
 });

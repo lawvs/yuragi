@@ -1,10 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expectTypeOf, it } from "vitest";
 import type { FontAxes, FontAxisTag, TextOutlineBundle } from "../src";
 
 describe("font axis types", () => {
-  it("accepts known OpenType axes and custom axes", () => {
-    const knownAxis: FontAxisTag = "wght";
-    const customAxis: FontAxisTag = "TEST";
+  it("accepts numeric known and custom axes but rejects other values", () => {
     const axes = {
       wght: 900,
       opsz: 18,
@@ -23,17 +21,10 @@ describe("font axis types", () => {
       outlines: {},
     } satisfies TextOutlineBundle;
 
-    expect(knownAxis).toBe("wght");
-    expect(customAxis).toBe("TEST");
-    expect(bundle.font.axes?.wght).toBe(900);
-  });
-
-  it("rejects non-numeric axis values", () => {
-    const axes = {
-      // @ts-expect-error font variation axis values must be numeric.
-      wght: "900",
-    } satisfies FontAxes;
-
-    expect(axes.wght).toBe("900");
+    expectTypeOf<"wght">().toMatchTypeOf<FontAxisTag>();
+    expectTypeOf<"TEST">().toMatchTypeOf<FontAxisTag>();
+    expectTypeOf(axes).toMatchTypeOf<FontAxes>();
+    expectTypeOf(bundle).toMatchTypeOf<TextOutlineBundle>();
+    expectTypeOf({ wght: "900" }).not.toMatchTypeOf<FontAxes>();
   });
 });

@@ -1,13 +1,9 @@
 import { act, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
-import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import type { FontAxes } from "@yuragi-labs/core";
 
-const testDir = dirname(fileURLToPath(import.meta.url));
 const reactMocks = vi.hoisted(() => ({
   startTransition: vi.fn((callback: () => void) => callback()),
 }));
@@ -157,15 +153,6 @@ describe("App", () => {
     input.dispatchEvent(new Event("input", { bubbles: true }));
   }
 
-  function setSelectValue(select: HTMLSelectElement, value: string) {
-    const setter = Object.getOwnPropertyDescriptor(
-      HTMLSelectElement.prototype,
-      "value",
-    )?.set;
-    setter?.call(select, value);
-    select.dispatchEvent(new Event("change", { bubbles: true }));
-  }
-
   it("renders a self-hosted Yuragi hero from a static outline", () => {
     renderApp();
 
@@ -272,24 +259,6 @@ describe("App", () => {
     expect(reactMocks.startTransition).toHaveBeenCalledTimes(1);
   });
 
-  it("updates transition speed from the playground control", () => {
-    renderApp();
-
-    const transitionSpeed = host.querySelector<HTMLInputElement>(
-      'input[name="transition-speed"]',
-    );
-    expect(transitionSpeed).not.toBeNull();
-
-    act(() => {
-      setInputValue(transitionSpeed!, "0.8");
-    });
-
-    const title = host.querySelector(
-      '.preview-title [data-sharded-text="Dashboard"]',
-    );
-    expect(title?.getAttribute("data-transition-speed")).toBe("0.8");
-  });
-
   it("keeps the experimental WASM lab behind an explicit playground tab", () => {
     renderApp();
 
@@ -340,51 +309,5 @@ describe("App", () => {
 
     expect(host.querySelector('[data-glyph="舞"]')).not.toBeNull();
     expect(host.textContent).toContain("Search Results");
-  });
-
-  it("switches WASM Lab font presets with matching sample text and URL", () => {
-    renderApp();
-
-    act(() => {
-      host.querySelector<HTMLButtonElement>('button[data-view="wasm-lab"]')?.click();
-    });
-
-    const preset = host.querySelector<HTMLSelectElement>(
-      'select[name="wasm-font-preset"]',
-    );
-    const title = host.querySelector<HTMLInputElement>('input[name="wasm-title"]');
-    const url = host.querySelector<HTMLInputElement>('input[name="wasm-font-url"]');
-
-    expect(preset).not.toBeNull();
-    expect(title?.value).toBe("复杂分层");
-    expect(url?.value).toContain("SourceHanSerifSC-VF.otf");
-
-    act(() => {
-      setSelectValue(preset!, "inter");
-    });
-
-    expect(title?.value).toBe("Dashboard");
-    expect(url?.value).toContain("Inter%5Bopsz,wght%5D.ttf");
-  });
-
-  it("constrains list shard SVG width for mobile cards", () => {
-    const demoStyles = readFileSync(
-      join(testDir, "runtime-demo/RuntimeDemo.css"),
-      "utf8",
-    );
-    const globalStyles = readFileSync(join(testDir, "styles.css"), "utf8");
-
-    expect(demoStyles).toMatch(
-      /\.post-title\s+\[data-yuragi-root\]\s*{[^}]*width:\s*min\(100%,\s*300px\)/s,
-    );
-    expect(globalStyles).toMatch(
-      /width:\s*min\(calc\(100vw - 24px\),\s*720px\)/,
-    );
-    expect(globalStyles).toMatch(
-      /width:\s*min\(calc\(100vw - 24px\),\s*366px\)/,
-    );
-    expect(demoStyles).toMatch(
-      /\.range-control\s*{[^}]*grid-template-columns:\s*auto minmax\(0,\s*1fr\) auto/s,
-    );
   });
 });

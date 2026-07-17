@@ -280,7 +280,7 @@ describe("@yuragi-labs/react runtime", () => {
     expect(rendered.dataset.transitionEnter).toBe("none");
   });
 
-  it("includes YuragiStyles by default", () => {
+  it("configures provider-managed styles", () => {
     const font = {
       info: { bytes: 3, unitsPerEm: 1000 },
       compile: vi.fn(async () => outline),
@@ -288,7 +288,7 @@ describe("@yuragi-labs/react runtime", () => {
       dispose: vi.fn(),
     };
 
-    render(
+    const { rerender } = render(
       <YuragiFontProvider font={font}>
         <span>Runtime child</span>
       </YuragiFontProvider>,
@@ -296,35 +296,16 @@ describe("@yuragi-labs/react runtime", () => {
 
     expect(document.querySelector("style[data-yuragi-style]")).not.toBeNull();
     expect(screen.getByText("Runtime child")).not.toBeNull();
-  });
 
-  it("can disable provider styles when CSS is imported manually", () => {
-    const font = {
-      info: { bytes: 3, unitsPerEm: 1000 },
-      compile: vi.fn(async () => outline),
-      preload: vi.fn(async () => undefined),
-      dispose: vi.fn(),
-    };
-
-    render(
+    rerender(
       <YuragiFontProvider font={font} includeStyles={false}>
         <span>Runtime child</span>
       </YuragiFontProvider>,
     );
 
     expect(document.querySelector("style[data-yuragi-style]")).toBeNull();
-    expect(screen.getByText("Runtime child")).not.toBeNull();
-  });
 
-  it("passes styleNonce to provider styles", () => {
-    const font = {
-      info: { bytes: 3, unitsPerEm: 1000 },
-      compile: vi.fn(async () => outline),
-      preload: vi.fn(async () => undefined),
-      dispose: vi.fn(),
-    };
-
-    render(
+    rerender(
       <YuragiFontProvider font={font} styleNonce="nonce-123">
         <span>Runtime child</span>
       </YuragiFontProvider>,

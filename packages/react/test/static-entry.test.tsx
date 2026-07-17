@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import {
   YuragiText as RuntimeYuragiText,
   type YuragiTextProps,
@@ -24,22 +24,8 @@ describe("@yuragi-labs/react/static", () => {
   });
 
   it("keeps runtime and static text props distinct", () => {
-    const runtimeProps = {
-      text: "Dashboard",
-      fallback: "text",
-    } satisfies YuragiTextProps;
-    const staticProps = {
-      ...runtimeProps,
-      outline,
-    } satisfies StaticYuragiTextProps;
-
-    const invalidRuntimeProps = {
-      ...runtimeProps,
-      // @ts-expect-error Runtime outlines are compiled by YuragiFontProvider.
-      outline,
-    } satisfies YuragiTextProps;
-
-    expect(staticProps.outline).toBe(outline);
-    expect(invalidRuntimeProps.outline).toBe(outline);
+    expectTypeOf<"outline">().toMatchTypeOf<keyof StaticYuragiTextProps>();
+    expectTypeOf<"outline">().not.toMatchTypeOf<keyof YuragiTextProps>();
+    expectTypeOf(outline).toMatchTypeOf<StaticYuragiTextProps["outline"]>();
   });
 });

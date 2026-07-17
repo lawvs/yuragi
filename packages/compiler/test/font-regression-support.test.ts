@@ -1,7 +1,6 @@
 import {
   mkdtemp,
   readFile,
-  readdir,
   rm,
   writeFile,
 } from "node:fs/promises";
@@ -13,8 +12,6 @@ import {
   assertSectionFileSnapshot,
   compareSectionSnapshots,
   createSectionSnapshot,
-  renderSectionAtlas,
-  writeRegressionArtifacts,
   type GlyphSectionSnapshot,
 } from "./support/font-regression";
 
@@ -158,55 +155,7 @@ describe("font regression diagnostics", () => {
     ]);
   });
 
-  it("renders deterministic atlas and overlay SVGs", () => {
-    const expected = detailedSnapshot();
-    const actual = structuredClone(expected);
-    actual.glyphs[0]!.outline.groups[0]!.glyphs[0]!.shards[0]!.path =
-      "M 10 0L 500 0L 250 -700Z";
-
-    const atlas = renderSectionAtlas(expected, { mode: "snapshot" });
-    const diff = renderSectionAtlas(actual, {
-      mode: "diff",
-      expected,
-    });
-
-    expect(atlas).toContain("U+0061");
-    expect(atlas).toContain('data-guide="baseline"');
-    expect(atlas).toContain('data-guide="bbox"');
-    expect(diff).toContain("#ef4444");
-    expect(diff).toContain("#06b6d4");
-  });
-
-  it("writes section and changed-glyph artifacts", async () => {
-    const outputDir = await makeTempDir();
-    const expected = detailedSnapshot();
-    const actual = structuredClone(expected);
-    actual.glyphs[0]!.outline.groups[0]!.glyphs[0]!.shards[0]!.path =
-      "M 10 0L 500 0L 250 -700Z";
-
-    const sectionDir = await writeRegressionArtifacts({
-      expected,
-      actual,
-      outputDir,
-    });
-
-    expect(await readdir(sectionDir)).toEqual([
-      "actual.json",
-      "actual.svg",
-      "diff.svg",
-      "expected.svg",
-      "glyphs",
-      "summary.txt",
-    ]);
-    expect(await readdir(join(sectionDir, "glyphs"))).toEqual([
-      "u0061.diff.svg",
-    ]);
-    expect(await readFile(join(sectionDir, "summary.txt"), "utf8")).toContain(
-      "a (U+0061): path",
-    );
-  });
-
-  it("preserves the snapshot assertion error after writing diagnostics", async () => {
+  it("writes visual diagnostics without hiding the snapshot mismatch", async () => {
     const outputDir = await makeTempDir();
     const snapshotPath = join(outputDir, "latin.json");
     const expected = detailedSnapshot();
@@ -227,8 +176,18 @@ describe("font regression diagnostics", () => {
       }),
     ).rejects.toBe(mismatch);
 
+    const sectionDir = join(outputDir, "latin");
+    expect(await readFile(join(sectionDir, "summary.txt"), "utf8")).toContain(
+      "a (U+0061): path",
+    );
+    expect(await readFile(join(sectionDir, "expected.svg"), "utf8")).toContain(
+      'data-guide="baseline"',
+    );
+    expect(await readFile(join(sectionDir, "diff.svg"), "utf8")).toContain(
+      "#ef4444",
+    );
     expect(
-      await readFile(join(outputDir, "latin", "summary.txt"), "utf8"),
-    ).toContain("a (U+0061): path");
+      await readFile(join(sectionDir, "glyphs/u0061.diff.svg"), "utf8"),
+    ).toContain("#06b6d4");
   });
 });

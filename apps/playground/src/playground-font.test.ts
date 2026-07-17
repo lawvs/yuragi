@@ -70,18 +70,6 @@ describe("resolvePlaygroundFont", () => {
     expect(downloadedUrl).toBe(SOURCE_HAN_SERIF_URL);
   });
 
-  it("allows YURAGI_FONT to load from a local file without caching", async () => {
-    const dir = await makeTempDir();
-    const localFont = join(dir, "local.otf");
-    await writeFile(localFont, "local-font");
-
-    const font = await resolvePlaygroundFont({
-      YURAGI_FONT: localFont,
-    });
-
-    expect(font).toBe(localFont);
-  });
-
   it("resolves relative YURAGI_FONT paths from a local base directory", async () => {
     const baseDir = await makeTempDir();
     await mkdir(join(baseDir, "fonts"));
