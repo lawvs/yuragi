@@ -23,12 +23,12 @@
   },
   "files": ["dist"],
   "scripts": {
-    "build": "tsup && cp src/style.css dist/style.css",
+    "build": "tsdown && cp src/style.css dist/style.css",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "tsup": "^8.5.1",
+    "tsdown": "^0.22.9",
     "typescript": "^6.0.3",
     "vitest": "^4.1.9"
   }
