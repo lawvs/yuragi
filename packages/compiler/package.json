@@ -27,7 +27,7 @@
     "rust-toolchain.toml"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsdown",
     "build:native": "cargo build --release --manifest-path native/Cargo.toml",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
@@ -36,7 +36,7 @@
     "@yuragi-labs/core": "workspace:*"
   },
   "devDependencies": {
-    "tsup": "^8.5.1",
+    "tsdown": "^0.22.9",
     "typescript": "^6.0.3",
     "vitest": "^4.1.9"
   }

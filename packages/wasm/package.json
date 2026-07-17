@@ -26,7 +26,7 @@
   },
   "files": ["dist"],
   "scripts": {
-    "build": "pnpm build:wasm && tsup src/index.ts src/runtime.ts --format esm --dts --sourcemap --clean --target es2022 && cp wasm/yuragi_wasm_compiler.wasm dist/yuragi_wasm_compiler.wasm",
+    "build": "pnpm build:wasm && tsdown src/index.ts src/runtime.ts && cp wasm/yuragi_wasm_compiler.wasm dist/yuragi_wasm_compiler.wasm",
     "build:wasm": "node scripts/build-wasm.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
@@ -35,7 +35,7 @@
     "@yuragi-labs/core": "workspace:*"
   },
   "devDependencies": {
-    "tsup": "^8.5.1",
+    "tsdown": "^0.22.9",
     "typescript": "^6.0.3",
     "vitest": "^4.1.9"
   }
