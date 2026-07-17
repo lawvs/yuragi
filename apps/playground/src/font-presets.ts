@@ -3,9 +3,9 @@ import {
   SOURCE_HAN_SERIF_AXES,
   SOURCE_HAN_SERIF_URL,
 } from "../../../shared/source-han-serif";
+import wasmUrl from "../../../packages/wasm/wasm/yuragi_wasm_compiler.wasm?url";
 
-export const DEFAULT_WASM_URL =
-  `${import.meta.env.BASE_URL}yuragi-wasm/yuragi_wasm_compiler.wasm`;
+export const DEFAULT_WASM_URL = wasmUrl;
 
 export const DEFAULT_FONT_URL =
   import.meta.env.YURAGI_PLAYGROUND_FONT_URL || SOURCE_HAN_SERIF_URL;

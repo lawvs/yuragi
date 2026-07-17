@@ -21,9 +21,8 @@ pnpm playground:build
 ```
 
 Both commands compile the Rust WASM module before Vite starts. The generated
-module is written to
-`apps/playground/public/yuragi-wasm/yuragi_wasm_compiler.wasm`, copied into the
-production build, and ignored by Git.
+module is written to `packages/wasm/wasm/yuragi_wasm_compiler.wasm` and Vite
+serves or bundles it as an asset.
 
 ## Hero outline
 

@@ -10,7 +10,7 @@
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "wasm-lab:build": "pnpm --filter @yuragi-labs/wasm build:wasm && node scripts/copy-wasm-lab.mjs"
+    "wasm-lab:build": "pnpm --filter @yuragi-labs/wasm build:wasm"
   },
   "dependencies": {
     "@yuragi-labs/core": "workspace:*",

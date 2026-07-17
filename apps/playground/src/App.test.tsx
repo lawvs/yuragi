@@ -203,8 +203,8 @@ describe("App", () => {
     expect(provider?.getAttribute("data-font")).toContain(
       "SourceHanSerifSC-VF.otf",
     );
-    expect(provider?.getAttribute("data-wasm")).toBe(
-      "/yuragi-wasm/yuragi_wasm_compiler.wasm",
+    expect(provider?.getAttribute("data-wasm")).toEqual(
+      expect.stringContaining("yuragi_wasm_compiler.wasm"),
     );
     expect(provider?.getAttribute("data-axes")).toBe('{"wght":900}');
     expect(dashboard).not.toBeNull();
