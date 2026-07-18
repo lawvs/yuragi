@@ -19,6 +19,7 @@ export default defineConfig(async ({ command }) => {
   const wasmCompilerAsset = new URL(coreWasm.asset, import.meta.url).pathname;
 
   return {
+    base: "./",
     define: {
       "import.meta.env.YURAGI_PLAYGROUND_FONT_URL": JSON.stringify(
         font ? `/@fs/${font.replaceAll("\\", "/")}` : "",
