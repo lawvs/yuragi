@@ -43,6 +43,21 @@ type WorkerMessage =
 
 const defaultFontPreset = findFontPreset(DEFAULT_FONT_PRESET_ID);
 
+function statusMessage(status: LabStatus) {
+  switch (status) {
+    case "idle":
+      return "Waiting for compiler and font.";
+    case "loading":
+      return "Loading compiler and font…";
+    case "ready":
+      return "Ready. Edit the title, then compile an outline.";
+    case "compiling":
+      return "Compiling outline…";
+    case "error":
+      return "Resolve the error, then load the compiler and font again.";
+  }
+}
+
 export function WasmLab() {
   const workerRef = useRef<Worker | null>(null);
   const pendingFontRef = useRef<
@@ -194,12 +209,15 @@ export function WasmLab() {
   const canCompile = status === "ready" && text.trim().length > 0;
   const canLoadRemoteFont = fontUrl.trim().length > 0;
   const remoteFontReadonly = selectedPresetId !== "custom";
+  const compileHint = canCompile
+    ? "Compile the current title to update the preview."
+    : "Compile is available after the compiler and font are loaded.";
 
   return (
     <section className="wasm-lab" aria-label="WASM Lab">
       <div className="wasm-lab-header">
         <div>
-          <p className="eyebrow">yuragi experiment</p>
+          <p className="eyebrow">wasm test tool</p>
           <h2>WASM Lab</h2>
         </div>
         <div className="wasm-lab-actions">
@@ -208,10 +226,10 @@ export function WasmLab() {
             onClick={loadDefaultFont}
             disabled={!canLoadRemoteFont}
           >
-            Load compiler and font
+            1. Load compiler and font
           </button>
           <button type="button" onClick={compileTitle} disabled={!canCompile}>
-            Compile title
+            2. Compile title
           </button>
         </div>
       </div>
@@ -267,16 +285,21 @@ export function WasmLab() {
             />
           </label>
 
-          <p className="wasm-lab-status" data-status={status}>
-            {status === "idle"
-              ? "Build the WASM lab, then load the compiler."
-              : status}
+          <p className="wasm-lab-flow">
+            Load the compiler and selected font before compiling.
           </p>
+          <p className="wasm-lab-status" data-status={status}>
+            {statusMessage(status)}
+          </p>
+          <p className="wasm-lab-hint">{compileHint}</p>
 
           {error ? <p className="wasm-lab-error">{error}</p> : null}
         </section>
 
-        <section className="wasm-lab-preview" aria-label="Runtime preview">
+        <section
+          className="wasm-lab-preview"
+          aria-label="Compiled outline preview"
+        >
           <YuragiText
             text={text}
             outline={outline}
@@ -292,8 +315,8 @@ export function WasmLab() {
           />
           <p>
             {outline
-              ? `Runtime outline: ${formatBytes(metrics.outlineBytes ?? 0)}`
-              : "Fallback text is shown until the runtime outline is ready."}
+              ? `Compiled outline: ${formatBytes(metrics.outlineBytes ?? 0)}`
+              : "Fallback text is shown until an outline is compiled."}
           </p>
         </section>
       </div>

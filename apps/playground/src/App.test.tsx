@@ -264,7 +264,7 @@ describe("App", () => {
     expect(reactMocks.startTransition).toHaveBeenCalledTimes(1);
   });
 
-  it("keeps the experimental WASM lab behind an explicit playground tab", () => {
+  it("keeps the WASM lab behind an explicit playground tab with guided steps", () => {
     renderApp();
 
     expect(host.querySelector("[data-yuragi-runtime-provider]")).not.toBeNull();
@@ -282,7 +282,14 @@ describe("App", () => {
     expect(host.querySelector(".workspace")).toBeNull();
     expect(host.querySelector(".wasm-lab")).not.toBeNull();
     expect(host.textContent).toContain("WASM Lab");
+    expect(host.textContent).toContain("1. Load compiler and font");
     expect(host.textContent).toContain("Compile title");
+    expect(host.textContent).toContain(
+      "Load the compiler and selected font before compiling.",
+    );
+    expect(host.textContent).toContain(
+      "Compile is available after the compiler and font are loaded.",
+    );
   });
 
   it("opens the Shard Inspector with multilingual glyph sections and search", () => {

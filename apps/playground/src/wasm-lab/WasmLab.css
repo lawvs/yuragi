@@ -82,7 +82,9 @@
   background: var(--color-bg-block);
 }
 
+.wasm-lab-flow,
 .wasm-lab-status,
+.wasm-lab-hint,
 .wasm-lab-error,
 .wasm-lab-preview p {
   margin: 0;
@@ -90,7 +92,8 @@
   line-height: 1.45;
 }
 
-.wasm-lab-status {
+.wasm-lab-status,
+.wasm-lab-hint {
   font-variant-numeric: tabular-nums;
 }
 
