@@ -3,6 +3,11 @@
 This directory stores pending Tegami changelog files and the publish lock that
 Tegami writes during versioning.
 
+Tegami documentation:
+
+- https://tegami.fuma-nama.dev
+- https://tegami.fuma-nama.dev/changelog
+
 ## Changelog entries
 
 Create a changelog entry for user-facing package changes:
