@@ -1,3 +1,8 @@
+// Portions derived from CircuitCoder/layered under the MIT License:
+// https://github.com/CircuitCoder/layered/blob/813afc3296ca0c82f3556d02b0140b9fce8f8a96/gen/src/font.rs
+// Copyright (c) 2025 Liu Xiaoyi
+// SPDX-License-Identifier: MIT
+
 use std::collections::{BTreeMap, HashSet};
 
 use anyhow::Context;
