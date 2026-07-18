@@ -183,20 +183,16 @@ export function YuragiText(props: YuragiTextProps) {
   const [compiled, setCompiled] = useState<{
     text: string;
     outline: NonNullable<StaticYuragiTextProps["outline"]>;
+    skipEnterSettle: boolean;
   }>();
-  const previousFontRef = useRef(font);
-  const previousErrorRef = useRef(error);
+  const sessionRef = useRef({ error, font });
   const hasDisplayedOutlineRef = useRef(false);
   const outline = compiled?.text === props.text ? compiled.outline : undefined;
 
   useEffect(() => {
     let cancelled = false;
-    if (
-      previousFontRef.current !== font ||
-      previousErrorRef.current !== error
-    ) {
-      previousFontRef.current = font;
-      previousErrorRef.current = error;
+    if (sessionRef.current.font !== font || sessionRef.current.error !== error) {
+      sessionRef.current = { error, font };
       hasDisplayedOutlineRef.current = false;
     }
     setCompiled(undefined);
@@ -207,7 +203,13 @@ export function YuragiText(props: YuragiTextProps) {
       .compile(props.text)
       .then((compiledOutline) => {
         if (!cancelled) {
-          setCompiled({ text: props.text, outline: compiledOutline });
+          const skipEnterSettle = !hasDisplayedOutlineRef.current;
+          hasDisplayedOutlineRef.current = true;
+          setCompiled({
+            text: props.text,
+            outline: compiledOutline,
+            skipEnterSettle,
+          });
         }
       })
       .catch(() => {
@@ -221,15 +223,9 @@ export function YuragiText(props: YuragiTextProps) {
     };
   }, [error, font, props.text]);
 
-  useEffect(() => {
-    if (outline) {
-      hasDisplayedOutlineRef.current = true;
-    }
-  }, [outline]);
-
   const transition =
     outline &&
-    !hasDisplayedOutlineRef.current &&
+    compiled?.skipEnterSettle &&
     props.transition?.enter === "settle"
       ? { ...props.transition, enter: "none" as const }
       : props.transition;

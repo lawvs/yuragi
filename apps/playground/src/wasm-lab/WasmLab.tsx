@@ -1,45 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { TextOutline } from "@yuragi-labs/core";
+import { useMemo, useState } from "react";
 import { YuragiText } from "@yuragi-labs/react/static";
 import "./WasmLab.css";
 import {
   DEFAULT_FONT_PRESET_ID,
-  DEFAULT_WASM_URL,
   FONT_PRESETS,
   findFontPreset,
 } from "./config";
-import {
-  type CompileMetrics,
-  formatBytes,
-  summarizeCompileMetrics,
-} from "./metrics";
-
-type LabStatus = "idle" | "loading" | "ready" | "compiling" | "error";
-
-type WorkerMessage =
-  | {
-      type: "wasm-ready";
-      wasmBytes: number;
-      wasmLoadMs: number;
-    }
-  | {
-      type: "font-ready";
-      fontBytes: number;
-      fontLoadMs: number;
-      unitsPerEm: number;
-    }
-  | {
-      type: "compiled";
-      outline: TextOutline;
-      compileMs: number;
-      outlineBytes: number;
-      wasmBytes: number;
-      fontBytes: number;
-    }
-  | {
-      type: "error";
-      message: string;
-    };
+import { formatBytes, summarizeCompileMetrics } from "./metrics";
+import { useWasmLabCompiler, type LabStatus } from "./useWasmLabCompiler";
 
 const defaultFontPreset = findFontPreset(DEFAULT_FONT_PRESET_ID);
 
@@ -59,139 +27,38 @@ function statusMessage(status: LabStatus) {
 }
 
 export function WasmLab() {
-  const workerRef = useRef<Worker | null>(null);
-  const pendingFontRef = useRef<
-    | { type: "remote"; fontUrl: string }
-    | { type: "local"; fontBytes: ArrayBuffer }
-    | null
-  >(null);
-  const fontUrlRef = useRef(defaultFontPreset.url);
   const [selectedPresetId, setSelectedPresetId] = useState(
     DEFAULT_FONT_PRESET_ID,
   );
   const [text, setText] = useState(defaultFontPreset.sampleText);
   const [fontUrl, setFontUrl] = useState(defaultFontPreset.url);
-  const [status, setStatus] = useState<LabStatus>("idle");
-  const [error, setError] = useState("");
-  const [outline, setOutline] = useState<TextOutline | undefined>();
-  const [metrics, setMetrics] = useState<CompileMetrics>({
-    usedFallback: true,
-  });
+  const {
+    compile,
+    error,
+    loadLocalFont,
+    loadRemoteFont,
+    metrics,
+    outline,
+    reset,
+    status,
+  } = useWasmLabCompiler();
   const rows = useMemo(() => summarizeCompileMetrics(metrics), [metrics]);
 
-  useEffect(() => {
-    if (typeof Worker === "undefined") {
-      setError("Web Worker is not available in this browser.");
-      setStatus("error");
-      return;
-    }
-
-    const worker = new Worker(new URL("./wasm-worker.ts", import.meta.url), {
-      type: "module",
-    });
-    workerRef.current = worker;
-
-    worker.addEventListener("message", (event: MessageEvent<WorkerMessage>) => {
-      const message = event.data;
-
-      if (message.type === "wasm-ready") {
-        setMetrics((current) => ({
-          ...current,
-          wasmBytes: message.wasmBytes,
-          wasmLoadMs: message.wasmLoadMs,
-        }));
-        const pendingFont = pendingFontRef.current ?? {
-          type: "remote" as const,
-          fontUrl: fontUrlRef.current,
-        };
-
-        if (pendingFont.type === "local") {
-          worker.postMessage(
-            { type: "load-local-font", fontBytes: pendingFont.fontBytes },
-            [pendingFont.fontBytes],
-          );
-        } else {
-          worker.postMessage({
-            type: "load-remote-font",
-            fontUrl: pendingFont.fontUrl,
-          });
-        }
-        return;
-      }
-
-      if (message.type === "font-ready") {
-        setMetrics((current) => ({
-          ...current,
-          fontBytes: message.fontBytes,
-          fontLoadMs: message.fontLoadMs,
-        }));
-        setStatus("ready");
-        return;
-      }
-
-      if (message.type === "compiled") {
-        setOutline(message.outline);
-        setMetrics((current) => ({
-          ...current,
-          wasmBytes: message.wasmBytes,
-          fontBytes: message.fontBytes,
-          compileMs: message.compileMs,
-          outlineBytes: message.outlineBytes,
-          usedFallback: false,
-        }));
-        setStatus("ready");
-        return;
-      }
-
-      setError(message.message);
-      setStatus("error");
-    });
-
-    return () => {
-      worker.terminate();
-      workerRef.current = null;
-    };
-  }, []);
-
   function loadDefaultFont() {
-    setError("");
-    setOutline(undefined);
-    setStatus("loading");
-    setMetrics({ usedFallback: true });
-    pendingFontRef.current = { type: "remote", fontUrl };
-    workerRef.current?.postMessage({
-      type: "load-wasm",
-      wasmUrl: DEFAULT_WASM_URL,
-    });
+    loadRemoteFont(fontUrl);
   }
 
   function compileTitle() {
     const preset = findFontPreset(selectedPresetId);
-    setError("");
-    setStatus("compiling");
-    setMetrics((current) => ({ ...current, usedFallback: true }));
-    workerRef.current?.postMessage({
-      type: "compile",
+    compile({
       text,
       axes: preset.axes,
     });
   }
 
-  async function loadLocalFont(file: File | undefined) {
+  async function handleLocalFont(file: File | undefined) {
     if (!file) return;
-
-    setError("");
-    setOutline(undefined);
-    setStatus("loading");
-    setMetrics({ usedFallback: true });
-    pendingFontRef.current = {
-      type: "local",
-      fontBytes: await file.arrayBuffer(),
-    };
-    workerRef.current?.postMessage({
-      type: "load-wasm",
-      wasmUrl: DEFAULT_WASM_URL,
-    });
+    await loadLocalFont(file);
   }
 
   function selectFontPreset(id: string) {
@@ -199,11 +66,7 @@ export function WasmLab() {
     setSelectedPresetId(preset.id);
     setText(preset.sampleText);
     setFontUrl(preset.url);
-    fontUrlRef.current = preset.url;
-    setOutline(undefined);
-    setError("");
-    setStatus("idle");
-    setMetrics({ usedFallback: true });
+    reset();
   }
 
   const canCompile = status === "ready" && text.trim().length > 0;
@@ -266,10 +129,7 @@ export function WasmLab() {
               name="wasm-font-url"
               value={fontUrl}
               readOnly={remoteFontReadonly}
-              onChange={(event) => {
-                fontUrlRef.current = event.target.value;
-                setFontUrl(event.target.value);
-              }}
+              onChange={(event) => setFontUrl(event.target.value)}
             />
           </label>
 
@@ -280,7 +140,7 @@ export function WasmLab() {
               type="file"
               accept=".otf,.ttf,.woff,.woff2,font/*"
               onChange={(event) => {
-                void loadLocalFont(event.target.files?.[0]);
+                void handleLocalFont(event.target.files?.[0]);
               }}
             />
           </label>
