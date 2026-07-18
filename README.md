@@ -16,16 +16,14 @@ The name comes from Japanese `揺らぎ`, a gentle swaying or flicker that echoe
 | Package | Purpose |
 | --- | --- |
 | `@yuragi-labs/react` | Recommended React 19 runtime API and static renderer. |
-| `@yuragi-labs/core` | Shared outline types, layout helpers, SVG helpers, and CSS. |
+| `@yuragi-labs/core` | Shared outline types, layout helpers, SVG helpers, CSS, and lower-level runtime WASM compiler. |
 | `@yuragi-labs/compiler` | Native build-time outline compiler. |
-| `@yuragi-labs/wasm` | Lower-level runtime WASM compiler. |
 
 Package-specific options and lower-level APIs live in the package READMEs:
 
 - [`@yuragi-labs/react`](packages/react/README.md)
 - [`@yuragi-labs/core`](packages/core/README.md)
 - [`@yuragi-labs/compiler`](packages/compiler/README.md)
-- [`@yuragi-labs/wasm`](packages/wasm/README.md)
 
 ## Install
 

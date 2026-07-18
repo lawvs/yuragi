@@ -9,8 +9,8 @@ coverage
 target
 Cargo.lock
 !packages/compiler/native/Cargo.lock
-!packages/wasm/native/Cargo.lock
+!packages/core/wasm-compiler/Cargo.lock
 docs/superpowers
 apps/playground/public/*-wasm
-packages/wasm/wasm
+packages/core/wasm
 examples/react-static-vite/src/generated/

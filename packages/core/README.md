@@ -1,7 +1,7 @@
 # @yuragi-labs/core
 
-Shared types, layout helpers, SVG helpers, animation helpers, and CSS for
-Yuragi packages.
+Shared types, layout helpers, SVG helpers, animation helpers, CSS, and the
+lower-level runtime WASM compiler for Yuragi packages.
 
 Most applications use this package indirectly through `@yuragi-labs/react`. Static
 React users usually render `YuragiStyles` from `@yuragi-labs/react/static`; import
@@ -43,3 +43,42 @@ included exactly once in the application.
 declare the stylesheet in another environment, such as `@yuragi-labs/react`'s
 static `YuragiStyles` component. Most React users should import
 `YuragiStyles` from `@yuragi-labs/react/static` instead of using this value directly.
+
+## Runtime WASM Compiler
+
+React applications should prefer `YuragiFontProvider` and `YuragiText` from
+`@yuragi-labs/react`. Use `@yuragi-labs/core/wasm` directly for custom runtime
+integrations:
+
+```ts
+import { createYuragiFont, type FontAxes } from "@yuragi-labs/core/wasm";
+
+const axes = { wght: 900 } satisfies FontAxes;
+
+const font = await createYuragiFont({
+  font: "/fonts/NotoSerifSC[wght].ttf",
+  axes,
+  preload: ["Dashboard"],
+});
+
+const outline = await font.compile("Dashboard");
+font.dispose();
+```
+
+`createYuragiFont` loads the WASM compiler, loads the font, and returns a
+`YuragiFont` object with:
+
+- `info`: font metadata reported by the runtime.
+- `compile(text, options?)`: compile one string into a `TextOutline`.
+- `preload(texts?)`: compile and cache a group of strings.
+- `dispose()`: release the runtime reference and clear the in-memory cache.
+
+For advanced control, instantiate the runtime directly:
+
+```ts
+import { YuragiWasmRuntime } from "@yuragi-labs/core/wasm/runtime";
+
+const runtime = await YuragiWasmRuntime.load(wasmBytes);
+const info = runtime.setFont(fontBytes);
+const outline = runtime.compileTitle("Dashboard", { wght: 900 });
+```

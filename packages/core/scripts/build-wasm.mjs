@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 
 const packageDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const nativeDir = resolve(packageDir, "native");
+const nativeDir = resolve(packageDir, "wasm-compiler");
 const manifestPath = resolve(nativeDir, "Cargo.toml");
 const targetDir = resolve(nativeDir, "target");
 const wasmSource = resolve(

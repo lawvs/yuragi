@@ -33,7 +33,6 @@ const paper = tegami({
   },
   packages: {
     "@yuragi-labs/core": { group: "yuragi" },
-    "@yuragi-labs/wasm": { group: "yuragi" },
     "@yuragi-labs/compiler": { group: "yuragi" },
     "@yuragi-labs/react": { group: "yuragi" },
   },

@@ -4,7 +4,7 @@
     "types": ["react"],
     "paths": {
       "@yuragi-labs/core": ["../core/src/index.ts"],
-      "@yuragi-labs/wasm": ["../wasm/src/index.ts"]
+      "@yuragi-labs/core/wasm": ["../core/src/wasm/index.ts"]
     }
   },
   "include": ["src", "test", "vitest.config.ts"]

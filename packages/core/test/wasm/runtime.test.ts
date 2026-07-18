@@ -1,6 +1,6 @@
-import type { TextOutline } from "@yuragi-labs/core";
+import type { TextOutline } from "../../src/types";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { YuragiWasmRuntime } from "../src/runtime";
+import { YuragiWasmRuntime } from "../../src/wasm/runtime";
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();

@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config";
 
 const wasmCompilerAsset = new URL(
-  "../../packages/wasm/wasm/yuragi_wasm_compiler.wasm",
+  "../../packages/core/wasm/yuragi_wasm_compiler.wasm",
   import.meta.url,
 ).pathname;
 
@@ -16,15 +16,15 @@ export default defineConfig({
         "../../packages/react/src/index.ts",
         import.meta.url,
       ).pathname,
-      "@yuragi-labs/wasm/runtime": new URL(
-        "../../packages/wasm/src/runtime.ts",
+      "@yuragi-labs/core/wasm/runtime": new URL(
+        "../../packages/core/src/wasm/runtime.ts",
         import.meta.url,
       ).pathname,
-      "@yuragi-labs/wasm/yuragi_wasm_compiler.wasm?url":
+      "@yuragi-labs/core/wasm/yuragi_wasm_compiler.wasm?url":
         `${wasmCompilerAsset}?url`,
-      "@yuragi-labs/wasm/yuragi_wasm_compiler.wasm": wasmCompilerAsset,
-      "@yuragi-labs/wasm": new URL(
-        "../../packages/wasm/src/index.ts",
+      "@yuragi-labs/core/wasm/yuragi_wasm_compiler.wasm": wasmCompilerAsset,
+      "@yuragi-labs/core/wasm": new URL(
+        "../../packages/core/src/wasm/index.ts",
         import.meta.url,
       ).pathname,
     },

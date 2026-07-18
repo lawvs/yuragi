@@ -10,7 +10,7 @@ import {
   createYuragiFont,
   type BinarySource,
   type YuragiFont,
-} from "@yuragi-labs/wasm";
+} from "@yuragi-labs/core/wasm";
 import type { FontAxes } from "@yuragi-labs/core";
 import { YuragiStyles } from "./YuragiStyles";
 import { YuragiText as StaticYuragiText } from "./YuragiText";

@@ -14,7 +14,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repoRoot = fileURLToPath(new URL("../", import.meta.url));
 const smokeScriptPath = resolve(repoRoot, "scripts/release-smoke.mjs");
-const packageDirectories = ["core", "wasm", "compiler", "react"];
+const packageDirectories = ["core", "compiler", "react"];
 
 interface PackageManifest {
   name: string;

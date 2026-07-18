@@ -1,10 +1,10 @@
 import { readFile } from "node:fs/promises";
 
-const [core, wasm, wasmRuntime, compiler, react, reactStatic] =
+const [core, coreWasm, coreWasmRuntime, compiler, react, reactStatic] =
   await Promise.all([
     import("@yuragi-labs/core"),
-    import("@yuragi-labs/wasm"),
-    import("@yuragi-labs/wasm/runtime"),
+    import("@yuragi-labs/core/wasm"),
+    import("@yuragi-labs/core/wasm/runtime"),
     import("@yuragi-labs/compiler"),
     import("@yuragi-labs/react"),
     import("@yuragi-labs/react/static"),
@@ -12,8 +12,11 @@ const [core, wasm, wasmRuntime, compiler, react, reactStatic] =
 
 for (const [name, value] of [
   ["@yuragi-labs/core#createShardedSvg", core.createShardedSvg],
-  ["@yuragi-labs/wasm#createYuragiFont", wasm.createYuragiFont],
-  ["@yuragi-labs/wasm/runtime#YuragiWasmRuntime", wasmRuntime.YuragiWasmRuntime],
+  ["@yuragi-labs/core/wasm#createYuragiFont", coreWasm.createYuragiFont],
+  [
+    "@yuragi-labs/core/wasm/runtime#YuragiWasmRuntime",
+    coreWasmRuntime.YuragiWasmRuntime,
+  ],
   ["@yuragi-labs/compiler#compileOutlines", compiler.compileOutlines],
   ["@yuragi-labs/react#YuragiFontProvider", react.YuragiFontProvider],
   ["@yuragi-labs/react/static#YuragiText", reactStatic.YuragiText],
@@ -24,7 +27,7 @@ for (const [name, value] of [
 }
 
 const wasmUrl = import.meta.resolve(
-  "@yuragi-labs/wasm/yuragi_wasm_compiler.wasm",
+  "@yuragi-labs/core/wasm/yuragi_wasm_compiler.wasm",
 );
 const wasmModule = await WebAssembly.compile(await readFile(new URL(wasmUrl)));
 const wasmExports = new Map(
@@ -40,7 +43,7 @@ for (const [name, kind] of [
 ]) {
   if (wasmExports.get(name) !== kind) {
     throw new Error(
-      "@yuragi-labs/wasm expected " + name + " to be a " + kind + " export",
+      "@yuragi-labs/core/wasm expected " + name + " to be a " + kind + " export",
     );
   }
 }

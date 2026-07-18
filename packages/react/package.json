@@ -28,8 +28,7 @@
     "react-dom": "^19.2.0"
   },
   "dependencies": {
-    "@yuragi-labs/core": "workspace:*",
-    "@yuragi-labs/wasm": "workspace:*"
+    "@yuragi-labs/core": "workspace:*"
   },
   "exports": {
     ".": {

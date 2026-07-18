@@ -2,13 +2,18 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { resolvePlaygroundFont } from "./playground-font";
 
-const wasmCompilerAsset = new URL(
-  "../../packages/wasm/wasm/yuragi_wasm_compiler.wasm",
-  import.meta.url,
-).pathname;
-
 export default defineConfig(async ({ command }) => {
   const font = command === "serve" ? await resolvePlaygroundFont() : "";
+  const coreWasmDir =
+    command === "serve"
+      ? "../../packages/core/src/wasm"
+      : "../../packages/core/dist/wasm";
+  const wasmCompilerAsset = new URL(
+    command === "serve"
+      ? "../../packages/core/wasm/yuragi_wasm_compiler.wasm"
+      : "../../packages/core/dist/wasm/yuragi_wasm_compiler.wasm",
+    import.meta.url,
+  ).pathname;
 
   return {
     define: {
@@ -26,15 +31,15 @@ export default defineConfig(async ({ command }) => {
           "../../packages/react/src/index.ts",
           import.meta.url,
         ).pathname,
-        "@yuragi-labs/wasm/runtime": new URL(
-          "../../packages/wasm/src/runtime.ts",
+        "@yuragi-labs/core/wasm/runtime": new URL(
+          `${coreWasmDir}/runtime.${command === "serve" ? "ts" : "js"}`,
           import.meta.url,
         ).pathname,
-        "@yuragi-labs/wasm/yuragi_wasm_compiler.wasm?url":
+        "@yuragi-labs/core/wasm/yuragi_wasm_compiler.wasm?url":
           `${wasmCompilerAsset}?url`,
-        "@yuragi-labs/wasm/yuragi_wasm_compiler.wasm": wasmCompilerAsset,
-        "@yuragi-labs/wasm": new URL(
-          "../../packages/wasm/src/index.ts",
+        "@yuragi-labs/core/wasm/yuragi_wasm_compiler.wasm": wasmCompilerAsset,
+        "@yuragi-labs/core/wasm": new URL(
+          `${coreWasmDir}/index.${command === "serve" ? "ts" : "js"}`,
           import.meta.url,
         ).pathname,
       },

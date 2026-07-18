@@ -10,12 +10,11 @@
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "wasm-lab:build": "pnpm --filter @yuragi-labs/wasm build:wasm"
+    "wasm-lab:build": "pnpm --filter @yuragi-labs/core build"
   },
   "dependencies": {
     "@yuragi-labs/core": "workspace:*",
     "@yuragi-labs/react": "workspace:*",
-    "@yuragi-labs/wasm": "workspace:*",
     "@vitejs/plugin-react": "^6.0.3",
     "react": "19.2.7",
     "react-dom": "19.2.7",
