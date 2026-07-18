@@ -108,4 +108,4 @@ pnpm playground:build
 
 ## License
 
-MIT © lawvs and 喵喵.
+MIT © lawvs and CircuitCoder.
