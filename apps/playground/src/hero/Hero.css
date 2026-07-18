@@ -3,7 +3,9 @@
   min-height: min(760px, calc(100vh - 88px));
   align-content: center;
   gap: clamp(28px, 5vw, 60px);
-  padding: clamp(72px, 12vh, 144px) 0;
+  padding:
+    clamp(72px, 12vh, 144px)
+    clamp(16px, 3vw, 40px);
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -149,7 +151,7 @@
 @media (max-width: 560px) {
   .hero {
     gap: 30px;
-    padding: 64px 0;
+    padding: 64px clamp(12px, 5vw, 24px);
   }
 
   .hero-actions {
