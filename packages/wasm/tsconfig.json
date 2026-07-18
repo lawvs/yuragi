@@ -1,9 +1,0 @@
-{
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "paths": {
-      "@yuragi-labs/core": ["../core/src/index.ts"]
-    }
-  },
-  "include": ["src", "test", "vitest.config.ts"]
-}

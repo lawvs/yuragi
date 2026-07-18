@@ -20,9 +20,10 @@ Create a production build with:
 pnpm playground:build
 ```
 
-Both commands compile the Rust WASM module before Vite starts. The generated
-module is written to `packages/wasm/wasm/yuragi_wasm_compiler.wasm` and Vite
-serves or bundles it as an asset.
+Both commands build `@yuragi-labs/core` before Vite starts, including the Rust
+WASM module. The generated module is written to
+`packages/core/wasm/yuragi_wasm_compiler.wasm`, then copied into core's dist
+output for production bundling.
 
 ## Hero outline
 

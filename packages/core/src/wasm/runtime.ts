@@ -1,4 +1,4 @@
-import type { FontAxes, TextOutline } from "@yuragi-labs/core";
+import type { FontAxes, TextOutline } from "../types";
 
 type WasmExports = {
   memory: WebAssembly.Memory;

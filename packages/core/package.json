@@ -1,8 +1,17 @@
 {
   "name": "@yuragi-labs/core",
   "version": "0.1.0",
-  "description": "Core types, layout, SVG, animation, and styles for Yuragi text effects.",
-  "keywords": ["yuragi", "typography", "svg", "animation", "text-effects"],
+  "description": "Core types, layout, SVG, animation, styles, and runtime WASM compiler for Yuragi text effects.",
+  "license": "MIT",
+  "keywords": [
+    "yuragi",
+    "typography",
+    "svg",
+    "animation",
+    "text-effects",
+    "webassembly",
+    "wasm"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/lawvs/yuragi.git",
@@ -22,11 +31,21 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./wasm": {
+      "types": "./dist/wasm/index.d.ts",
+      "import": "./dist/wasm/index.js"
+    },
+    "./wasm/runtime": {
+      "types": "./dist/wasm/runtime.d.ts",
+      "import": "./dist/wasm/runtime.js"
+    },
+    "./wasm/yuragi_wasm_compiler.wasm": "./dist/wasm/yuragi_wasm_compiler.wasm",
     "./style.css": "./dist/style.css"
   },
   "files": ["dist"],
   "scripts": {
-    "build": "tsdown && cp src/style.css dist/style.css",
+    "build": "pnpm build:wasm && tsdown src/index.ts src/wasm/index.ts src/wasm/runtime.ts && cp src/style.css dist/style.css && mkdir -p dist/wasm && cp wasm/yuragi_wasm_compiler.wasm dist/wasm/yuragi_wasm_compiler.wasm",
+    "build:wasm": "node scripts/build-wasm.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

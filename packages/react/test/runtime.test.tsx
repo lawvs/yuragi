@@ -5,8 +5,8 @@ import {
   YuragiFontProvider,
   YuragiText,
 } from "../src/index";
-import { createYuragiFont } from "@yuragi-labs/wasm";
-import type { YuragiFont } from "@yuragi-labs/wasm";
+import { createYuragiFont } from "@yuragi-labs/core/wasm";
+import type { YuragiFont } from "@yuragi-labs/core/wasm";
 import type { TextOutline } from "@yuragi-labs/core";
 
 const outline: TextOutline = {
@@ -16,7 +16,7 @@ const outline: TextOutline = {
   groups: [],
 };
 
-vi.mock("@yuragi-labs/wasm", () => ({
+vi.mock("@yuragi-labs/core/wasm", () => ({
   createYuragiFont: vi.fn(),
 }));
 
