@@ -2,6 +2,7 @@
   "name": "@yuragi-labs/core",
   "version": "0.1.0",
   "description": "Core types, layout, SVG, animation, styles, and runtime WASM compiler for Yuragi text effects.",
+  "license": "MIT",
   "keywords": [
     "yuragi",
     "typography",

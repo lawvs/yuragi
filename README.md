@@ -105,3 +105,7 @@ pnpm typecheck
 pnpm test
 pnpm playground:build
 ```
+
+## License
+
+MIT © lawvs and 喵喵.
