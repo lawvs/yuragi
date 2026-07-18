@@ -48,7 +48,7 @@ export function RuntimeDemo() {
       <section
         className="workspace"
         data-demo-kind="runtime"
-        aria-label="Runtime React demo"
+        aria-label="Interactive React demo"
       >
         <aside className="post-list" aria-label="Demo posts">
           {demoPosts.map((post) => {
@@ -107,7 +107,7 @@ export function RuntimeDemo() {
               <label className="text-control">
                 <span>Title</span>
                 <input
-                  aria-label="Runtime title text"
+                  aria-label="Title text"
                   name="runtime-title"
                   value={draftTitle}
                   onChange={(event) => setDraftTitle(event.target.value)}

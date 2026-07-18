@@ -1,6 +1,6 @@
 # Yuragi Playground
 
-The playground contains Yuragi's runtime demo, shard inspector, and
+The playground contains Yuragi's interactive demo, shard inspector, and
 experimental WASM lab. Its landing title is rendered by Yuragi itself using a
 precompiled static outline, so the first visual does not wait for the runtime
 font or WASM compiler.

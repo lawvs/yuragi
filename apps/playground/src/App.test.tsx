@@ -188,9 +188,13 @@ describe("App", () => {
     expect(staticYuragiMocks.mountCount).toBe(2);
   });
 
-  it("renders the runtime demo by default through the public React API", () => {
+  it("renders the default demo as the first playground tab through the public React API", () => {
     renderApp();
 
+    const tabLabels = Array.from(
+      host.querySelectorAll<HTMLButtonElement>(".view-tabs button"),
+      (button) => button.textContent,
+    );
     const runtimeTab = host.querySelector<HTMLButtonElement>(
       'button[data-view="runtime-demo"]',
     );
@@ -199,6 +203,7 @@ describe("App", () => {
       '.preview-title [data-runtime-sharded-text="Dashboard"]',
     );
 
+    expect(tabLabels).toEqual(["Demo", "Shard Inspector", "WASM Lab"]);
     expect(runtimeTab?.getAttribute("aria-pressed")).toBe("true");
     expect(provider?.getAttribute("data-font")).toContain(
       "SourceHanSerifSC-VF.otf",
@@ -215,7 +220,7 @@ describe("App", () => {
     expect(host.textContent).not.toContain("Missing Outline");
   });
 
-  it("updates the runtime preview title from text input", () => {
+  it("updates the demo preview title from text input", () => {
     renderApp();
 
     const titleInput = host.querySelector<HTMLInputElement>(
@@ -224,11 +229,11 @@ describe("App", () => {
     expect(titleInput).not.toBeNull();
 
     act(() => {
-      setInputValue(titleInput!, "Live Runtime Title");
+      setInputValue(titleInput!, "Live Demo Title");
     });
 
     const title = host.querySelector(
-      '.preview-title [data-runtime-sharded-text="Live Runtime Title"]',
+      '.preview-title [data-runtime-sharded-text="Live Demo Title"]',
     );
     expect(title).not.toBeNull();
   });
