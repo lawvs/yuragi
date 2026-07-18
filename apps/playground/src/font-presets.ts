@@ -25,7 +25,7 @@ export const FONT_PRESETS: FontPreset[] = [
     id: "source-han-serif-sc",
     label: "Source Han Serif SC VF",
     url: DEFAULT_FONT_URL,
-    sampleText: "复杂分层",
+    sampleText: "Yuragi",
     axes: DEFAULT_AXES,
   },
   {
@@ -33,7 +33,7 @@ export const FONT_PRESETS: FontPreset[] = [
     label: "Noto Sans SC",
     url:
       "https://raw.githubusercontent.com/google/fonts/main/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf",
-    sampleText: "复杂分层",
+    sampleText: "Yuragi",
     axes: DEFAULT_AXES,
   },
   {
@@ -41,7 +41,7 @@ export const FONT_PRESETS: FontPreset[] = [
     label: "Noto Serif SC",
     url:
       "https://raw.githubusercontent.com/google/fonts/main/ofl/notoserifsc/NotoSerifSC%5Bwght%5D.ttf",
-    sampleText: "复杂分层",
+    sampleText: "Yuragi",
     axes: DEFAULT_AXES,
   },
   {
@@ -49,7 +49,7 @@ export const FONT_PRESETS: FontPreset[] = [
     label: "Ma Shan Zheng",
     url:
       "https://raw.githubusercontent.com/google/fonts/main/ofl/mashanzheng/MaShanZheng-Regular.ttf",
-    sampleText: "复杂分层",
+    sampleText: "Yuragi",
     axes: DEFAULT_AXES,
   },
   {
