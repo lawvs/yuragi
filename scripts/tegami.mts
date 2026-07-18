@@ -14,6 +14,7 @@ const paper = tegami({
       repo: "lawvs/yuragi",
       versionPr: {
         base: "main",
+        branch: "tegami/version-packages",
       },
     }),
   ],
@@ -24,6 +25,7 @@ const paper = tegami({
     },
   },
   npm: {
+    client: "npm",
     bumpDep({ dependent, kind }) {
       if (dependent.manifest.private || kind === "devDependencies") return false;
       return kind === "peerDependencies" ? "major" : "patch";
