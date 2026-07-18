@@ -4,12 +4,12 @@ import { ShardInspector } from "../shard-inspector/ShardInspector";
 import { WasmLab } from "../wasm-lab/WasmLab";
 
 const VIEW_TABS = [
+  { id: "runtime-demo", label: "Demo", View: RuntimeDemo },
   {
     id: "shard-inspector",
     label: "Shard Inspector",
     View: ShardInspector,
   },
-  { id: "runtime-demo", label: "Runtime Demo", View: RuntimeDemo },
   { id: "wasm-lab", label: "WASM Lab", View: WasmLab },
 ] as const;
 
