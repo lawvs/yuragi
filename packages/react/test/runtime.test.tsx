@@ -25,28 +25,34 @@ vi.mock("../src/YuragiText", () => ({
     text,
     outline,
     fallback,
-    transition,
+    animation,
   }: {
     text: string;
     outline?: TextOutline;
     fallback?: string;
-    transition?: {
-      enter?: string;
-      exit?: string;
+    animation?: boolean | {
+      enter?: boolean;
+      exit?: boolean;
       speed?: number;
     };
-  }) => (
-    <span
-      data-fallback={fallback}
-      data-has-outline={outline ? "yes" : "no"}
-      data-sharded-text={text}
-      data-transition-enter={transition?.enter}
-      data-transition-exit={transition?.exit}
-      data-transition-speed={transition?.speed}
-    >
-      {text}
-    </span>
-  ),
+  }) => {
+    const options = typeof animation === "object" ? animation : undefined;
+    return (
+      <span
+        data-animation={
+          typeof animation === "boolean" ? String(animation) : undefined
+        }
+        data-animation-enter={options?.enter?.toString()}
+        data-animation-exit={options?.exit?.toString()}
+        data-animation-speed={options?.speed}
+        data-fallback={fallback}
+        data-has-outline={outline ? "yes" : "no"}
+        data-sharded-text={text}
+      >
+        {text}
+      </span>
+    );
+  },
 }));
 
 function deferred<T>() {
@@ -172,7 +178,7 @@ describe("@yuragi-labs/react runtime", () => {
     );
   });
 
-  it("does not use enter transition for the first runtime outline reveal", async () => {
+  it("does not animate enter for the first runtime outline reveal", async () => {
     const compiled = deferred<TextOutline>();
     const font = {
       info: { bytes: 3, unitsPerEm: 1000 },
@@ -185,7 +191,7 @@ describe("@yuragi-labs/react runtime", () => {
       <YuragiFontProvider font={font}>
         <YuragiText
           text="Runtime"
-          transition={{ enter: "settle", exit: "scatter", speed: 0.8 }}
+          animation={{ speed: 0.8 }}
         />
       </YuragiFontProvider>,
     );
@@ -199,12 +205,12 @@ describe("@yuragi-labs/react runtime", () => {
 
     const rendered = screen.getByText("Runtime");
     expect(rendered.dataset.hasOutline).toBe("yes");
-    expect(rendered.dataset.transitionEnter).toBe("none");
-    expect(rendered.dataset.transitionExit).toBe("scatter");
-    expect(rendered.dataset.transitionSpeed).toBe("0.8");
+    expect(rendered.dataset.animationEnter).toBe("false");
+    expect(rendered.dataset.animationExit).toBeUndefined();
+    expect(rendered.dataset.animationSpeed).toBe("0.8");
   });
 
-  it("keeps enter transition for runtime text changes after the first outline", async () => {
+  it("keeps the default enter animation for later runtime text changes", async () => {
     const first = deferred<TextOutline>();
     const second = deferred<TextOutline>();
     const font = {
@@ -218,7 +224,7 @@ describe("@yuragi-labs/react runtime", () => {
 
     const { rerender } = render(
       <YuragiFontProvider font={font}>
-        <YuragiText text="First" transition={{ enter: "settle" }} />
+        <YuragiText text="First" />
       </YuragiFontProvider>,
     );
 
@@ -227,11 +233,11 @@ describe("@yuragi-labs/react runtime", () => {
       await first.promise;
     });
 
-    expect(screen.getByText("First").dataset.transitionEnter).toBe("none");
+    expect(screen.getByText("First").dataset.animationEnter).toBe("false");
 
     rerender(
       <YuragiFontProvider font={font}>
-        <YuragiText text="Second" transition={{ enter: "settle" }} />
+        <YuragiText text="Second" />
       </YuragiFontProvider>,
     );
 
@@ -242,10 +248,10 @@ describe("@yuragi-labs/react runtime", () => {
 
     const rendered = screen.getByText("Second");
     expect(rendered.dataset.hasOutline).toBe("yes");
-    expect(rendered.dataset.transitionEnter).toBe("settle");
+    expect(rendered.dataset.animationEnter).toBeUndefined();
   });
 
-  it("does not use enter transition when text changes before the first runtime outline reveal", async () => {
+  it("does not animate enter when text changes before the first runtime outline reveal", async () => {
     const first = deferred<TextOutline>();
     const second = deferred<TextOutline>();
     const font = {
@@ -259,13 +265,13 @@ describe("@yuragi-labs/react runtime", () => {
 
     const { rerender } = render(
       <YuragiFontProvider font={font}>
-        <YuragiText text="First" transition={{ enter: "settle" }} />
+        <YuragiText text="First" />
       </YuragiFontProvider>,
     );
 
     rerender(
       <YuragiFontProvider font={font}>
-        <YuragiText text="Second" transition={{ enter: "settle" }} />
+        <YuragiText text="Second" />
       </YuragiFontProvider>,
     );
 
@@ -277,7 +283,7 @@ describe("@yuragi-labs/react runtime", () => {
 
     const rendered = screen.getByText("Second");
     expect(rendered.dataset.hasOutline).toBe("yes");
-    expect(rendered.dataset.transitionEnter).toBe("none");
+    expect(rendered.dataset.animationEnter).toBe("false");
   });
 
   it("configures provider-managed styles", () => {

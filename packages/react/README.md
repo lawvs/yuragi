@@ -22,7 +22,6 @@ export function RuntimeTitle({ title }: { title: string }) {
         size={88}
         fallback="text"
         hover="outline"
-        transition={{ enter: "settle", exit: "scatter", speed: 1 }}
       />
     </YuragiFontProvider>
   );
@@ -146,6 +145,18 @@ reliable.
 
 Import the runtime component props as `YuragiTextProps` from `@yuragi-labs/react`.
 
+Settle and scatter animations are enabled by default. Disable all animation or
+one phase explicitly when needed:
+
+```tsx
+<YuragiText text="Static title" animation={false} />
+<YuragiText text="Enter only" animation={{ exit: false }} />
+<YuragiText text="Exit only" animation={{ enter: false }} />
+```
+
+Runtime `YuragiText` skips settle when replacing its initial fallback with the
+first compiled outline. Later text changes use the configured enter animation.
+
 - `text`: rendered string.
 - `size`: text size in CSS pixels.
 - `maxWidth`: wrapping width.
@@ -154,10 +165,12 @@ Import the runtime component props as `YuragiTextProps` from `@yuragi-labs/react
   `"none"` disables it.
 - `fallback`: `"text"` renders readable text while the outline is compiling;
   `"hidden"` renders nothing; `"error"` throws.
-- `transition.enter`: `"settle"` animates shards into place.
-- `transition.exit`: `"scatter"` animates the previous title out when the title
-  changes or unmounts.
-- `transition.speed`: playback speed multiplier. `1` is the default, values
+- `animation`: enabled by default with settle on enter and scatter on exit;
+  pass `false` to disable both animations.
+- `animation.enter`: set to `false` to disable the settle animation.
+- `animation.exit`: set to `false` to disable scatter when the title changes or
+  unmounts.
+- `animation.speed`: playback speed multiplier. `1` is the default, values
   below `1` are slower, and values above `1` are faster.
 - `onEnterComplete`: called after the settle animation finishes.
 - `onExitComplete`: called after the scatter animation finishes, including
@@ -189,14 +202,13 @@ export function StaticTitle() {
         align="start"
         hover="outline"
         fallback="text"
-        transition={{ enter: "settle", exit: "scatter", speed: 1 }}
       />
     </>
   );
 }
 ```
 
-Static `YuragiText` accepts the same visual and transition props as runtime
+Static `YuragiText` accepts the same visual and animation props as runtime
 `YuragiText`, plus:
 
 - `outline`: a compiled `TextOutline`, usually read from an outline map created

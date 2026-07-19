@@ -1,7 +1,9 @@
 # yuragi
 
-`yuragi` renders text as SVG glyph fragments and animates those fragments
-with hover outline, settle, and scatter effects.
+Yuragi is a Rust-powered typography toolkit that breaks font glyphs into SVG
+fragments and brings them to life with striking settle, scatter, and hover
+animations. Use its React components with the built-in WASM runtime for dynamic
+text, or compile outlines ahead of time for static builds.
 
 The name comes from Japanese `揺らぎ`, a gentle swaying or flicker that echoes
 `摇曳` and the subtle variation of the shard animation.
@@ -49,7 +51,6 @@ export function Title() {
         text="Dashboard"
         size={56}
         hover="outline"
-        transition={{ enter: "settle", exit: "scatter", speed: 1 }}
       />
     </YuragiFontProvider>
   );

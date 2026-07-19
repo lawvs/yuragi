@@ -52,8 +52,8 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
     props.onExitComplete?.();
   });
   const animateUnmountedSvgExit = useEffectEvent(() => {
-    const transition = props.transition;
-    if (transition?.exit !== "scatter") return;
+    const animation = props.animation;
+    if (!animation.exit) return;
     const renderedSvg = renderedSvgRef.current;
     const svg = renderedSvg?.svg ?? svgRef.current;
     if (!svg) return;
@@ -68,7 +68,7 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
       if (!nextPending.cancelled) {
         void animateSvgExit(svg, {
           snapshot: exitSnapshot,
-          speed: transition.speed,
+          speed: animation.speed,
         }).then(() => notifyExitComplete());
       }
       if (pendingScatterRef.current === nextPending) {
@@ -124,7 +124,7 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
     const previousSvg = previous?.svg;
     const shouldScatterPrevious =
       previousSvg?.parentElement === host &&
-      props.transition?.exit === "scatter";
+      props.animation.exit;
 
     if (shouldScatterPrevious && previousSvg) {
       const exitSnapshot = pickSvgExitSnapshot(
@@ -134,17 +134,17 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
       host.replaceChildren(svg);
       void animateSvgExit(previousSvg, {
         snapshot: exitSnapshot,
-        speed: props.transition?.speed,
+        speed: props.animation.speed,
       }).then(() => notifyExitComplete());
     } else {
       host.replaceChildren(svg);
     }
     refreshRenderedSvgExitSnapshot(renderedSvg, svg);
 
-    if (props.transition?.enter === "settle") {
+    if (props.animation.enter) {
       void animateShards(
         svg,
-        createSettleAnimationOptions(props.transition.speed),
+        createSettleAnimationOptions(props.animation.speed),
       ).then(() => {
         if (mountedRef.current && renderedSvgRef.current?.svg === svg) {
           notifyEnterComplete();
@@ -153,15 +153,15 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
     }
   }, [
     props.align,
+    props.animation.enter,
+    props.animation.exit,
+    props.animation.speed,
     props.className,
     props.hover,
     props.maxWidth,
     props.outline,
     props.size,
     props.style,
-    props.transition?.enter,
-    props.transition?.exit,
-    props.transition?.speed,
     props.text,
   ]);
 
@@ -172,7 +172,7 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
     return () => {
       animateUnmountedSvgExit();
     };
-  }, [props.transition?.exit]);
+  }, [props.animation.exit]);
 
   return <span ref={hostRef} aria-label={props.text} />;
 }

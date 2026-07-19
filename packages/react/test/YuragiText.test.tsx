@@ -137,6 +137,53 @@ describe("YuragiText", () => {
     expect(document.querySelector("[data-yuragi-root]")).not.toBeNull();
   });
 
+  it("settles shards by default", () => {
+    render(<YuragiText text="A" outline={outline} />);
+
+    expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
+      type: "settle",
+      stagger: "by-x",
+      speed: undefined,
+    });
+  });
+
+  it("disables enter and exit animations with animation false", async () => {
+    const { rerender } = render(
+      <YuragiText text="A" outline={outline} animation={false} />,
+    );
+
+    rerender(
+      <YuragiText text="B" outline={nextOutline} animation={false} />,
+    );
+    await Promise.resolve();
+
+    expect(animateShards).not.toHaveBeenCalled();
+  });
+
+  it("disables only the requested animation phase", async () => {
+    const { rerender } = render(
+      <YuragiText
+        text="A"
+        outline={outline}
+        animation={{ enter: false }}
+      />,
+    );
+
+    rerender(
+      <YuragiText
+        text="B"
+        outline={nextOutline}
+        animation={{ enter: false }}
+      />,
+    );
+    await Promise.resolve();
+
+    const animationTypes = vi
+      .mocked(animateShards)
+      .mock.calls.map(([, options]) => options.type);
+    expect(animationTypes).toEqual(["scatter"]);
+  });
+
   it("renders the default text fallback with the requested layout", () => {
     render(
       <YuragiText
@@ -165,12 +212,12 @@ describe("YuragiText", () => {
     ).toThrow('Missing yuragi outline for "Missing"');
   });
 
-  it("passes the settle transition and speed to shard animation", () => {
+  it("passes custom speed to the default settle animation", () => {
     render(
       <YuragiText
         text="A"
         outline={outline}
-        transition={{ enter: "settle", speed: 0.8 }}
+        animation={{ speed: 0.8 }}
       />,
     );
 
@@ -195,7 +242,6 @@ describe("YuragiText", () => {
         <YuragiText
           text="A"
           outline={outline}
-          transition={{ enter: "settle" }}
           onEnterComplete={onEnterComplete}
         />
       </StrictMode>,
@@ -224,7 +270,6 @@ describe("YuragiText", () => {
       <SuspendingYuragiText
         text="A"
         outline={outline}
-        transition={{ enter: "settle" }}
         onEnterComplete={committedCallback}
         suspend={false}
       />,
@@ -236,7 +281,6 @@ describe("YuragiText", () => {
           <SuspendingYuragiText
             text="A"
             outline={outline}
-            transition={{ enter: "settle" }}
             onEnterComplete={suspendedCallback}
             suspend
           />,
@@ -280,7 +324,6 @@ describe("YuragiText", () => {
         <YuragiText
           text="A"
           outline={outline}
-          transition={{ enter: "settle", exit: "scatter" }}
           onExitComplete={onExitComplete}
         />,
       );
@@ -293,11 +336,7 @@ describe("YuragiText", () => {
         <YuragiText
           text="B"
           outline={nextOutline}
-          transition={{
-            enter: "settle",
-            exit: "scatter",
-            speed: 0.8,
-          }}
+          animation={{ speed: 0.8 }}
           onExitComplete={onExitComplete}
         />,
       );
@@ -360,7 +399,6 @@ describe("YuragiText", () => {
       <YuragiText
         text="A"
         outline={outline}
-        transition={{ exit: "scatter" }}
         onExitComplete={onExitComplete}
       />,
     );
@@ -398,12 +436,12 @@ describe("YuragiText", () => {
     await waitFor(() => expect(onExitComplete).toHaveBeenCalledOnce());
   });
 
-  it("uses the latest committed exit transition when unmounted", async () => {
+  it("uses the latest committed exit animation when unmounted", async () => {
     const { rerender, unmount } = render(
       <SuspendingYuragiText
         text="A"
         outline={outline}
-        transition={{ exit: "scatter", speed: 0.8 }}
+        animation={{ speed: 0.8 }}
         suspend={false}
       />,
     );
@@ -414,7 +452,7 @@ describe("YuragiText", () => {
           <SuspendingYuragiText
             text="A"
             outline={outline}
-            transition={{ exit: "none", speed: 0.8 }}
+            animation={{ exit: false, speed: 0.8 }}
             suspend
           />,
         );
@@ -439,11 +477,7 @@ describe("YuragiText", () => {
   it("does not scatter during StrictMode initial mount", async () => {
     render(
       <StrictMode>
-        <YuragiText
-          text="A"
-          outline={outline}
-          transition={{ enter: "settle", exit: "scatter" }}
-        />
+        <YuragiText text="A" outline={outline} />
       </StrictMode>,
     );
     await Promise.resolve();
@@ -451,22 +485,32 @@ describe("YuragiText", () => {
     expectNoScatterCall();
   });
 
-  it("does not scatter when exit transition changes to none", async () => {
-    const { rerender } = render(
-      <YuragiText
-        text="A"
-        outline={outline}
-        transition={{ exit: "scatter" }}
-      />,
-    );
+  it("does not scatter when the exit animation is disabled", async () => {
+    const { rerender } = render(<YuragiText text="A" outline={outline} />);
 
     rerender(
       <YuragiText
         text="A"
         outline={outline}
-        transition={{ exit: "none" }}
+        animation={{ exit: false }}
       />,
     );
+    await Promise.resolve();
+
+    expectNoScatterCall();
+  });
+
+  it("does not scatter when the exit animation is enabled", async () => {
+    const { rerender } = render(
+      <YuragiText
+        text="A"
+        outline={outline}
+        animation={{ exit: false }}
+      />,
+    );
+    vi.mocked(animateShards).mockClear();
+
+    rerender(<YuragiText text="A" outline={outline} />);
     await Promise.resolve();
 
     expectNoScatterCall();
@@ -478,7 +522,6 @@ describe("YuragiText", () => {
         text="A"
         outline={outline}
         style={{ color: "red" }}
-        transition={{ exit: "scatter", speed: 1 }}
       />,
     );
 
@@ -487,7 +530,7 @@ describe("YuragiText", () => {
         text="A"
         outline={outline}
         style={{ color: "red" }}
-        transition={{ exit: "scatter", speed: 0.8 }}
+        animation={{ speed: 0.8 }}
       />,
     );
 

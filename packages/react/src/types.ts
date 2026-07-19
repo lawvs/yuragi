@@ -1,5 +1,17 @@
 import type { CSSProperties } from "react";
-import type { ShardTransitionOptions, TextOutline } from "@yuragi-labs/core";
+import type { TextOutline } from "@yuragi-labs/core";
+
+export type YuragiAnimationOptions = {
+  enter?: boolean;
+  exit?: boolean;
+  speed?: number;
+};
+
+type ResolvedYuragiAnimationOptions = {
+  enter: boolean;
+  exit: boolean;
+  speed?: number;
+};
 
 export type StaticYuragiTextProps = {
   text: string;
@@ -8,7 +20,7 @@ export type StaticYuragiTextProps = {
   maxWidth?: number;
   align?: "start" | "center" | "end";
   hover?: "none" | "outline";
-  transition?: ShardTransitionOptions;
+  animation?: boolean | YuragiAnimationOptions;
   onEnterComplete?: () => void;
   onExitComplete?: () => void;
   fallback?: "text" | "hidden" | "error";
@@ -19,4 +31,6 @@ export type StaticYuragiTextProps = {
 export type ResolvedYuragiTextProps = Required<
   Pick<StaticYuragiTextProps, "text" | "size" | "fallback">
 > &
-  Omit<StaticYuragiTextProps, "text" | "size" | "fallback">;
+  Omit<StaticYuragiTextProps, "text" | "size" | "fallback" | "animation"> & {
+    animation: ResolvedYuragiAnimationOptions;
+  };

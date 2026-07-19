@@ -52,29 +52,25 @@ vi.mock("@yuragi-labs/react", () => ({
     </div>
   ),
   YuragiText: ({
+    animation,
     fallback,
     text,
-    transition,
   }: {
+    animation?: { speed?: number };
     fallback?: string;
     text: string;
-    transition?: {
-      enter?: string;
-      exit?: string;
-      speed?: number;
-    };
-  }) => (
-    <span
-      data-fallback={fallback}
-      data-runtime-sharded-text={text}
-      data-sharded-text={text}
-      data-transition-enter={transition?.enter}
-      data-transition-exit={transition?.exit}
-      data-transition-speed={transition?.speed}
-    >
-      {text}
-    </span>
-  ),
+  }) => {
+    return (
+      <span
+        data-animation-speed={animation?.speed}
+        data-fallback={fallback}
+        data-runtime-sharded-text={text}
+        data-sharded-text={text}
+      >
+        {text}
+      </span>
+    );
+  },
 }));
 
 vi.mock("@yuragi-labs/react/static", async () => {
@@ -84,22 +80,18 @@ vi.mock("@yuragi-labs/react/static", async () => {
     YuragiText: ({
       className,
       text,
+      animation,
       fallback,
       hover,
       outline,
-      transition,
       onEnterComplete,
     }: {
       className?: string;
       text: string;
+      animation?: { speed?: number };
       fallback?: string;
       hover?: string;
       outline?: unknown;
-      transition?: {
-        enter?: string;
-        exit?: string;
-        speed?: number;
-      };
       onEnterComplete?: () => void;
     }) => {
       useEffect(() => {
@@ -110,14 +102,12 @@ vi.mock("@yuragi-labs/react/static", async () => {
       return (
         <span
           className={className}
+          data-animation-speed={animation?.speed}
           data-fallback={fallback}
           data-has-outline={outline ? "true" : "false"}
           data-hover={hover}
           data-static-sharded-text={text}
           data-sharded-text={text}
-          data-transition-enter={transition?.enter}
-          data-transition-exit={transition?.exit}
-          data-transition-speed={transition?.speed}
         >
           {text}
         </span>
@@ -164,7 +154,7 @@ describe("App", () => {
     expect(title?.getAttribute("data-has-outline")).toBe("true");
     expect(title?.getAttribute("data-fallback")).toBe("error");
     expect(title?.getAttribute("data-hover")).toBe("outline");
-    expect(title?.getAttribute("data-transition-enter")).toBe("settle");
+    expect(title?.getAttribute("data-animation-speed")).toBe("1.4");
     expect(
       hero?.querySelector('a[href="#playground"]')?.textContent,
     ).toContain("Playground");
@@ -238,7 +228,7 @@ describe("App", () => {
     expect(title).not.toBeNull();
   });
 
-  it("opens a detail view with controls and enter/exit shard animation settings", () => {
+  it("opens a detail view with controls and animation speed settings", () => {
     renderApp();
 
     const settingsButton = host.querySelector<HTMLButtonElement>(
@@ -251,16 +241,14 @@ describe("App", () => {
     });
 
     expect(host.querySelector('input[type="range"]')).not.toBeNull();
-    expect(host.querySelector('input[name="transition-speed"]')).not.toBeNull();
+    expect(host.querySelector('input[name="animation-speed"]')).not.toBeNull();
     expect(host.querySelector('select[name="align"]')).not.toBeNull();
     expect(host.querySelector('input[name="hover"]')).not.toBeNull();
 
     const title = host.querySelector(
       '.preview-title [data-sharded-text="Settings"]',
     );
-    expect(title?.getAttribute("data-transition-enter")).toBe("settle");
-    expect(title?.getAttribute("data-transition-exit")).toBe("scatter");
-    expect(title?.getAttribute("data-transition-speed")).toBe("1");
+    expect(title?.getAttribute("data-animation-speed")).toBe("1");
     expect(reactMocks.startTransition).toHaveBeenCalledTimes(1);
   });
 

@@ -72,9 +72,3 @@ export type Shard = {
 };
 
 export type Align = "start" | "center" | "end";
-
-export type ShardTransitionOptions = {
-  enter?: "none" | "settle";
-  exit?: "none" | "scatter";
-  speed?: number;
-};

@@ -37,11 +37,7 @@ export function App() {
             align="start"
             fallback="text"
             hover={hoverOutline ? "outline" : "none"}
-            transition={{
-              enter: "settle",
-              exit: "scatter",
-              speed,
-            }}
+            animation={{ speed }}
           />
         </section>
       </main>

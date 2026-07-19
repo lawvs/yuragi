@@ -9,7 +9,7 @@ This example uses:
 - provider font status through `useYuragiFont`
 - dynamic title input
 - hover outline
-- settle/exit transition controls
+- settle/scatter animation speed controls
 
 It uses the public runtime API directly and does not require a custom worker.
 
