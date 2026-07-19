@@ -28,7 +28,7 @@ function deferred<T>() {
   return { promise, resolve };
 }
 
-describe("runtime transitions", () => {
+describe("runtime animations", () => {
   afterEach(() => {
     cleanup();
     vi.mocked(animateShards).mockClear();
@@ -51,7 +51,6 @@ describe("runtime transitions", () => {
       <YuragiFontProvider font={font} includeStyles={false}>
         <YuragiText
           text="First"
-          transition={{ exit: "scatter" }}
           onExitComplete={onExitComplete}
         />
       </YuragiFontProvider>,
@@ -66,7 +65,6 @@ describe("runtime transitions", () => {
       <YuragiFontProvider font={font} includeStyles={false}>
         <YuragiText
           text="Second"
-          transition={{ exit: "scatter" }}
           onExitComplete={onExitComplete}
         />
       </YuragiFontProvider>,

@@ -14,9 +14,13 @@ import {
 import type { FontAxes } from "@yuragi-labs/core";
 import { YuragiStyles } from "./YuragiStyles";
 import { YuragiText as StaticYuragiText } from "./YuragiText";
-import type { StaticYuragiTextProps } from "./types";
+import type {
+  StaticYuragiTextProps,
+  YuragiAnimationOptions,
+} from "./types";
 
 export type { FontAxes, FontAxisTag, KnownFontAxisTag } from "@yuragi-labs/core";
+export type { YuragiAnimationOptions } from "./types";
 
 export type YuragiFontStatus = "loading" | "ready" | "error";
 
@@ -223,18 +227,19 @@ export function YuragiText(props: YuragiTextProps) {
     };
   }, [error, font, props.text]);
 
-  const transition =
-    outline &&
-    compiled?.skipEnterSettle &&
-    props.transition?.enter === "settle"
-      ? { ...props.transition, enter: "none" as const }
-      : props.transition;
+  let animation: boolean | YuragiAnimationOptions | undefined = props.animation;
+  if (outline && compiled?.skipEnterSettle && animation !== false) {
+    animation =
+      typeof animation === "object"
+        ? { ...animation, enter: false }
+        : { enter: false };
+  }
 
   return (
     <StaticYuragiText
       {...props}
       outline={outline}
-      transition={transition}
+      animation={animation}
     />
   );
 }

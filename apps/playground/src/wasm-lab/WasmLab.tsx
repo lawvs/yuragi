@@ -167,11 +167,6 @@ export function WasmLab() {
             maxWidth={760}
             fallback="text"
             hover="outline"
-            transition={{
-              enter: "settle",
-              exit: "scatter",
-              speed: 1,
-            }}
           />
           <p>
             {outline

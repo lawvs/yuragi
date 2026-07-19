@@ -17,7 +17,6 @@ import "@yuragi-labs/core/style.css";
 ```ts
 import type {
   OutlineMap,
-  ShardTransitionOptions,
   TextOutline,
   TextOutlineBundle,
 } from "@yuragi-labs/core";
@@ -26,7 +25,6 @@ import type {
 - `TextOutlineBundle`: compiled font metadata plus an outline map.
 - `OutlineMap`: title string to outline mapping.
 - `TextOutline`: glyph shard geometry for one rendered string.
-- `ShardTransitionOptions`: shared transition options used by renderers.
 
 ## CSS Export
 

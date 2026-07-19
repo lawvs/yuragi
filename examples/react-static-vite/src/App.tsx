@@ -121,7 +121,7 @@ export function App() {
             align="start"
             fallback="error"
             hover={hoverOutline ? "outline" : "none"}
-            transition={{ enter: "settle", exit: "scatter", speed }}
+            animation={{ speed }}
           />
         </section>
       </main>

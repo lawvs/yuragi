@@ -21,7 +21,7 @@ export function RuntimeDemo() {
   const [size, setSize] = useState(88);
   const [align, setAlign] = useState<Align>("start");
   const [hoverOutline, setHoverOutline] = useState(true);
-  const [transitionSpeed, setTransitionSpeed] = useState(1);
+  const [animationSpeed, setAnimationSpeed] = useState(1);
 
   const selectedPost = useMemo(
     () =>
@@ -117,18 +117,18 @@ export function RuntimeDemo() {
               <label className="range-control">
                 <span>Speed</span>
                 <input
-                  aria-label="Transition speed"
+                  aria-label="Animation speed"
                   type="range"
-                  name="transition-speed"
+                  name="animation-speed"
                   min="0.25"
                   max="2"
                   step="0.05"
-                  value={transitionSpeed}
+                  value={animationSpeed}
                   onChange={(event) =>
-                    setTransitionSpeed(Number(event.target.value))
+                    setAnimationSpeed(Number(event.target.value))
                   }
                 />
-                <output>{transitionSpeed.toFixed(2)}x</output>
+                <output>{animationSpeed.toFixed(2)}x</output>
               </label>
 
               <label className="select-control">
@@ -169,11 +169,7 @@ export function RuntimeDemo() {
                 align={align}
                 fallback="text"
                 hover={hoverOutline ? "outline" : "none"}
-                transition={{
-                  enter: "settle",
-                  exit: "scatter",
-                  speed: transitionSpeed,
-                }}
+                animation={{ speed: animationSpeed }}
               />
             </div>
             <p>{selectedPost.summary}</p>

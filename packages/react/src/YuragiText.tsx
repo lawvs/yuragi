@@ -3,15 +3,31 @@ import { createTextFallbackStyle } from "./style";
 import type {
   ResolvedYuragiTextProps,
   StaticYuragiTextProps,
+  YuragiAnimationOptions,
 } from "./types";
 
-export type { StaticYuragiTextProps } from "./types";
+export type { StaticYuragiTextProps, YuragiAnimationOptions } from "./types";
+
+function resolveAnimation(
+  animation: boolean | YuragiAnimationOptions | undefined,
+): ResolvedYuragiTextProps["animation"] {
+  if (typeof animation === "boolean") {
+    return { enter: animation, exit: animation };
+  }
+
+  return {
+    enter: animation?.enter ?? true,
+    exit: animation?.exit ?? true,
+    speed: animation?.speed,
+  };
+}
 
 export function YuragiText(input: StaticYuragiTextProps) {
   const props: ResolvedYuragiTextProps = {
     size: 48,
     fallback: "text",
     ...input,
+    animation: resolveAnimation(input.animation),
   };
 
   if (!props.outline) {

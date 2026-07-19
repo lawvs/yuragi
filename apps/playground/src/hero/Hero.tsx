@@ -30,7 +30,7 @@ export function Hero() {
             maxWidth={900}
             fallback="error"
             hover="outline"
-            transition={{ enter: "settle", speed: 1.4 }}
+            animation={{ speed: 1.4 }}
             onEnterComplete={() => setCanReplay(true)}
           />
         </h1>
