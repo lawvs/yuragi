@@ -43,10 +43,7 @@ import { YuragiFontProvider, YuragiText } from "@yuragi-labs/react";
 
 export function Title() {
   return (
-    <YuragiFontProvider
-      font="/fonts/NotoSerifSC[wght].ttf"
-      axes={{ wght: 900 }}
-    >
+    <YuragiFontProvider font="/fonts/NotoSerifSC[wght].ttf">
       <YuragiText
         text="Dashboard"
         size={56}
