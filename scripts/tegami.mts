@@ -26,6 +26,7 @@ const paper = tegami({
   },
   npm: {
     client: "npm",
+    updateLockFile: false,
     bumpDep({ dependent, kind }) {
       if (dependent.manifest.private || kind === "devDependencies") return false;
       return kind === "peerDependencies" ? "major" : "patch";

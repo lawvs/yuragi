@@ -5,6 +5,13 @@ export default defineConfig({
     projects: [
       "packages/*/vitest.config.ts",
       "apps/playground/vitest.config.ts",
+      {
+        test: {
+          name: "release",
+          environment: "node",
+          include: ["scripts/**/*.test.ts"],
+        },
+      },
     ],
   },
 });
