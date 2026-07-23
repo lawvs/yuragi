@@ -1,4 +1,4 @@
-name: Release
+name: Release and deploy
 
 on:
   push:
@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   release:
-    name: Release
+    name: Verify and release
     runs-on: ubuntu-latest
 
     steps:
@@ -39,11 +39,33 @@ jobs:
       - name: Set up Rust
         run: rustup toolchain install 1.85.0 --profile minimal
 
+      - name: Test native Rust compiler
+        run: cargo +1.85.0 test --locked --manifest-path packages/compiler/native/Cargo.toml
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Verify release readiness
         run: pnpm release:check
+
+      - name: Upload font regression diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: font-regression-diagnostics
+          path: .artifacts/font-regression
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Build playground
+        if: github.event_name == 'push'
+        run: pnpm --filter @yuragi-labs/playground build:vite
+
+      - name: Upload Pages artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: apps/playground/dist
 
       - name: Configure git author
         run: |
@@ -54,3 +76,28 @@ jobs:
         run: pnpm tegami ci
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+  deploy-pages:
+    name: Deploy GitHub Pages
+    if: github.event_name == 'push'
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: true
+
+    steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
