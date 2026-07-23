@@ -1,6 +1,6 @@
 {
   "name": "@yuragi-labs/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Core types, layout, SVG, animation, styles, and runtime WASM compiler for Yuragi text effects.",
   "license": "MIT",
   "keywords": [
@@ -25,7 +25,9 @@
     "access": "public"
   },
   "type": "module",
-  "sideEffects": ["./dist/style.css"],
+  "sideEffects": [
+    "./dist/style.css"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -42,7 +44,9 @@
     "./wasm/yuragi_wasm_compiler.wasm": "./dist/wasm/yuragi_wasm_compiler.wasm",
     "./style.css": "./dist/style.css"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "pnpm build:wasm && tsdown src/index.ts src/wasm/index.ts src/wasm/runtime.ts && cp src/style.css dist/style.css && mkdir -p dist/wasm && cp wasm/yuragi_wasm_compiler.wasm dist/wasm/yuragi_wasm_compiler.wasm",
     "build:wasm": "node scripts/build-wasm.mjs",

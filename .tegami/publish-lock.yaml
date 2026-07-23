@@ -1,0 +1,21 @@
+core:changelogs:
+  - content: "---\npackages:\n  group:yuragi:\n    type: minor\n---\n\n## Enable animations by default\n\nYuragiText now enables settle and scatter animations unless explicitly disabled. Replace the transition prop with animation, using booleans for enter and exit.\n"
+    filename: 2026-07-20-mrs7dt85.md
+    v: 0.0.0
+core:packages:
+  - changelogIds:
+      - 2026-07-20-mrs7dt85.md
+    id: npm:@yuragi-labs/compiler
+    updated: true
+  - changelogIds:
+      - 2026-07-20-mrs7dt85.md
+    id: npm:@yuragi-labs/core
+    updated: true
+  - changelogIds:
+      - 2026-07-20-mrs7dt85.md
+    id: npm:@yuragi-labs/react
+    updated: true
+npm:packages:
+  - id: npm:@yuragi-labs/compiler
+  - id: npm:@yuragi-labs/core
+  - id: npm:@yuragi-labs/react
