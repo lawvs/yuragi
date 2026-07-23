@@ -1,9 +1,16 @@
 {
   "name": "@yuragi-labs/compiler",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Native build-time font compiler for generating Yuragi text outlines.",
   "license": "MIT",
-  "keywords": ["yuragi", "font", "compiler", "typography", "svg", "rust"],
+  "keywords": [
+    "yuragi",
+    "font",
+    "compiler",
+    "typography",
+    "svg",
+    "rust"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/lawvs/yuragi.git",
