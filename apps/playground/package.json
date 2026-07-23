@@ -6,8 +6,8 @@
     "hero:generate": "tsx scripts/generate-hero-outline.ts",
     "predev": "pnpm wasm-lab:build",
     "dev": "vite",
-    "prebuild": "pnpm wasm-lab:build",
-    "build": "tsc --noEmit && vite build",
+    "build": "pnpm wasm-lab:build && tsc --noEmit && pnpm build:vite",
+    "build:vite": "vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "wasm-lab:build": "pnpm --filter @yuragi-labs/core build"
