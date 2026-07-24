@@ -899,10 +899,12 @@ rg -n \
   "animateShards|AnimateShardsOptions|buildShardKeyframes|planShardTimings|direction.*outline-vector" \
   --glob '!**/dist/**' \
   --glob '!**/node_modules/**' \
-  .
+  packages/*/src packages/*/test apps/*/src examples/*/src \
+  README.md packages/*/README.md
 ```
 
-Expected: no source, test, example, or documentation matches.
+Expected: no source, test, example, or public README matches. Historical
+mentions in changelogs and this design/implementation plan are intentional.
 
 - [ ] **Step 6: Commit playground and documentation**
 
