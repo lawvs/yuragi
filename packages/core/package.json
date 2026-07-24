@@ -37,10 +37,6 @@
       "types": "./dist/wasm/index.d.ts",
       "import": "./dist/wasm/index.js"
     },
-    "./wasm/runtime": {
-      "types": "./dist/wasm/runtime.d.ts",
-      "import": "./dist/wasm/runtime.js"
-    },
     "./wasm/yuragi_wasm_compiler.wasm": "./dist/wasm/yuragi_wasm_compiler.wasm",
     "./style.css": "./dist/style.css"
   },
@@ -48,7 +44,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "pnpm build:wasm && tsdown src/index.ts src/wasm/index.ts src/wasm/runtime.ts && cp src/style.css dist/style.css && mkdir -p dist/wasm && cp wasm/yuragi_wasm_compiler.wasm dist/wasm/yuragi_wasm_compiler.wasm",
+    "build": "pnpm build:wasm && tsdown src/index.ts src/wasm/index.ts && cp src/style.css dist/style.css && mkdir -p dist/wasm && cp wasm/yuragi_wasm_compiler.wasm dist/wasm/yuragi_wasm_compiler.wasm",
     "build:wasm": "node scripts/build-wasm.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"

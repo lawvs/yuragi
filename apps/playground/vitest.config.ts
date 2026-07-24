@@ -16,10 +16,6 @@ export default defineConfig({
         "../../packages/react/src/index.ts",
         import.meta.url,
       ).pathname,
-      "@yuragi-labs/core/wasm/runtime": new URL(
-        "../../packages/core/src/wasm/runtime.ts",
-        import.meta.url,
-      ).pathname,
       "@yuragi-labs/core/wasm/yuragi_wasm_compiler.wasm?url":
         `${wasmCompilerAsset}?url`,
       "@yuragi-labs/core/wasm/yuragi_wasm_compiler.wasm": wasmCompilerAsset,

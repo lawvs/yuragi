@@ -7,8 +7,7 @@
       "@yuragi-labs/compiler": ["../../packages/compiler/src/index.ts"],
       "@yuragi-labs/react": ["../../packages/react/src/index.ts"],
       "@yuragi-labs/react/static": ["../../packages/react/src/static.ts"],
-      "@yuragi-labs/core/wasm": ["../../packages/core/src/wasm/index.ts"],
-      "@yuragi-labs/core/wasm/runtime": ["../../packages/core/src/wasm/runtime.ts"]
+      "@yuragi-labs/core/wasm": ["../../packages/core/src/wasm/index.ts"]
     }
   },
   "include": ["scripts", "src", "vite.config.ts", "vitest.config.ts"]

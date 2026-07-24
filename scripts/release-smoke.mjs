@@ -1,21 +1,20 @@
+import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [core, coreWasm, coreWasmRuntime, compiler, react, reactStatic] =
-  await Promise.all([
-    import("@yuragi-labs/core"),
-    import("@yuragi-labs/core/wasm"),
-    import("@yuragi-labs/core/wasm/runtime"),
-    import("@yuragi-labs/compiler"),
-    import("@yuragi-labs/react"),
-    import("@yuragi-labs/react/static"),
-  ]);
+const [core, coreWasm, compiler, react, reactStatic] = await Promise.all([
+  import("@yuragi-labs/core"),
+  import("@yuragi-labs/core/wasm"),
+  import("@yuragi-labs/compiler"),
+  import("@yuragi-labs/react"),
+  import("@yuragi-labs/react/static"),
+]);
 
 for (const [name, value] of [
   ["@yuragi-labs/core#createShardedSvg", core.createShardedSvg],
   ["@yuragi-labs/core/wasm#createYuragiFont", coreWasm.createYuragiFont],
   [
-    "@yuragi-labs/core/wasm/runtime#YuragiWasmRuntime",
-    coreWasmRuntime.YuragiWasmRuntime,
+    "@yuragi-labs/core/wasm#YuragiWasmRuntime",
+    coreWasm.YuragiWasmRuntime,
   ],
   ["@yuragi-labs/compiler#compileOutlines", compiler.compileOutlines],
   ["@yuragi-labs/react#YuragiFontProvider", react.YuragiFontProvider],
@@ -25,6 +24,10 @@ for (const [name, value] of [
     throw new Error(name + " is not a function");
   }
 }
+
+await assert.rejects(import("@yuragi-labs/core/wasm/runtime"), {
+  code: "ERR_PACKAGE_PATH_NOT_EXPORTED",
+});
 
 const wasmUrl = import.meta.resolve(
   "@yuragi-labs/core/wasm/yuragi_wasm_compiler.wasm",

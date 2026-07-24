@@ -120,7 +120,7 @@ font.dispose();
 For advanced control, instantiate the runtime directly:
 
 ```ts
-import { YuragiWasmRuntime } from "@yuragi-labs/core/wasm/runtime";
+import { YuragiWasmRuntime } from "@yuragi-labs/core/wasm";
 
 const runtime = await YuragiWasmRuntime.load(wasmBytes);
 const info = runtime.setFont(fontBytes);
