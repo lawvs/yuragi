@@ -170,8 +170,9 @@ first compiled outline. Later text changes use the configured enter animation.
 - `animation.enter`: set to `false` to disable the settle animation.
 - `animation.exit`: set to `false` to disable scatter when the title changes or
   unmounts.
-- `animation.speed`: playback speed multiplier. `1` is the default, values
-  below `1` are slower, and values above `1` are faster.
+- `animation.speed`: playback speed multiplier. It must be finite and greater
+  than zero; zero, negative values, `NaN`, and infinities are invalid. `1` is
+  the default, values below `1` are slower, and values above `1` are faster.
 - `onEnterComplete`: called after the settle animation finishes.
 - `onExitComplete`: called after the scatter animation finishes, including
   exits caused by text changes or unmounting.

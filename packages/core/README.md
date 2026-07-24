@@ -53,6 +53,9 @@ if (result.status === "failed") {
 }
 ```
 
+When provided, `speed` must be finite and greater than zero, and `distance`
+must be finite and non-negative.
+
 Preparation captures the current shards and synchronously applies the initial
 frame. The handle's non-rejecting `finished` Promise resolves with one of four
 statuses:

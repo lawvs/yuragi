@@ -8,6 +8,7 @@ import {
   createShardedSvg,
   layoutShardedText,
   prepareShardAnimation,
+  type ShardAnimationHandle,
 } from "@yuragi-labs/core";
 import type { InspectorGlyph } from "./model";
 
@@ -52,6 +53,7 @@ export function ShardPreview({
 }) {
   const hostRef = useRef<HTMLSpanElement>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const activeAnimationRef = useRef<ShardAnimationHandle | null>(null);
 
   useLayoutEffect(() => {
     const host = hostRef.current;
@@ -84,6 +86,11 @@ export function ShardPreview({
       }
     });
 
+    const activeAnimation = activeAnimationRef.current;
+    if (activeAnimation) {
+      activeAnimationRef.current = null;
+      activeAnimation.cancel();
+    }
     svgRef.current = svg;
     host.replaceChildren(svg);
   }, [data, explodeDistance, mode, selectedShard]);
@@ -97,9 +104,12 @@ export function ShardPreview({
       stagger: "by-x",
       distance: playback.distance,
     });
+    activeAnimationRef.current = animation;
     animation.play();
 
     return () => {
+      if (activeAnimationRef.current !== animation) return;
+      activeAnimationRef.current = null;
       animation.cancel();
     };
   }, [playback]);

@@ -313,6 +313,8 @@ export function prepareShardAnimation(
         },
       );
       animations.push(animation);
+      // A later preparation failure rolls back by cancelling this animation;
+      // observe that native rejection now so rollback cannot leave it unhandled.
       void animation.finished.catch(() => {});
       animation.pause();
       animation.currentTime = 0;
