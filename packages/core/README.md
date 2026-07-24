@@ -26,6 +26,49 @@ import type {
 - `OutlineMap`: title string to outline mapping.
 - `TextOutline`: glyph shard geometry for one rendered string.
 
+## Animation
+
+Use `prepareShardAnimation` when integrating Yuragi's shard animations without
+the React package:
+
+```ts
+import {
+  createShardedSvg,
+  layoutShardedText,
+  prepareShardAnimation,
+} from "@yuragi-labs/core";
+
+const svg = createShardedSvg(layoutShardedText(outline, { size: 72 }));
+const animation = prepareShardAnimation(svg, {
+  type: "settle",
+  stagger: "by-x",
+});
+
+host.replaceChildren(svg);
+animation.play();
+
+const result = await animation.finished;
+if (result.status === "failed") {
+  console.error(result.error);
+}
+```
+
+Preparation captures the current shards and synchronously applies the initial
+frame. The handle's non-rejecting `finished` Promise resolves with one of four
+statuses:
+
+- `completed`: every shard animation finished.
+- `cancelled`: `cancel()` stopped the animation.
+- `skipped`: playback was unnecessary or unavailable. Its reason is `empty`
+  when no shards were captured, `reduced-motion` when the user's motion
+  preference disables animation, or `unsupported` when the Web Animations API
+  is unavailable.
+- `failed`: preparation or playback failed; the result includes a
+  `ShardAnimationError`.
+
+Callers must call `cancel()` on handles they abandon, such as when removing or
+replacing the animated SVG.
+
 ## CSS Export
 
 The package exports:

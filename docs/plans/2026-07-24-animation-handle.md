@@ -896,15 +896,20 @@ Run:
 
 ```bash
 rg -n \
-  "animateShards|AnimateShardsOptions|buildShardKeyframes|planShardTimings|direction.*outline-vector" \
+  "animateShards|AnimateShardsOptions|direction.*outline-vector" \
   --glob '!**/dist/**' \
   --glob '!**/node_modules/**' \
   packages/*/src packages/*/test apps/*/src examples/*/src \
   README.md packages/*/README.md
+
+rg -n \
+  "export .*buildShardKeyframes|export .*planShardTimings" \
+  packages/*/src
 ```
 
-Expected: no source, test, example, or public README matches. Historical
-mentions in changelogs and this design/implementation plan are intentional.
+Expected: neither command finds a match. The private `buildShardKeyframes()` and
+`planShardTimings()` helpers remain intentionally unexported. Historical mentions
+in changelogs and this design/implementation plan are intentional.
 
 - [ ] **Step 6: Commit playground and documentation**
 

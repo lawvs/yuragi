@@ -5,9 +5,9 @@ import {
   type MouseEvent,
 } from "react";
 import {
-  animateShards,
   createShardedSvg,
   layoutShardedText,
+  prepareShardAnimation,
 } from "@yuragi-labs/core";
 import type { InspectorGlyph } from "./model";
 
@@ -91,11 +91,17 @@ export function ShardPreview({
   useLayoutEffect(() => {
     const svg = svgRef.current;
     if (!svg || !playback) return;
-    void animateShards(svg, {
+
+    const animation = prepareShardAnimation(svg, {
       type: playback.type,
       stagger: "by-x",
       distance: playback.distance,
     });
+    animation.play();
+
+    return () => {
+      animation.cancel();
+    };
   }, [playback]);
 
   function selectShard(event: MouseEvent<HTMLSpanElement>) {
