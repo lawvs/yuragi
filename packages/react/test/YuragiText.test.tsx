@@ -11,9 +11,30 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { YuragiText } from "../src/YuragiText";
-import { animateShards, type TextOutline } from "@yuragi-labs/core";
+import {
+  ShardAnimationError,
+  type ShardAnimationHandle,
+  type ShardAnimationResult,
+  type TextOutline,
+} from "@yuragi-labs/core";
+
+const coreMocks = vi.hoisted(() => ({
+  prepareShardAnimation: vi.fn(),
+}));
+
+function animationHandle(
+  finished:
+    | Promise<ShardAnimationResult>
+    | ShardAnimationResult = { status: "completed" },
+): ShardAnimationHandle {
+  return {
+    play: vi.fn(),
+    cancel: vi.fn(),
+    finished: Promise.resolve(finished),
+  };
+}
 
 vi.mock("@yuragi-labs/core", async () => {
   const actual = await vi.importActual<typeof import("@yuragi-labs/core")>(
@@ -21,8 +42,15 @@ vi.mock("@yuragi-labs/core", async () => {
   );
   return {
     ...actual,
-    animateShards: vi.fn(async () => undefined),
+    prepareShardAnimation: coreMocks.prepareShardAnimation,
   };
+});
+
+beforeEach(() => {
+  coreMocks.prepareShardAnimation.mockReset();
+  coreMocks.prepareShardAnimation.mockImplementation(() =>
+    animationHandle(),
+  );
 });
 
 const outline: TextOutline = {
@@ -119,15 +147,13 @@ describe("YuragiText", () => {
     document
       .querySelectorAll("[data-yuragi-exit]")
       .forEach((node) => node.remove());
-    vi.mocked(animateShards).mockClear();
-    vi.mocked(animateShards).mockImplementation(async () => undefined);
   });
 
   function expectNoScatterCall() {
     expect(
-      vi
-        .mocked(animateShards)
-        .mock.calls.some(([, options]) => options.type === "scatter"),
+      coreMocks.prepareShardAnimation.mock.calls.some(
+        ([, options]) => options.type === "scatter",
+      ),
     ).toBe(false);
   }
 
@@ -140,11 +166,76 @@ describe("YuragiText", () => {
   it("settles shards by default", () => {
     render(<YuragiText text="A" outline={outline} />);
 
-    expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
-      type: "settle",
-      stagger: "by-x",
-      speed: undefined,
-    });
+    expect(coreMocks.prepareShardAnimation).toHaveBeenCalledWith(
+      expect.any(SVGSVGElement),
+      {
+        type: "settle",
+        stagger: "by-x",
+        speed: undefined,
+      },
+    );
+  });
+
+  it("prepares settle before mounting the SVG and cancels stale handles", () => {
+    const first = animationHandle();
+    const second = animationHandle();
+    const connectedDuringPrepare: boolean[] = [];
+    coreMocks.prepareShardAnimation
+      .mockImplementationOnce((root) => {
+        connectedDuringPrepare.push((root as SVGSVGElement).isConnected);
+        return first;
+      })
+      .mockImplementationOnce((root) => {
+        connectedDuringPrepare.push((root as SVGSVGElement).isConnected);
+        return second;
+      });
+
+    const { rerender } = render(
+      <YuragiText
+        text="A"
+        outline={outline}
+        animation={{ exit: false }}
+      />,
+    );
+    rerender(
+      <YuragiText
+        text="B"
+        outline={nextOutline}
+        animation={{ exit: false }}
+      />,
+    );
+
+    expect(connectedDuringPrepare).toEqual([false, false]);
+    expect(first.play).toHaveBeenCalledOnce();
+    expect(first.cancel).toHaveBeenCalledOnce();
+    expect(second.play).toHaveBeenCalledOnce();
+  });
+
+  it("cancels the settle handle and suppresses its callback on unmount", async () => {
+    const settleFinished = deferred<void>();
+    const settleAnimation = animationHandle(
+      settleFinished.promise.then(() => ({ status: "completed" as const })),
+    );
+    const onEnterComplete = vi.fn();
+    coreMocks.prepareShardAnimation.mockReturnValue(settleAnimation);
+
+    const { unmount } = render(
+      <YuragiText
+        text="A"
+        outline={outline}
+        animation={{ exit: false }}
+        onEnterComplete={onEnterComplete}
+      />,
+    );
+
+    unmount();
+    await Promise.resolve();
+    expect(settleAnimation.cancel).toHaveBeenCalledOnce();
+
+    settleFinished.resolve();
+    await settleFinished.promise;
+    await Promise.resolve();
+    expect(onEnterComplete).not.toHaveBeenCalled();
   });
 
   it("disables enter and exit animations with animation false", async () => {
@@ -157,7 +248,7 @@ describe("YuragiText", () => {
     );
     await Promise.resolve();
 
-    expect(animateShards).not.toHaveBeenCalled();
+    expect(coreMocks.prepareShardAnimation).not.toHaveBeenCalled();
   });
 
   it("disables only the requested animation phase", async () => {
@@ -178,9 +269,9 @@ describe("YuragiText", () => {
     );
     await Promise.resolve();
 
-    const animationTypes = vi
-      .mocked(animateShards)
-      .mock.calls.map(([, options]) => options.type);
+    const animationTypes = coreMocks.prepareShardAnimation.mock.calls.map(
+      ([, options]) => options.type,
+    );
     expect(animationTypes).toEqual(["scatter"]);
   });
 
@@ -221,21 +312,23 @@ describe("YuragiText", () => {
       />,
     );
 
-    expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
-      type: "settle",
-      stagger: "by-x",
-      speed: 0.8,
-    });
+    expect(coreMocks.prepareShardAnimation).toHaveBeenCalledWith(
+      expect.any(SVGSVGElement),
+      {
+        type: "settle",
+        stagger: "by-x",
+        speed: 0.8,
+      },
+    );
   });
 
   it("calls onEnterComplete once after settle finishes in StrictMode", async () => {
     const settleFinished = deferred<void>();
     const onEnterComplete = vi.fn();
-    vi.mocked(animateShards).mockImplementation(async (_root, options) => {
-      if (options.type === "settle") {
-        await settleFinished.promise;
-      }
-    });
+    const settleAnimation = animationHandle(
+      settleFinished.promise.then(() => ({ status: "completed" as const })),
+    );
+    coreMocks.prepareShardAnimation.mockReturnValue(settleAnimation);
 
     render(
       <StrictMode>
@@ -247,6 +340,7 @@ describe("YuragiText", () => {
       </StrictMode>,
     );
 
+    expect(settleAnimation.play).toHaveBeenCalledOnce();
     expect(onEnterComplete).not.toHaveBeenCalled();
 
     settleFinished.resolve();
@@ -260,11 +354,10 @@ describe("YuragiText", () => {
     const settleFinished = deferred<void>();
     const committedCallback = vi.fn();
     const suspendedCallback = vi.fn();
-    vi.mocked(animateShards).mockImplementation(async (_root, options) => {
-      if (options.type === "settle") {
-        await settleFinished.promise;
-      }
-    });
+    const settleAnimation = animationHandle(
+      settleFinished.promise.then(() => ({ status: "completed" as const })),
+    );
+    coreMocks.prepareShardAnimation.mockReturnValue(settleAnimation);
 
     const { rerender } = render(
       <SuspendingYuragiText
@@ -299,8 +392,66 @@ describe("YuragiText", () => {
     expect(committedCallback).toHaveBeenCalledOnce();
   });
 
+  it.each([
+    { status: "completed" },
+    { status: "skipped", reason: "empty" },
+  ] satisfies ShardAnimationResult[])(
+    "invokes onEnterComplete for a $status settle result",
+    async (result) => {
+      const onEnterComplete = vi.fn();
+      const settleAnimation = animationHandle(result);
+      coreMocks.prepareShardAnimation.mockReturnValue(settleAnimation);
+
+      render(
+        <YuragiText
+          text="A"
+          outline={outline}
+          animation={{ exit: false }}
+          onEnterComplete={onEnterComplete}
+        />,
+      );
+
+      expect(settleAnimation.play).toHaveBeenCalledOnce();
+      await waitFor(() => expect(onEnterComplete).toHaveBeenCalledOnce());
+    },
+  );
+
+  it.each([
+    { status: "cancelled" },
+    {
+      status: "failed",
+      error: new ShardAnimationError("play", new Error("animation failed")),
+    },
+  ] satisfies ShardAnimationResult[])(
+    "does not invoke onEnterComplete for a $status settle result",
+    async (result) => {
+      const onEnterComplete = vi.fn();
+      const settleAnimation = animationHandle(result);
+      coreMocks.prepareShardAnimation.mockReturnValue(settleAnimation);
+
+      render(
+        <YuragiText
+          text="A"
+          outline={outline}
+          animation={{ exit: false }}
+          onEnterComplete={onEnterComplete}
+        />,
+      );
+
+      expect(settleAnimation.play).toHaveBeenCalledOnce();
+      await settleAnimation.finished;
+      await Promise.resolve();
+      expect(onEnterComplete).not.toHaveBeenCalled();
+    },
+  );
+
   it("animates a fixed viewport clone when outline changes", async () => {
     const scatterFinished = deferred<void>();
+    const scatterAnimation = animationHandle(
+      scatterFinished.promise.then(() => ({
+        status: "completed" as const,
+      })),
+    );
     const onExitComplete = vi.fn();
     let rootRectCalls = 0;
     const getBoundingClientRect = vi
@@ -312,12 +463,9 @@ describe("YuragiText", () => {
         if (rootRectCalls === 2) return rect(24, 96, 0, 0);
         return rect(240, 80, 120, 48);
       });
-    vi.mocked(animateShards).mockImplementation(async (root, options) => {
-      if (options.type === "scatter") {
-        await scatterFinished.promise;
-      }
-      void root;
-    });
+    coreMocks.prepareShardAnimation.mockImplementation((_root, options) =>
+      options.type === "scatter" ? scatterAnimation : animationHandle(),
+    );
 
     try {
       const { rerender } = render(
@@ -341,9 +489,9 @@ describe("YuragiText", () => {
         />,
       );
 
-      const scatterCall = vi
-        .mocked(animateShards)
-        .mock.calls.find(([, options]) => options.type === "scatter");
+      const scatterCall = coreMocks.prepareShardAnimation.mock.calls.find(
+        ([, options]) => options.type === "scatter",
+      );
       const exitSvg = scatterCall?.[0] as SVGSVGElement | undefined;
 
       expect(exitSvg).toBeDefined();
@@ -356,16 +504,23 @@ describe("YuragiText", () => {
       expect(exitSvg?.style.width).toBe("180px");
       expect(exitSvg?.style.height).toBe("54px");
       expect(exitSvg?.style.pointerEvents).toBe("none");
-      expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
-        type: "settle",
-        stagger: "by-x",
-        speed: 0.8,
-      });
-      expect(animateShards).toHaveBeenCalledWith(expect.any(SVGSVGElement), {
-        type: "scatter",
-        stagger: "by-x",
-        speed: 0.8,
-      });
+      expect(coreMocks.prepareShardAnimation).toHaveBeenCalledWith(
+        expect.any(SVGSVGElement),
+        {
+          type: "settle",
+          stagger: "by-x",
+          speed: 0.8,
+        },
+      );
+      expect(coreMocks.prepareShardAnimation).toHaveBeenCalledWith(
+        expect.any(SVGSVGElement),
+        {
+          type: "scatter",
+          stagger: "by-x",
+          speed: 0.8,
+        },
+      );
+      expect(scatterAnimation.play).toHaveBeenCalledOnce();
       expect(document.querySelectorAll("[data-yuragi-root]")).toHaveLength(
         2,
       );
@@ -387,13 +542,15 @@ describe("YuragiText", () => {
 
   it("animates a fixed viewport clone when unmounted", async () => {
     const scatterFinished = deferred<void>();
+    const scatterAnimation = animationHandle(
+      scatterFinished.promise.then(() => ({
+        status: "completed" as const,
+      })),
+    );
     const onExitComplete = vi.fn();
-    vi.mocked(animateShards).mockImplementation(async (root, options) => {
-      if (options.type === "scatter") {
-        await scatterFinished.promise;
-      }
-      void root;
-    });
+    coreMocks.prepareShardAnimation.mockImplementation((_root, options) =>
+      options.type === "scatter" ? scatterAnimation : animationHandle(),
+    );
 
     const { unmount } = render(
       <YuragiText
@@ -413,11 +570,12 @@ describe("YuragiText", () => {
     unmount();
     await Promise.resolve();
 
-    const scatterCall = vi
-      .mocked(animateShards)
-      .mock.calls.find(([, options]) => options.type === "scatter");
+    const scatterCall = coreMocks.prepareShardAnimation.mock.calls.find(
+      ([, options]) => options.type === "scatter",
+    );
     const exitSvg = scatterCall?.[0] as SVGSVGElement | undefined;
 
+    expect(scatterAnimation.play).toHaveBeenCalledOnce();
     expect(exitSvg).toBeDefined();
     expect(exitSvg).not.toBe(previousSvg);
     expect(exitSvg?.parentElement).toBe(document.body);
@@ -435,6 +593,89 @@ describe("YuragiText", () => {
     expect(exitSvg?.isConnected).toBe(false);
     await waitFor(() => expect(onExitComplete).toHaveBeenCalledOnce());
   });
+
+  it.each([
+    { status: "completed" },
+    { status: "skipped", reason: "empty" },
+  ] satisfies ShardAnimationResult[])(
+    "invokes onExitComplete for a $status scatter result",
+    async (result) => {
+      const onExitComplete = vi.fn();
+      let scatterAnimation: ShardAnimationHandle | undefined;
+      coreMocks.prepareShardAnimation.mockImplementation((_root, options) => {
+        const animation = animationHandle(
+          options.type === "scatter" ? result : { status: "completed" },
+        );
+        if (options.type === "scatter") scatterAnimation = animation;
+        return animation;
+      });
+
+      const { rerender } = render(
+        <YuragiText
+          text="A"
+          outline={outline}
+          animation={{ enter: false }}
+          onExitComplete={onExitComplete}
+        />,
+      );
+      rerender(
+        <YuragiText
+          text="B"
+          outline={nextOutline}
+          animation={{ enter: false }}
+          onExitComplete={onExitComplete}
+        />,
+      );
+
+      expect(scatterAnimation?.play).toHaveBeenCalledOnce();
+      await waitFor(() => expect(onExitComplete).toHaveBeenCalledOnce());
+      expect(document.querySelector("[data-yuragi-exit]")).toBeNull();
+    },
+  );
+
+  it.each([
+    { status: "cancelled" },
+    {
+      status: "failed",
+      error: new ShardAnimationError("play", new Error("animation failed")),
+    },
+  ] satisfies ShardAnimationResult[])(
+    "does not invoke onExitComplete for a $status scatter result",
+    async (result) => {
+      const onExitComplete = vi.fn();
+      let scatterAnimation: ShardAnimationHandle | undefined;
+      coreMocks.prepareShardAnimation.mockImplementation((_root, options) => {
+        const animation = animationHandle(
+          options.type === "scatter" ? result : { status: "completed" },
+        );
+        if (options.type === "scatter") scatterAnimation = animation;
+        return animation;
+      });
+
+      const { rerender } = render(
+        <YuragiText
+          text="A"
+          outline={outline}
+          animation={{ enter: false }}
+          onExitComplete={onExitComplete}
+        />,
+      );
+      rerender(
+        <YuragiText
+          text="B"
+          outline={nextOutline}
+          animation={{ enter: false }}
+          onExitComplete={onExitComplete}
+        />,
+      );
+
+      expect(scatterAnimation?.play).toHaveBeenCalledOnce();
+      await scatterAnimation?.finished;
+      await Promise.resolve();
+      expect(onExitComplete).not.toHaveBeenCalled();
+      expect(document.querySelector("[data-yuragi-exit]")).toBeNull();
+    },
+  );
 
   it("uses the latest committed exit animation when unmounted", async () => {
     const { rerender, unmount } = render(
@@ -464,7 +705,7 @@ describe("YuragiText", () => {
     unmount();
     await Promise.resolve();
 
-    expect(animateShards).toHaveBeenCalledWith(
+    expect(coreMocks.prepareShardAnimation).toHaveBeenCalledWith(
       expect.any(SVGSVGElement),
       {
         type: "scatter",
@@ -508,7 +749,7 @@ describe("YuragiText", () => {
         animation={{ exit: false }}
       />,
     );
-    vi.mocked(animateShards).mockClear();
+    coreMocks.prepareShardAnimation.mockClear();
 
     rerender(<YuragiText text="A" outline={outline} />);
     await Promise.resolve();

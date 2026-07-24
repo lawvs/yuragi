@@ -1,8 +1,8 @@
-import type { AnimateShardsOptions } from "@yuragi-labs/core";
+import type { ShardAnimationOptions } from "@yuragi-labs/core";
 
 export function createSettleAnimationOptions(
   speed: number | undefined,
-): AnimateShardsOptions {
+): ShardAnimationOptions {
   return speed === undefined
     ? { type: "settle", stagger: "by-x" }
     : { type: "settle", stagger: "by-x", speed };
@@ -10,7 +10,7 @@ export function createSettleAnimationOptions(
 
 export function createScatterAnimationOptions(
   speed: number | undefined,
-): AnimateShardsOptions {
+): ShardAnimationOptions {
   return speed === undefined
     ? { type: "scatter", stagger: "by-x" }
     : { type: "scatter", stagger: "by-x", speed };

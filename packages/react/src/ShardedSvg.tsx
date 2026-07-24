@@ -1,8 +1,10 @@
 import { useEffectEvent, useLayoutEffect, useRef } from "react";
 import {
-  animateShards,
   createShardedSvg,
   layoutShardedText,
+  prepareShardAnimation,
+  type ShardAnimationHandle,
+  type ShardAnimationResult,
   type TextOutline,
 } from "@yuragi-labs/core";
 import { createSettleAnimationOptions } from "./animation-options";
@@ -43,14 +45,19 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
   const hostRef = useRef<HTMLSpanElement>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const renderedSvgRef = useRef<RenderedSvgState | null>(null);
+  const settleAnimationRef = useRef<ShardAnimationHandle | null>(null);
   const pendingScatterRef = useRef<{ cancelled: boolean } | null>(null);
   const mountedRef = useRef(false);
   const notifyEnterComplete = useEffectEvent(() => {
     props.onEnterComplete?.();
   });
-  const notifyExitComplete = useEffectEvent(() => {
-    props.onExitComplete?.();
-  });
+  const notifyExitCompleteForResult = useEffectEvent(
+    (result: ShardAnimationResult) => {
+      if (result.status === "completed" || result.status === "skipped") {
+        props.onExitComplete?.();
+      }
+    },
+  );
   const animateUnmountedSvgExit = useEffectEvent(() => {
     const animation = props.animation;
     if (!animation.exit) return;
@@ -69,7 +76,7 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
         void animateSvgExit(svg, {
           snapshot: exitSnapshot,
           speed: animation.speed,
-        }).then(() => notifyExitComplete());
+        }).then(notifyExitCompleteForResult);
       }
       if (pendingScatterRef.current === nextPending) {
         pendingScatterRef.current = null;
@@ -81,6 +88,16 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
+      const settleAnimation = settleAnimationRef.current;
+      queueMicrotask(() => {
+        if (
+          !mountedRef.current &&
+          settleAnimationRef.current === settleAnimation
+        ) {
+          settleAnimation?.cancel();
+          settleAnimationRef.current = null;
+        }
+      });
     };
   }, []);
 
@@ -126,6 +143,15 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
       previousSvg?.parentElement === host &&
       props.animation.exit;
 
+    settleAnimationRef.current?.cancel();
+    const settleAnimation = props.animation.enter
+      ? prepareShardAnimation(
+          svg,
+          createSettleAnimationOptions(props.animation.speed),
+        )
+      : null;
+    settleAnimationRef.current = settleAnimation;
+
     if (shouldScatterPrevious && previousSvg) {
       const exitSnapshot = pickSvgExitSnapshot(
         previousSvg,
@@ -135,18 +161,23 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
       void animateSvgExit(previousSvg, {
         snapshot: exitSnapshot,
         speed: props.animation.speed,
-      }).then(() => notifyExitComplete());
+      }).then(notifyExitCompleteForResult);
     } else {
       host.replaceChildren(svg);
     }
     refreshRenderedSvgExitSnapshot(renderedSvg, svg);
 
-    if (props.animation.enter) {
-      void animateShards(
-        svg,
-        createSettleAnimationOptions(props.animation.speed),
-      ).then(() => {
-        if (mountedRef.current && renderedSvgRef.current?.svg === svg) {
+    settleAnimation?.play();
+    if (settleAnimation) {
+      void settleAnimation.finished.then((result) => {
+        const isCurrent =
+          mountedRef.current &&
+          renderedSvgRef.current?.svg === svg &&
+          settleAnimationRef.current === settleAnimation;
+        if (
+          isCurrent &&
+          (result.status === "completed" || result.status === "skipped")
+        ) {
           notifyEnterComplete();
         }
       });

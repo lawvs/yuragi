@@ -1,7 +1,27 @@
 import { act, cleanup, render, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { animateShards, type TextOutline } from "@yuragi-labs/core";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  type ShardAnimationHandle,
+  type ShardAnimationResult,
+  type TextOutline,
+} from "@yuragi-labs/core";
 import { YuragiFontProvider, YuragiText } from "../src/index";
+
+const coreMocks = vi.hoisted(() => ({
+  prepareShardAnimation: vi.fn(),
+}));
+
+function animationHandle(
+  finished:
+    | Promise<ShardAnimationResult>
+    | ShardAnimationResult = { status: "completed" },
+): ShardAnimationHandle {
+  return {
+    play: vi.fn(),
+    cancel: vi.fn(),
+    finished: Promise.resolve(finished),
+  };
+}
 
 vi.mock("@yuragi-labs/core", async () => {
   const actual = await vi.importActual<typeof import("@yuragi-labs/core")>(
@@ -9,8 +29,15 @@ vi.mock("@yuragi-labs/core", async () => {
   );
   return {
     ...actual,
-    animateShards: vi.fn(async () => undefined),
+    prepareShardAnimation: coreMocks.prepareShardAnimation,
   };
+});
+
+beforeEach(() => {
+  coreMocks.prepareShardAnimation.mockReset();
+  coreMocks.prepareShardAnimation.mockImplementation(() =>
+    animationHandle(),
+  );
 });
 
 const outline: TextOutline = {
@@ -31,7 +58,6 @@ function deferred<T>() {
 describe("runtime animations", () => {
   afterEach(() => {
     cleanup();
-    vi.mocked(animateShards).mockClear();
   });
 
   it("completes one exit when runtime text changes", async () => {
@@ -72,9 +98,9 @@ describe("runtime animations", () => {
 
     await waitFor(() => {
       expect(
-        vi
-          .mocked(animateShards)
-          .mock.calls.filter(([, options]) => options.type === "scatter"),
+        coreMocks.prepareShardAnimation.mock.calls.filter(
+          ([, options]) => options.type === "scatter",
+        ),
       ).toHaveLength(1);
       expect(onExitComplete).toHaveBeenCalledOnce();
     });

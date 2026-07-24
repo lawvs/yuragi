@@ -1,4 +1,7 @@
-import { animateShards } from "@yuragi-labs/core";
+import {
+  prepareShardAnimation,
+  type ShardAnimationResult,
+} from "@yuragi-labs/core";
 import { createScatterAnimationOptions } from "./animation-options";
 
 export type SvgExitSnapshot = {
@@ -104,15 +107,18 @@ export function animateSvgExit(
     snapshot?: SvgExitSnapshot;
     speed?: number;
   } = {},
-): Promise<void> {
+): Promise<ShardAnimationResult> {
   const snapshot = options.snapshot ?? captureSvgExitSnapshot(sourceSvg);
   const overlay = createSvgExitOverlay(sourceSvg, snapshot);
   const animatedSvg = overlay ?? sourceSvg;
 
-  return animateShards(
+  const animation = prepareShardAnimation(
     animatedSvg,
     createScatterAnimationOptions(options.speed),
-  ).finally(() => {
+  );
+  animation.play();
+
+  return animation.finished.finally(() => {
     overlay?.remove();
   });
 }
