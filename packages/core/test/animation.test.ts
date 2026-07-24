@@ -1,148 +1,297 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  animateShards,
-  buildShardKeyframes,
-  planShardTimings,
+  prepareShardAnimation,
+  ShardAnimationError,
 } from "../src/animation";
 import { layoutShardedText } from "../src/layout";
 import { createShardedSvg } from "../src/svg";
 import type { TextOutline } from "../src/types";
 
-describe("buildShardKeyframes", () => {
-  it("builds scatter keyframes and reverses them for settle", () => {
-    const scatter = buildShardKeyframes({
-      type: "scatter",
-      directionX: 1,
-      directionY: 0.5,
-      distance: 100,
-      scale: 0.95,
-    });
-    const settle = buildShardKeyframes({
-      type: "settle",
-      directionX: 1,
-      directionY: 0.5,
-      distance: 100,
-      scale: 0.95,
-    });
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((nextResolve, nextReject) => {
+    resolve = nextResolve;
+    reject = nextReject;
+  });
+  return { promise, resolve, reject };
+}
 
-    expect(scatter).toEqual([
-      {},
-      {
-        opacity: 0,
-        transform: "translate(100px, 50px) scale(0.95)",
-      },
-    ]);
-    expect(settle).toEqual([
-      {
-        opacity: 0,
-        transform: "translate(100px, 50px) scale(0.95)",
-      },
-      {},
-    ]);
+function nativeAnimation() {
+  const completion = deferred<void>();
+  return {
+    animation: {
+      currentTime: null,
+      pause: vi.fn(),
+      play: vi.fn(),
+      cancel: vi.fn(),
+      finished: completion.promise,
+    } as unknown as Animation,
+    completion,
+  };
+}
+
+function shard(): SVGGElement {
+  const element = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "g",
+  );
+  element.dataset.shardMotion = "true";
+  element.dataset.directionX = "0.5";
+  element.dataset.directionY = "-1";
+  return element;
+}
+
+beforeEach(() => {
+  Element.prototype.animate =
+    vi.fn() as unknown as typeof Element.prototype.animate;
+  Object.defineProperty(window, "matchMedia", {
+    configurable: true,
+    value: vi.fn(() => ({ matches: false })),
   });
 });
 
-describe("planShardTimings", () => {
-  it("scales transition playback and spatial delay with speed", () => {
-    expect(
-      planShardTimings({
-        type: "scatter",
-        speed: 0.5,
-        stagger: "by-x",
-        shardXs: [0, 100],
-      })[1],
-    ).toMatchObject({
-      duration: 1000,
-      delay: 240,
-    });
-    expect(
-      planShardTimings({
-        type: "scatter",
-        speed: 2,
-        stagger: "by-x",
-        shardXs: [0, 100],
-      })[1],
-    ).toMatchObject({
-      duration: 250,
-      delay: 60,
-    });
-  });
-
-  it("plans stagger delay from the full shard x span", () => {
-    const timings = planShardTimings({
-      type: "scatter",
-      stagger: "by-x",
-      shardXs: [100, 0, 50, 200],
-    });
-
-    expect(timings.map((timing) => timing.delay)).toEqual([120, 0, 60, 240]);
-  });
-
-  it("falls back to index-normalized delay when x positions are missing", () => {
-    const timings = planShardTimings({
-      type: "scatter",
-      stagger: "by-x",
-      shardXs: Array.from<number | undefined>({ length: 5 }),
-    });
-
-    expect(timings.map((timing) => timing.delay)).toEqual([
-      0,
-      30,
-      60,
-      90,
-      120,
-    ]);
-  });
-});
-
-describe("animateShards", () => {
-  beforeEach(() => {
-    Element.prototype.animate = vi.fn(() => ({
-      finished: Promise.resolve(),
-    })) as unknown as typeof Element.prototype.animate;
-    Object.defineProperty(window, "matchMedia", {
-      configurable: true,
-      value: vi.fn(() => ({ matches: false })),
-    });
-  });
-
-  it("passes shard keyframes and animation options to animate", async () => {
+describe("prepareShardAnimation", () => {
+  it("prepares every shard at time zero before playback", async () => {
+    const first = nativeAnimation();
+    const second = nativeAnimation();
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    const motion = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    motion.dataset.shardMotion = "true";
-    motion.dataset.directionX = "0.5";
-    motion.dataset.directionY = "-1";
-    svg.append(motion);
+    svg.append(shard(), shard());
+    vi.mocked(Element.prototype.animate)
+      .mockReturnValueOnce(first.animation)
+      .mockReturnValueOnce(second.animation);
 
-    await animateShards(svg, { type: "scatter", distance: 80 });
+    const handle = prepareShardAnimation(svg, {
+      type: "settle",
+      distance: 80,
+      stagger: "by-x",
+    });
 
+    expect(first.animation.pause).toHaveBeenCalledOnce();
+    expect(first.animation.currentTime).toBe(0);
+    expect(first.animation.play).not.toHaveBeenCalled();
+    expect(second.animation.pause).toHaveBeenCalledOnce();
+    expect(second.animation.currentTime).toBe(0);
+    expect(second.animation.play).not.toHaveBeenCalled();
     expect(Element.prototype.animate).toHaveBeenCalledWith(
       [
-        {},
         {
           opacity: 0,
-          transform: "translate(40px, -80px) scale(0.95)",
+          transform: "translate(40px, -80px) scale(1.05)",
         },
+        {},
       ],
-      {
+      expect.objectContaining({
         duration: 500,
-        delay: 0,
-        easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+        easing: "cubic-bezier(0, 0, 0, 1)",
         fill: "both",
-      },
+      }),
     );
+
+    handle.play();
+    handle.play();
+    expect(first.animation.play).toHaveBeenCalledOnce();
+    expect(second.animation.play).toHaveBeenCalledOnce();
+
+    first.completion.resolve();
+    await Promise.resolve();
+    await expect(
+      Promise.race([
+        handle.finished,
+        Promise.resolve({ status: "still-pending" }),
+      ]),
+    ).resolves.toEqual({ status: "still-pending" });
+    second.completion.resolve();
+    await expect(handle.finished).resolves.toEqual({ status: "completed" });
+    expect(first.animation.cancel).toHaveBeenCalledOnce();
+    expect(second.animation.cancel).toHaveBeenCalledOnce();
   });
 
-  it("uses visual shard x positions before generated fallback positions", async () => {
+  it("retains completed scatter effects until cancellation", async () => {
+    const native = nativeAnimation();
+    vi.mocked(Element.prototype.animate).mockReturnValue(native.animation);
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    const first = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    const second = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "g",
-    );
-    first.dataset.shardMotion = "true";
-    first.dataset.shardX = "0";
-    first.getBoundingClientRect = vi.fn(
+    svg.append(shard());
+
+    const handle = prepareShardAnimation(svg, { type: "scatter" });
+    handle.play();
+    native.completion.resolve();
+    await expect(handle.finished).resolves.toEqual({ status: "completed" });
+
+    expect(native.animation.cancel).not.toHaveBeenCalled();
+    handle.cancel();
+    handle.cancel();
+    expect(native.animation.cancel).toHaveBeenCalledOnce();
+  });
+
+  it("cancels before play and settles once", async () => {
+    const native = nativeAnimation();
+    vi.mocked(Element.prototype.animate).mockReturnValue(native.animation);
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.append(shard());
+
+    const handle = prepareShardAnimation(svg, { type: "settle" });
+    handle.cancel();
+    handle.cancel();
+    handle.play();
+
+    expect(native.animation.cancel).toHaveBeenCalledOnce();
+    expect(native.animation.play).not.toHaveBeenCalled();
+    await expect(handle.finished).resolves.toEqual({ status: "cancelled" });
+  });
+
+  it("cancels the previous handle prepared for the same root", async () => {
+    const first = nativeAnimation();
+    const second = nativeAnimation();
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.append(shard());
+    vi.mocked(Element.prototype.animate)
+      .mockReturnValueOnce(first.animation)
+      .mockReturnValueOnce(second.animation);
+
+    const previous = prepareShardAnimation(svg, { type: "scatter" });
+    const current = prepareShardAnimation(svg, { type: "settle" });
+
+    await expect(previous.finished).resolves.toEqual({
+      status: "cancelled",
+    });
+    expect(first.animation.cancel).toHaveBeenCalledOnce();
+    current.cancel();
+  });
+
+  it.each([
+    [
+      "empty",
+      () => document.createElementNS("http://www.w3.org/2000/svg", "svg"),
+    ],
+    [
+      "reduced-motion",
+      () => {
+        vi.mocked(window.matchMedia).mockReturnValue({
+          matches: true,
+        } as MediaQueryList);
+        const svg = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "svg",
+        );
+        svg.append(shard());
+        return svg;
+      },
+    ],
+    [
+      "unsupported",
+      () => {
+        Element.prototype.animate =
+          undefined as unknown as typeof Element.prototype.animate;
+        const svg = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "svg",
+        );
+        svg.append(shard());
+        return svg;
+      },
+    ],
+  ] as const)("reports skipped/%s", async (reason, createRoot) => {
+    const handle = prepareShardAnimation(createRoot(), { type: "settle" });
+    await expect(handle.finished).resolves.toEqual({
+      status: "skipped",
+      reason,
+    });
+  });
+
+  it.each([
+    [{ type: "settle", speed: 0 }, "speed"],
+    [{ type: "settle", speed: Number.NaN }, "speed"],
+    [{ type: "settle", distance: -1 }, "distance"],
+  ] as const)("rejects invalid options before mutation", (options, field) => {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.append(shard());
+    expect(() => prepareShardAnimation(svg, options)).toThrow(field);
+    expect(Element.prototype.animate).not.toHaveBeenCalled();
+  });
+
+  it("rolls back every shard after a preparation failure", async () => {
+    const first = nativeAnimation();
+    const cause = new Error("animate failed");
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.append(shard(), shard());
+    vi.mocked(Element.prototype.animate)
+      .mockReturnValueOnce(first.animation)
+      .mockImplementationOnce(() => {
+        throw cause;
+      });
+
+    const handle = prepareShardAnimation(svg, { type: "scatter" });
+
+    expect(first.animation.cancel).toHaveBeenCalledOnce();
+    const result = await handle.finished;
+    expect(result.status).toBe("failed");
+    if (result.status === "failed") {
+      expect(result.error).toBeInstanceOf(ShardAnimationError);
+      expect(result.error.phase).toBe("prepare");
+      expect(result.error.cause).toBe(cause);
+    }
+  });
+
+  it("rolls back an animation when pausing it fails", async () => {
+    const native = nativeAnimation();
+    const cause = new Error("pause failed");
+    const abort = Object.assign(new Error("cancelled"), {
+      name: "AbortError",
+    });
+    vi.mocked(native.animation.pause).mockImplementationOnce(() => {
+      throw cause;
+    });
+    vi.mocked(native.animation.cancel).mockImplementationOnce(() => {
+      native.completion.reject(abort);
+    });
+    vi.mocked(Element.prototype.animate).mockReturnValue(native.animation);
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.append(shard());
+
+    const handle = prepareShardAnimation(svg, { type: "scatter" });
+
+    expect(native.animation.cancel).toHaveBeenCalledOnce();
+    const result = await handle.finished;
+    expect(result.status).toBe("failed");
+    if (result.status === "failed") {
+      expect(result.error.phase).toBe("prepare");
+      expect(result.error.cause).toBe(cause);
+    }
+    await Promise.resolve();
+  });
+
+  it("fails atomically when native playback rejects", async () => {
+    const first = nativeAnimation();
+    const second = nativeAnimation();
+    const cause = new Error("play failed");
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.append(shard(), shard());
+    vi.mocked(Element.prototype.animate)
+      .mockReturnValueOnce(first.animation)
+      .mockReturnValueOnce(second.animation);
+
+    const handle = prepareShardAnimation(svg, { type: "scatter" });
+    handle.play();
+    first.completion.reject(cause);
+
+    const result = await handle.finished;
+    expect(result.status).toBe("failed");
+    expect(second.animation.cancel).toHaveBeenCalledOnce();
+    if (result.status === "failed") {
+      expect(result.error.phase).toBe("play");
+      expect(result.error.cause).toBe(cause);
+    }
+  });
+
+  it("uses visual shard x positions before generated fallback positions", () => {
+    const first = nativeAnimation();
+    const second = nativeAnimation();
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const firstShard = shard();
+    const secondShard = shard();
+    firstShard.dataset.shardX = "0";
+    firstShard.getBoundingClientRect = vi.fn(
       () =>
         ({
           left: 100,
@@ -150,9 +299,8 @@ describe("animateShards", () => {
           height: 20,
         }) as DOMRect,
     );
-    second.dataset.shardMotion = "true";
-    second.dataset.shardX = "0";
-    second.getBoundingClientRect = vi.fn(
+    secondShard.dataset.shardX = "0";
+    secondShard.getBoundingClientRect = vi.fn(
       () =>
         ({
           left: 0,
@@ -160,9 +308,15 @@ describe("animateShards", () => {
           height: 20,
         }) as DOMRect,
     );
-    svg.append(first, second);
+    svg.append(firstShard, secondShard);
+    vi.mocked(Element.prototype.animate)
+      .mockReturnValueOnce(first.animation)
+      .mockReturnValueOnce(second.animation);
 
-    await animateShards(svg, { type: "scatter", stagger: "by-x" });
+    const handle = prepareShardAnimation(svg, {
+      type: "scatter",
+      stagger: "by-x",
+    });
 
     expect(Element.prototype.animate).toHaveBeenNthCalledWith(
       1,
@@ -174,72 +328,58 @@ describe("animateShards", () => {
       expect.any(Array),
       expect.objectContaining({ delay: 0 }),
     );
+    handle.cancel();
   });
 
-  it("does not animate when reduced motion is preferred", async () => {
-    Object.defineProperty(window, "matchMedia", {
-      configurable: true,
-      value: vi.fn(() => ({ matches: true })),
+  it("scales transition playback and spatial delay with speed", () => {
+    const first = nativeAnimation();
+    const second = nativeAnimation();
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const firstShard = shard();
+    const secondShard = shard();
+    firstShard.dataset.shardX = "0";
+    secondShard.dataset.shardX = "100";
+    svg.append(firstShard, secondShard);
+    vi.mocked(Element.prototype.animate)
+      .mockReturnValueOnce(first.animation)
+      .mockReturnValueOnce(second.animation);
+
+    const handle = prepareShardAnimation(svg, {
+      type: "scatter",
+      speed: 2,
+      stagger: "by-x",
     });
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    const motion = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    motion.dataset.shardMotion = "true";
-    svg.append(motion);
 
-    await animateShards(svg, { type: "scatter" });
-
-    expect(Element.prototype.animate).not.toHaveBeenCalled();
+    expect(Element.prototype.animate).toHaveBeenNthCalledWith(
+      2,
+      expect.any(Array),
+      expect.objectContaining({ duration: 250, delay: 60 }),
+    );
+    handle.cancel();
   });
 
-  it("resolves when WAAPI is unavailable", async () => {
-    Element.prototype.animate =
-      undefined as unknown as typeof Element.prototype.animate;
+  it("falls back to index-normalized delay when x positions are missing", () => {
+    const animations = Array.from({ length: 5 }, nativeAnimation);
+    vi.mocked(Element.prototype.animate).mockImplementation(
+      () => animations.shift()!.animation,
+    );
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    const motion = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    motion.dataset.shardMotion = "true";
-    svg.append(motion);
+    svg.append(shard(), shard(), shard(), shard(), shard());
 
-    await expect(
-      animateShards(svg, { type: "scatter" }),
-    ).resolves.toBeUndefined();
+    const handle = prepareShardAnimation(svg, {
+      type: "scatter",
+      stagger: "by-x",
+    });
+
+    expect(
+      vi
+        .mocked(Element.prototype.animate)
+        .mock.calls.map(([, timing]) => (timing as KeyframeAnimationOptions).delay),
+    ).toEqual([0, 30, 60, 90, 120]);
+    handle.cancel();
   });
 
-  it("ignores canceled animation promises and synchronous animate failures", async () => {
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    const canceled = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "g",
-    );
-    const throwing = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "g",
-    );
-    const finishing = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "g",
-    );
-    canceled.dataset.shardMotion = "true";
-    throwing.dataset.shardMotion = "true";
-    finishing.dataset.shardMotion = "true";
-    svg.append(canceled, throwing, finishing);
-    canceled.animate = vi.fn(() => ({
-      finished: Promise.reject(
-        Object.assign(new Error("canceled"), { name: "AbortError" }),
-      ),
-    })) as unknown as typeof canceled.animate;
-    throwing.animate = vi.fn(() => {
-      throw new Error("animate failed");
-    }) as unknown as typeof throwing.animate;
-    finishing.animate = vi.fn(() => ({
-      finished: Promise.resolve(),
-    })) as unknown as typeof finishing.animate;
-
-    await expect(
-      animateShards(svg, { type: "scatter" }),
-    ).resolves.toBeUndefined();
-  });
-
-  it("animates generated motion wrappers outside base glyph scale", async () => {
+  it("animates generated motion wrappers outside base glyph scale", () => {
     const outline: TextOutline = {
       em: 1000,
       ascender: 880,
@@ -263,17 +403,16 @@ describe("animateShards", () => {
     const svg = createShardedSvg(layoutShardedText(outline, { size: 20 }));
     const motionWrapper = svg.querySelector("[data-shard-motion]");
     const scaleWrapper = svg.querySelector("[data-shard-scale]");
-    const shard = svg.querySelector("[data-shard]");
-    const animate = vi.fn(() => ({
-      finished: Promise.resolve(),
-    })) as unknown as typeof Element.prototype.animate;
+    const renderedShard = svg.querySelector("[data-shard]");
+    const native = nativeAnimation();
+    const animate = vi.fn(() => native.animation);
     if (motionWrapper) motionWrapper.animate = animate;
 
-    await animateShards(svg, { type: "scatter" });
+    const handle = prepareShardAnimation(svg, { type: "scatter" });
 
     expect(motionWrapper?.contains(scaleWrapper)).toBe(true);
     expect(scaleWrapper?.getAttribute("transform")).toBe("scale(0.02)");
-    expect(shard?.getAttribute("transform")).toBeNull();
+    expect(renderedShard?.getAttribute("transform")).toBeNull();
     expect(animate).toHaveBeenCalledWith(
       [
         {},
@@ -284,5 +423,6 @@ describe("animateShards", () => {
       ],
       expect.any(Object),
     );
+    handle.cancel();
   });
 });

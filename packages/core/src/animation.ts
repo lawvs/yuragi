@@ -1,12 +1,41 @@
-export type AnimateShardsOptions = {
+export type ShardAnimationOptions = {
   type: "settle" | "scatter";
   speed?: number;
   distance?: number;
   stagger?: "none" | "by-x";
-  direction?: "outline-vector";
 };
 
-export type BuildShardKeyframesOptions = {
+export type ShardAnimationResult =
+  | { status: "completed" }
+  | { status: "cancelled" }
+  | {
+      status: "skipped";
+      reason: "reduced-motion" | "unsupported" | "empty";
+    }
+  | {
+      status: "failed";
+      error: ShardAnimationError;
+    };
+
+export class ShardAnimationError extends Error {
+  readonly phase: "prepare" | "play";
+  override readonly cause: unknown;
+
+  constructor(phase: "prepare" | "play", cause: unknown) {
+    super(`Shard animation failed during ${phase}`, { cause });
+    this.name = "ShardAnimationError";
+    this.phase = phase;
+    this.cause = cause;
+  }
+}
+
+export interface ShardAnimationHandle {
+  play(): void;
+  cancel(): void;
+  readonly finished: Promise<ShardAnimationResult>;
+}
+
+type BuildShardKeyframesOptions = {
   type: "settle" | "scatter";
   directionX: number;
   directionY: number;
@@ -14,13 +43,13 @@ export type BuildShardKeyframesOptions = {
   scale: number;
 };
 
-export type ShardTiming = {
+type ShardTiming = {
   duration: number;
   delay: number;
   easing: string;
 };
 
-export type PlanShardTimingsOptions = {
+type PlanShardTimingsOptions = {
   type: "settle" | "scatter";
   speed?: number;
   stagger?: "none" | "by-x";
@@ -36,7 +65,7 @@ const EASINGS = {
   scatter: "cubic-bezier(0.22, 1, 0.36, 1)",
 } as const;
 
-export function buildShardKeyframes(
+function buildShardKeyframes(
   options: BuildShardKeyframesOptions,
 ): Keyframe[] {
   const x = options.directionX * options.distance;
@@ -46,12 +75,6 @@ export function buildShardKeyframes(
     transform: `translate(${x}px, ${y}px) scale(${options.scale})`,
   };
   return options.type === "settle" ? [freeFrame, {}] : [{}, freeFrame];
-}
-
-function normalizedSpeed(speed: number | undefined): number {
-  return typeof speed === "number" && Number.isFinite(speed) && speed > 0
-    ? speed
-    : DEFAULT_SPEED;
 }
 
 function shardDelay(
@@ -74,10 +97,10 @@ function shardDelay(
   return (index / (shardXs.length - 1) / speed) * FALLBACK_STAGGER_WINDOW;
 }
 
-export function planShardTimings(
+function planShardTimings(
   options: PlanShardTimingsOptions,
 ): ShardTiming[] {
-  const speed = normalizedSpeed(options.speed);
+  const speed = options.speed ?? DEFAULT_SPEED;
   const duration = BASE_DURATION / speed;
 
   return options.shardXs.map((_, index) => ({
@@ -90,11 +113,19 @@ export function planShardTimings(
   }));
 }
 
-function prefersReducedMotion(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
-  );
+function validateOptions(options: ShardAnimationOptions): void {
+  if (
+    options.speed !== undefined &&
+    (!Number.isFinite(options.speed) || options.speed <= 0)
+  ) {
+    throw new RangeError("speed must be finite and greater than zero");
+  }
+  if (
+    options.distance !== undefined &&
+    (!Number.isFinite(options.distance) || options.distance < 0)
+  ) {
+    throw new RangeError("distance must be finite and non-negative");
+  }
 }
 
 function finiteDatasetNumber(value: string | undefined): number {
@@ -119,65 +150,182 @@ function visualShardX(shardMotion: SVGGElement): number | undefined {
   return Number.isFinite(centerX) ? centerX : undefined;
 }
 
-function ignoreAnimationFailure(error: unknown): void {
-  void error;
+function resolvedHandle(
+  result: ShardAnimationResult,
+): ShardAnimationHandle {
+  return {
+    play() {},
+    cancel() {},
+    finished: Promise.resolve(result),
+  };
 }
 
-export async function animateShards(
+const activeHandles = new WeakMap<ParentNode, ShardAnimationHandle>();
+
+function createPreparedHandle(
   root: ParentNode,
-  options: AnimateShardsOptions,
-): Promise<void> {
-  const shardMotions = Array.from(
-    root.querySelectorAll<SVGGElement>("[data-shard-motion]"),
+  animations: Animation[],
+  type: ShardAnimationOptions["type"],
+): ShardAnimationHandle {
+  type State =
+    | "prepared"
+    | "running"
+    | "completed"
+    | "cancelled"
+    | "failed";
+
+  let state: State = "prepared";
+  let released = false;
+  let resolveFinished!: (result: ShardAnimationResult) => void;
+  const finished = new Promise<ShardAnimationResult>((resolve) => {
+    resolveFinished = resolve;
+  });
+  const nativeCompletion = Promise.all(
+    animations.map((animation) => animation.finished),
+  ).then(
+    () => ({ ok: true as const }),
+    (cause: unknown) => ({ ok: false as const, cause }),
   );
 
-  if (prefersReducedMotion()) {
-    return undefined;
+  const release = () => {
+    if (released) return;
+    released = true;
+    animations.forEach((animation) => animation.cancel());
+  };
+  const detach = () => {
+    if (activeHandles.get(root) === handle) {
+      activeHandles.delete(root);
+    }
+  };
+  const fail = (cause: unknown) => {
+    if (state !== "running") return;
+    state = "failed";
+    release();
+    detach();
+    resolveFinished({
+      status: "failed",
+      error: new ShardAnimationError("play", cause),
+    });
+  };
+
+  const handle: ShardAnimationHandle = {
+    play() {
+      if (state !== "prepared") return;
+      state = "running";
+
+      void nativeCompletion.then((outcome) => {
+        if (state !== "running") return;
+        if (!outcome.ok) {
+          fail(outcome.cause);
+          return;
+        }
+
+        state = "completed";
+        if (type === "settle") {
+          release();
+          detach();
+        }
+        resolveFinished({ status: "completed" });
+      });
+
+      try {
+        animations.forEach((animation) => animation.play());
+      } catch (cause) {
+        fail(cause);
+      }
+    },
+
+    cancel() {
+      if (state === "completed") {
+        release();
+        detach();
+        return;
+      }
+      if (state === "cancelled" || state === "failed") return;
+
+      state = "cancelled";
+      release();
+      detach();
+      resolveFinished({ status: "cancelled" });
+    },
+
+    finished,
+  };
+
+  return handle;
+}
+
+export function prepareShardAnimation(
+  root: ParentNode,
+  options: ShardAnimationOptions,
+): ShardAnimationHandle {
+  validateOptions(options);
+  activeHandles.get(root)?.cancel();
+
+  const shards = Array.from(
+    root.querySelectorAll<SVGGElement>("[data-shard-motion]"),
+  );
+  if (shards.length === 0) {
+    return resolvedHandle({ status: "skipped", reason: "empty" });
   }
 
-  const distance = options.distance ?? 100;
+  const rootNode = root as Node;
+  const ownerDocument =
+    rootNode.nodeType === 9 ? (root as Document) : rootNode.ownerDocument;
+  const ownerWindow = ownerDocument?.defaultView;
+  if (
+    ownerWindow?.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+  ) {
+    return resolvedHandle({
+      status: "skipped",
+      reason: "reduced-motion",
+    });
+  }
+  if (shards.some((item) => typeof item.animate !== "function")) {
+    return resolvedHandle({ status: "skipped", reason: "unsupported" });
+  }
+
   const timings = planShardTimings({
     type: options.type,
     speed: options.speed,
     stagger: options.stagger,
-    shardXs: shardMotions.map((shardMotion) =>
-      visualShardX(shardMotion) ??
-      finiteDatasetNumberOrUndefined(shardMotion.dataset.shardX),
+    shardXs: shards.map(
+      (item) =>
+        visualShardX(item) ??
+        finiteDatasetNumberOrUndefined(item.dataset.shardX),
     ),
   });
+  const animations: Animation[] = [];
 
-  const animations = shardMotions.flatMap((shardMotion, index) => {
-    if (typeof shardMotion.animate !== "function") {
-      return [];
-    }
-
-    const directionX = finiteDatasetNumber(shardMotion.dataset.directionX);
-    const directionY = finiteDatasetNumber(shardMotion.dataset.directionY);
-    const scale = options.type === "settle" ? 1.05 : 0.95;
-    const timing = timings[index];
-
-    try {
-      const animation = shardMotion.animate(
+  try {
+    shards.forEach((item, index) => {
+      const animation = item.animate(
         buildShardKeyframes({
           type: options.type,
-          directionX,
-          directionY,
-          distance,
-          scale,
+          directionX: finiteDatasetNumber(item.dataset.directionX),
+          directionY: finiteDatasetNumber(item.dataset.directionY),
+          distance: options.distance ?? 100,
+          scale: options.type === "settle" ? 1.05 : 0.95,
         }),
         {
-          duration: timing.duration,
-          delay: timing.delay,
-          easing: timing.easing,
+          ...timings[index],
           fill: "both",
         },
       );
+      animations.push(animation);
+      void animation.finished.catch(() => {});
+      animation.pause();
+      animation.currentTime = 0;
+    });
 
-      return [animation.finished.catch(ignoreAnimationFailure)];
-    } catch {
-      return [];
-    }
-  });
-
-  await Promise.all(animations);
+    const handle = createPreparedHandle(root, animations, options.type);
+    activeHandles.set(root, handle);
+    return handle;
+  } catch (cause) {
+    animations.forEach((animation) => animation.cancel());
+    return resolvedHandle({
+      status: "failed",
+      error: new ShardAnimationError("prepare", cause),
+    });
+  }
 }
