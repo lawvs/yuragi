@@ -35,11 +35,13 @@ vi.mock("@yuragi-labs/react", () => ({
     axes,
     children,
     font,
+    preload,
     wasm,
   }: {
     axes?: FontAxes;
     children: ReactNode;
     font: string;
+    preload?: readonly string[];
     wasm?: string;
   }) => (
     <div
@@ -47,6 +49,7 @@ vi.mock("@yuragi-labs/react", () => ({
       data-font={font}
       data-wasm={wasm}
       data-axes={axes ? JSON.stringify(axes) : undefined}
+      data-preload={preload ? JSON.stringify(preload) : undefined}
     >
       {children}
     </div>
@@ -56,14 +59,20 @@ vi.mock("@yuragi-labs/react", () => ({
     fallback,
     text,
   }: {
-    animation?: { speed?: number };
-    fallback?: string;
+    animation?: { enter?: boolean; exit?: boolean; speed?: number };
+    fallback?: string | { delayMs: number };
     text: string;
   }) => {
     return (
       <span
+        data-animation-exit={animation?.exit?.toString()}
         data-animation-speed={animation?.speed}
-        data-fallback={fallback}
+        data-fallback={
+          typeof fallback === "string" ? fallback : undefined
+        }
+        data-fallback-delay={
+          typeof fallback === "object" ? fallback.delayMs : undefined
+        }
         data-runtime-sharded-text={text}
         data-sharded-text={text}
       >
@@ -88,7 +97,7 @@ vi.mock("@yuragi-labs/react/static", async () => {
     }: {
       className?: string;
       text: string;
-      animation?: { speed?: number };
+      animation?: { enter?: boolean; exit?: boolean; speed?: number };
       fallback?: string;
       hover?: string;
       outline?: unknown;
@@ -102,6 +111,7 @@ vi.mock("@yuragi-labs/react/static", async () => {
       return (
         <span
           className={className}
+          data-animation-exit={animation?.exit?.toString()}
           data-animation-speed={animation?.speed}
           data-fallback={fallback}
           data-has-outline={outline ? "true" : "false"}
@@ -202,12 +212,56 @@ describe("App", () => {
       expect.stringContaining("yuragi_wasm_compiler.wasm"),
     );
     expect(provider?.getAttribute("data-axes")).toBe('{"wght":900}');
+    expect(provider?.getAttribute("data-preload")).toBe(
+      '["Dashboard","Settings"]',
+    );
     expect(dashboard).not.toBeNull();
     expect(host.querySelector(".font-status")?.textContent).toBe("Font ready");
     expect(
       host.querySelector(".preview-title [data-static-sharded-text]"),
     ).toBeNull();
     expect(host.textContent).not.toContain("Missing Outline");
+  });
+
+  it("only enables tab exit animation for the demo preview", () => {
+    renderApp();
+
+    const listTitle = host.querySelector(
+      '.post-title [data-runtime-sharded-text="Dashboard"]',
+    );
+    const previewTitle = host.querySelector(
+      '.preview-title [data-runtime-sharded-text="Dashboard"]',
+    );
+
+    expect(listTitle?.getAttribute("data-animation-exit")).toBe("false");
+    expect(previewTitle?.getAttribute("data-animation-exit")).toBe("true");
+
+    act(() => {
+      host
+        .querySelector<HTMLButtonElement>('button[data-view="wasm-lab"]')
+        ?.click();
+    });
+
+    const wasmPreview = host.querySelector(
+      '.wasm-lab-preview [data-static-sharded-text]',
+    );
+    expect(wasmPreview?.getAttribute("data-animation-exit")).toBe("false");
+  });
+
+  it("keeps the Demo fallback hidden until an outline is ready", () => {
+    renderApp();
+
+    const listTitle = host.querySelector(
+      '.post-title [data-runtime-sharded-text="Dashboard"]',
+    );
+    const previewTitle = host.querySelector(
+      '.preview-title [data-runtime-sharded-text="Dashboard"]',
+    );
+
+    expect(listTitle?.getAttribute("data-fallback")).toBe("hidden");
+    expect(previewTitle?.getAttribute("data-fallback")).toBe("hidden");
+    expect(listTitle?.getAttribute("data-fallback-delay")).toBeNull();
+    expect(previewTitle?.getAttribute("data-fallback-delay")).toBeNull();
   });
 
   it("updates the demo preview title from text input", () => {

@@ -99,7 +99,10 @@ as soon as the provider is ready:
 
 This warms Yuragi's in-memory outline cache. It does not preload the font file
 itself; use browser preload links or your framework's asset loading tools for
-that.
+that. Runtime outline state is still resolved after the component's first
+render, even when compilation is cached. Use `"hidden"` to avoid showing
+fallback text, or a delayed fallback when slow loading should eventually show
+readable text.
 
 ## Installed Local Fonts
 
@@ -152,6 +155,7 @@ one phase explicitly when needed:
 <YuragiText text="Static title" animation={false} />
 <YuragiText text="Enter only" animation={{ exit: false }} />
 <YuragiText text="Exit only" animation={{ enter: false }} />
+<YuragiText text="Delayed fallback" fallback={{ delayMs: 150 }} />
 ```
 
 Runtime `YuragiText` skips settle when replacing its initial fallback with the
@@ -164,7 +168,10 @@ first compiled outline. Later text changes use the configured enter animation.
 - `hover`: `"outline"` enables the hollow title hover treatment;
   `"none"` disables it.
 - `fallback`: `"text"` renders readable text while the outline is compiling;
-  `"hidden"` renders nothing; `"error"` throws.
+  `"hidden"` renders nothing; `"error"` throws. The runtime entry also accepts
+  `{ delayMs }`, which renders nothing during the delay and then shows text if
+  the outline is still unavailable. A zero delay is equivalent to `"text"`;
+  the delay must be finite and non-negative.
 - `animation`: enabled by default with settle on enter and scatter on exit;
   pass `false` to disable both animations.
 - `animation.enter`: set to `false` to disable the settle animation.

@@ -167,6 +167,7 @@ export function WasmLab() {
             maxWidth={760}
             fallback="text"
             hover="outline"
+            animation={{ exit: false }}
           />
           <p>
             {outline

@@ -423,6 +423,7 @@ function GlyphTile({
             size={42}
             maxWidth={56}
             fallback="hidden"
+            animation={{ exit: false }}
           />
         ) : (
           glyph

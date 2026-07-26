@@ -13,6 +13,8 @@ import {
   DEFAULT_WASM_URL,
 } from "../font-presets";
 
+const demoTitles = demoPosts.map((post) => post.title);
+
 export function RuntimeDemo() {
   const [selectedId, setSelectedId] = useState(demoPosts[0]?.id ?? "");
   const [draftTitle, setDraftTitle] = useState(
@@ -44,6 +46,7 @@ export function RuntimeDemo() {
       font={DEFAULT_FONT_URL}
       wasm={DEFAULT_WASM_URL}
       axes={DEFAULT_AXES}
+      preload={demoTitles}
     >
       <section
         className="workspace"
@@ -68,8 +71,9 @@ export function RuntimeDemo() {
                     text={post.title}
                     size={30}
                     maxWidth={320}
-                    fallback="text"
+                    fallback="hidden"
                     hover={hoverOutline ? "outline" : "none"}
+                    animation={{ exit: false }}
                   />
                 </span>
                 <span className="post-summary">{post.summary}</span>
@@ -167,9 +171,9 @@ export function RuntimeDemo() {
                 size={size}
                 maxWidth={760}
                 align={align}
-                fallback="text"
+                fallback="hidden"
                 hover={hoverOutline ? "outline" : "none"}
-                animation={{ speed: animationSpeed }}
+                animation={{ exit: true, speed: animationSpeed }}
               />
             </div>
             <p>{selectedPost.summary}</p>

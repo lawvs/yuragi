@@ -1,4 +1,9 @@
-import { act, cleanup, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  render,
+  screen,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   useYuragiFont,
@@ -81,6 +86,7 @@ function FontStateProbe() {
 describe("@yuragi-labs/react runtime", () => {
   afterEach(() => {
     cleanup();
+    vi.useRealTimers();
     vi.mocked(createYuragiFont).mockReset();
   });
 
@@ -208,6 +214,151 @@ describe("@yuragi-labs/react runtime", () => {
     expect(rendered.dataset.animationEnter).toBe("false");
     expect(rendered.dataset.animationExit).toBeUndefined();
     expect(rendered.dataset.animationSpeed).toBe("0.8");
+  });
+
+  it("delays the text fallback while the first outline is compiling", () => {
+    vi.useFakeTimers();
+    const compiled = deferred<TextOutline>();
+    const font = {
+      info: { bytes: 3, unitsPerEm: 1000 },
+      compile: vi.fn(() => compiled.promise),
+      preload: vi.fn(async () => undefined),
+      dispose: vi.fn(),
+    };
+
+    render(
+      <YuragiFontProvider font={font}>
+        <YuragiText
+          text="Runtime"
+          fallback={{ delayMs: 150 }}
+        />
+      </YuragiFontProvider>,
+    );
+
+    expect(screen.getByText("Runtime").dataset.fallback).toBe("hidden");
+
+    act(() => vi.advanceTimersByTime(149));
+    expect(screen.getByText("Runtime").dataset.fallback).toBe("hidden");
+
+    act(() => vi.advanceTimersByTime(1));
+    expect(screen.getByText("Runtime").dataset.fallback).toBe("text");
+  });
+
+  it("does not animate after a delayed fallback becomes visible", async () => {
+    vi.useFakeTimers();
+    const loaded = deferred<YuragiFont>();
+    const font = {
+      info: { bytes: 3, unitsPerEm: 1000 },
+      compile: vi.fn(async () => outline),
+      preload: vi.fn(async () => undefined),
+      dispose: vi.fn(),
+    };
+    vi.mocked(createYuragiFont).mockReturnValue(loaded.promise);
+
+    render(
+      <YuragiFontProvider
+        font={new Uint8Array([1, 2, 3])}
+        preload={["Runtime"]}
+      >
+        <YuragiText
+          text="Runtime"
+          fallback={{ delayMs: 150 }}
+          animation={{ speed: 0.8 }}
+        />
+      </YuragiFontProvider>,
+    );
+
+    expect(screen.getByText("Runtime").dataset.fallback).toBe("hidden");
+
+    act(() => vi.advanceTimersByTime(150));
+    expect(screen.getByText("Runtime").dataset.fallback).toBe("text");
+
+    await act(async () => {
+      loaded.resolve(font);
+      await loaded.promise;
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const rendered = screen.getByText("Runtime");
+    expect(rendered.dataset.hasOutline).toBe("yes");
+    expect(rendered.dataset.animationEnter).toBe("false");
+    expect(rendered.dataset.animationSpeed).toBe("0.8");
+  });
+
+  it.each([-1, Number.NaN, Number.POSITIVE_INFINITY])(
+    "rejects invalid fallback delay %s",
+    (delayMs) => {
+      const font = {
+        info: { bytes: 3, unitsPerEm: 1000 },
+        compile: vi.fn(async () => outline),
+        preload: vi.fn(async () => undefined),
+        dispose: vi.fn(),
+      };
+
+      expect(() =>
+        render(
+          <YuragiFontProvider font={font}>
+            <YuragiText
+              text="Runtime"
+              fallback={{ delayMs }}
+            />
+          </YuragiFontProvider>,
+        ),
+      ).toThrow("fallback.delayMs must be finite and non-negative");
+    },
+  );
+
+  it("treats a zero fallback delay as immediate text", () => {
+    const font = {
+      info: { bytes: 3, unitsPerEm: 1000 },
+      compile: vi.fn(() => new Promise<TextOutline>(() => {})),
+      preload: vi.fn(async () => undefined),
+      dispose: vi.fn(),
+    };
+
+    render(
+      <YuragiFontProvider font={font}>
+        <YuragiText
+          text="Runtime"
+          fallback={{ delayMs: 0 }}
+        />
+      </YuragiFontProvider>,
+    );
+
+    expect(screen.getByText("Runtime").dataset.fallback).toBe("text");
+  });
+
+  it("restarts the fallback delay when text changes", () => {
+    vi.useFakeTimers();
+    const font = {
+      info: { bytes: 3, unitsPerEm: 1000 },
+      compile: vi.fn(() => new Promise<TextOutline>(() => {})),
+      preload: vi.fn(async () => undefined),
+      dispose: vi.fn(),
+    };
+    const { rerender } = render(
+      <YuragiFontProvider font={font}>
+        <YuragiText
+          text="First"
+          fallback={{ delayMs: 150 }}
+        />
+      </YuragiFontProvider>,
+    );
+
+    act(() => vi.advanceTimersByTime(150));
+    expect(screen.getByText("First").dataset.fallback).toBe("text");
+
+    rerender(
+      <YuragiFontProvider font={font}>
+        <YuragiText
+          text="Second"
+          fallback={{ delayMs: 150 }}
+        />
+      </YuragiFontProvider>,
+    );
+
+    expect(screen.getByText("Second").dataset.fallback).toBe("hidden");
   });
 
   it("keeps the default enter animation for later runtime text changes", async () => {
