@@ -16,15 +16,15 @@ export default defineConfig({
         "../../packages/react/src/index.ts",
         import.meta.url,
       ).pathname,
-      "@yuragi-labs/core/wasm/runtime": new URL(
-        "../../packages/core/src/wasm/runtime.ts",
-        import.meta.url,
-      ).pathname,
       "@yuragi-labs/core/wasm/yuragi_wasm_compiler.wasm?url":
         `${wasmCompilerAsset}?url`,
       "@yuragi-labs/core/wasm/yuragi_wasm_compiler.wasm": wasmCompilerAsset,
       "@yuragi-labs/core/wasm": new URL(
         "../../packages/core/src/wasm/index.ts",
+        import.meta.url,
+      ).pathname,
+      "@yuragi-labs/core": new URL(
+        "../../packages/core/src/index.ts",
         import.meta.url,
       ).pathname,
     },

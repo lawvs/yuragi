@@ -37,6 +37,45 @@ function groupWidth(group: ShardGroup, size: number, em: number): number {
   return (group.advance / em) * size;
 }
 
+function splitOverwideGroup(
+  group: ShardGroup,
+  size: number,
+  em: number,
+  maxWidth: number,
+): ShardGroup[] {
+  if (
+    !Number.isFinite(maxWidth) ||
+    groupWidth(group, size, em) <= maxWidth ||
+    group.glyphs.length <= 1
+  ) {
+    return [group];
+  }
+
+  const fragments: ShardGroup[] = [];
+  for (const glyph of group.glyphs) {
+    let fragment = fragments.at(-1);
+    if (
+      !fragment ||
+      ((fragment.advance + glyph.advance) / em) * size > maxWidth
+    ) {
+      fragment = {
+        text: "",
+        advance: 0,
+        breakAfter: true,
+        glyphs: [],
+      };
+      fragments.push(fragment);
+    }
+    fragment.text += glyph.char;
+    fragment.advance += glyph.advance;
+    fragment.glyphs.push(glyph);
+  }
+
+  if (fragments.length === 1) return [group];
+  fragments.at(-1)!.breakAfter = group.breakAfter;
+  return fragments;
+}
+
 function alignOffset(align: Align, maxWidth: number, lineWidth: number): number {
   if (lineWidth >= maxWidth) return 0;
   if (align === "center") return (maxWidth - lineWidth) / 2;
@@ -96,13 +135,17 @@ export function layoutShardedText(
     recalculatePendingPositions();
   }
 
-  for (const group of outline.groups) {
+  const groups = outline.groups.flatMap((group) =>
+    splitOverwideGroup(
+      group,
+      resolved.size,
+      outline.em,
+      resolved.maxWidth,
+    ),
+  );
+
+  for (const group of groups) {
     const width = groupWidth(group, resolved.size, outline.em);
-    if (Number.isFinite(resolved.maxWidth) && width > resolved.maxWidth) {
-      throw new Error(
-        `Cannot fit group "${group.text}" into maxWidth ${resolved.maxWidth}`,
-      );
-    }
 
     if (
       Number.isFinite(resolved.maxWidth) &&

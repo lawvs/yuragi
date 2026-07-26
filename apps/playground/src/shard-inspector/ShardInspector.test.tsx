@@ -4,6 +4,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { TextOutline } from "@yuragi-labs/core";
 import { ShardInspector } from "./ShardInspector";
 
+vi.mock("@yuragi-labs/react/static", () => ({
+  YuragiText: ({
+    animation,
+    text,
+  }: {
+    animation?: { exit?: boolean };
+    text: string;
+  }) => (
+    <span
+      data-animation-exit={animation?.exit?.toString()}
+      data-static-sharded-text={text}
+    >
+      {text}
+    </span>
+  ),
+}));
+
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
@@ -157,6 +174,11 @@ describe("ShardInspector", () => {
     expect(
       host.querySelector('[data-glyph="a"] [data-shard-count]')?.textContent,
     ).toBe("1");
+    expect(
+      host
+        .querySelector('[data-glyph="a"] [data-static-sharded-text="a"]')
+        ?.getAttribute("data-animation-exit"),
+    ).toBe("false");
     expect(host.querySelector('[data-glyph="c"]')?.textContent).toContain(
       "Missing",
     );

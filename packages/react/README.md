@@ -29,8 +29,9 @@ export function RuntimeTitle({ title }: { title: string }) {
 ```
 
 `YuragiFontProvider` owns the shared font compiler, caches compiled outlines in
-memory, and renders fallback text until an outline is ready. It includes
-Yuragi's required styles by default.
+memory, and renders fallback text while the compiler and font are loading.
+Once the font is ready, `YuragiText` compiles its outline synchronously in the
+same render. The provider includes Yuragi's required styles by default.
 
 Pass `includeStyles={false}` if your app imports `@yuragi-labs/core/style.css`
 manually, and pass `styleNonce` when your CSP requires a style nonce.
@@ -72,7 +73,8 @@ function PlayButton() {
 ```
 
 `font.status` is `"loading"`, `"ready"`, or `"error"`. This describes provider
-readiness only; individual `YuragiText` outlines still compile on demand.
+readiness only; individual `YuragiText` outlines compile synchronously on
+demand after the provider is ready.
 
 ## Runnable Example
 
@@ -81,8 +83,8 @@ minimal Vite + React example using the runtime provider with dynamic text.
 
 ## Preloading Titles
 
-`preload` is optional. `YuragiText` compiles text on demand and renders fallback
-text until the outline is ready.
+`preload` is optional. `YuragiText` compiles text synchronously on demand after
+the font is ready.
 
 Use `preload` only when you already know specific titles that should be compiled
 as soon as the provider is ready:
@@ -99,7 +101,10 @@ as soon as the provider is ready:
 
 This warms Yuragi's in-memory outline cache. It does not preload the font file
 itself; use browser preload links or your framework's asset loading tools for
-that.
+that. Preloading moves known-title compilation into the provider's loading
+phase, so the ready render can reuse the cached outline. Use `"hidden"` to
+reserve fallback text layout while the font loads, or a delayed fallback when
+slow loading should eventually show readable text.
 
 ## Installed Local Fonts
 
@@ -152,6 +157,7 @@ one phase explicitly when needed:
 <YuragiText text="Static title" animation={false} />
 <YuragiText text="Enter only" animation={{ exit: false }} />
 <YuragiText text="Exit only" animation={{ enter: false }} />
+<YuragiText text="Delayed fallback" fallback={{ delayMs: 150 }} />
 ```
 
 Runtime `YuragiText` skips settle when replacing its initial fallback with the
@@ -163,15 +169,20 @@ first compiled outline. Later text changes use the configured enter animation.
 - `align`: `"start"`, `"center"`, or `"end"`.
 - `hover`: `"outline"` enables the hollow title hover treatment;
   `"none"` disables it.
-- `fallback`: `"text"` renders readable text while the outline is compiling;
-  `"hidden"` renders nothing; `"error"` throws.
+- `fallback`: `"text"` renders readable text while the font is loading;
+  `"hidden"` keeps the same fallback layout visually hidden; `"error"` throws.
+  The runtime entry also accepts `{ delayMs }`, which keeps that hidden layout
+  during the delay and then shows text if the outline is still unavailable. A
+  zero delay is equivalent to `"text"`; the delay must be finite and
+  non-negative.
 - `animation`: enabled by default with settle on enter and scatter on exit;
   pass `false` to disable both animations.
 - `animation.enter`: set to `false` to disable the settle animation.
 - `animation.exit`: set to `false` to disable scatter when the title changes or
   unmounts.
-- `animation.speed`: playback speed multiplier. `1` is the default, values
-  below `1` are slower, and values above `1` are faster.
+- `animation.speed`: playback speed multiplier. It must be finite and greater
+  than zero; zero, negative values, `NaN`, and infinities are invalid. `1` is
+  the default, values below `1` are slower, and values above `1` are faster.
 - `onEnterComplete`: called after the settle animation finishes.
 - `onExitComplete`: called after the scatter animation finishes, including
   exits caused by text changes or unmounting.

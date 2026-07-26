@@ -1,17 +1,7 @@
-import { act, cleanup, render, waitFor } from "@testing-library/react";
+import { cleanup, render, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { animateShards, type TextOutline } from "@yuragi-labs/core";
+import type { TextOutline } from "@yuragi-labs/core";
 import { YuragiFontProvider, YuragiText } from "../src/index";
-
-vi.mock("@yuragi-labs/core", async () => {
-  const actual = await vi.importActual<typeof import("@yuragi-labs/core")>(
-    "@yuragi-labs/core",
-  );
-  return {
-    ...actual,
-    animateShards: vi.fn(async () => undefined),
-  };
-});
 
 const outline: TextOutline = {
   em: 1000,
@@ -20,30 +10,20 @@ const outline: TextOutline = {
   groups: [],
 };
 
-function deferred<T>() {
-  let resolve!: (value: T | PromiseLike<T>) => void;
-  const promise = new Promise<T>((nextResolve) => {
-    resolve = nextResolve;
-  });
-  return { promise, resolve };
-}
-
 describe("runtime animations", () => {
   afterEach(() => {
     cleanup();
-    vi.mocked(animateShards).mockClear();
+    document
+      .querySelectorAll("[data-yuragi-exit]")
+      .forEach((node) => node.remove());
   });
 
   it("completes one exit when runtime text changes", async () => {
-    const first = deferred<TextOutline>();
-    const second = deferred<TextOutline>();
     const onExitComplete = vi.fn();
     const font = {
       info: { bytes: 3, unitsPerEm: 1000 },
-      compile: vi.fn((text: string) =>
-        text === "First" ? first.promise : second.promise,
-      ),
-      preload: vi.fn(async () => undefined),
+      compile: vi.fn(() => outline),
+      preload: vi.fn(() => undefined),
       dispose: vi.fn(),
     };
 
@@ -56,11 +36,6 @@ describe("runtime animations", () => {
       </YuragiFontProvider>,
     );
 
-    await act(async () => {
-      first.resolve(outline);
-      await first.promise;
-    });
-
     rerender(
       <YuragiFontProvider font={font} includeStyles={false}>
         <YuragiText
@@ -71,11 +46,6 @@ describe("runtime animations", () => {
     );
 
     await waitFor(() => {
-      expect(
-        vi
-          .mocked(animateShards)
-          .mock.calls.filter(([, options]) => options.type === "scatter"),
-      ).toHaveLength(1);
       expect(onExitComplete).toHaveBeenCalledOnce();
     });
   });

@@ -31,12 +31,19 @@ export function YuragiText(input: StaticYuragiTextProps) {
   };
 
   if (!props.outline) {
-    if (props.fallback === "hidden") return null;
     if (props.fallback === "error") {
       throw new Error(`Missing yuragi outline for "${props.text}"`);
     }
+    const hidden = props.fallback === "hidden";
     return (
-      <span className={props.className} style={createTextFallbackStyle(props)}>
+      <span
+        aria-hidden={hidden || undefined}
+        className={props.className}
+        style={{
+          ...createTextFallbackStyle(props),
+          ...(hidden ? { visibility: "hidden" } : {}),
+        }}
+      >
         {props.text}
       </span>
     );

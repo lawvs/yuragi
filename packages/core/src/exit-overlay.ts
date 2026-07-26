@@ -1,5 +1,8 @@
-import { animateShards } from "@yuragi-labs/core";
-import { createScatterAnimationOptions } from "./animation-options";
+import {
+  prepareShardAnimation,
+  type ShardAnimationHandle,
+  type ShardAnimationOptions,
+} from "./animation";
 
 export type SvgExitSnapshot = {
   left: number;
@@ -12,9 +15,17 @@ export type SvgExitSnapshot = {
   strokeWidth?: string;
 };
 
-function captureSvgExitSnapshot(svg: SVGSVGElement): SvgExitSnapshot {
+export type PreparedSvgExit = {
+  overlay: SVGSVGElement;
+  animation: ShardAnimationHandle;
+};
+
+export function captureSvgExitSnapshot(
+  svg: SVGSVGElement,
+): SvgExitSnapshot {
   const rect = svg.getBoundingClientRect();
-  const computedStyle = svg.ownerDocument.defaultView?.getComputedStyle(svg);
+  const computedStyle =
+    svg.ownerDocument.defaultView?.getComputedStyle(svg);
 
   return {
     left: rect.left,
@@ -28,34 +39,6 @@ function captureSvgExitSnapshot(svg: SVGSVGElement): SvgExitSnapshot {
   };
 }
 
-function hasVisibleSvgSnapshot(snapshot: SvgExitSnapshot): boolean {
-  return snapshot.width > 0 && snapshot.height > 0;
-}
-
-export function pickSvgExitSnapshot(
-  svg: SVGSVGElement,
-  fallback: SvgExitSnapshot | undefined,
-): SvgExitSnapshot {
-  const snapshot = captureSvgExitSnapshot(svg);
-  return hasVisibleSvgSnapshot(snapshot) || !fallback ? snapshot : fallback;
-}
-
-export function refreshRenderedSvgExitSnapshot(
-  state: { exitSnapshot?: SvgExitSnapshot },
-  svg: SVGSVGElement,
-): void {
-  const update = () => {
-    const snapshot = captureSvgExitSnapshot(svg);
-    if (hasVisibleSvgSnapshot(snapshot) || !state.exitSnapshot) {
-      state.exitSnapshot = snapshot;
-    }
-  };
-  update();
-  svg.ownerDocument.defaultView?.requestAnimationFrame(() => {
-    if (svg.isConnected) update();
-  });
-}
-
 function setOptionalStyleProperty(
   svg: SVGSVGElement,
   name: string,
@@ -64,10 +47,11 @@ function setOptionalStyleProperty(
   if (value) svg.style.setProperty(name, value);
 }
 
-function createSvgExitOverlay(
+export function prepareSvgExit(
   sourceSvg: SVGSVGElement,
   snapshot: SvgExitSnapshot,
-): SVGSVGElement | null {
+  options: Omit<ShardAnimationOptions, "type">,
+): PreparedSvgExit | null {
   const body = sourceSvg.ownerDocument.body;
   if (!body) return null;
 
@@ -75,7 +59,6 @@ function createSvgExitOverlay(
   overlay.dataset.yuragiExit = "true";
   overlay.setAttribute("aria-hidden", "true");
   overlay.removeAttribute("aria-label");
-
   overlay.style.position = "fixed";
   overlay.style.inset = "auto";
   overlay.style.left = `${snapshot.left}px`;
@@ -92,27 +75,23 @@ function createSvgExitOverlay(
   setOptionalStyleProperty(overlay, "color", snapshot.color);
   setOptionalStyleProperty(overlay, "fill", snapshot.fill);
   setOptionalStyleProperty(overlay, "stroke", snapshot.stroke);
-  setOptionalStyleProperty(overlay, "stroke-width", snapshot.strokeWidth);
-
+  setOptionalStyleProperty(
+    overlay,
+    "stroke-width",
+    snapshot.strokeWidth,
+  );
   body.append(overlay);
-  return overlay;
-}
 
-export function animateSvgExit(
-  sourceSvg: SVGSVGElement,
-  options: {
-    snapshot?: SvgExitSnapshot;
-    speed?: number;
-  } = {},
-): Promise<void> {
-  const snapshot = options.snapshot ?? captureSvgExitSnapshot(sourceSvg);
-  const overlay = createSvgExitOverlay(sourceSvg, snapshot);
-  const animatedSvg = overlay ?? sourceSvg;
-
-  return animateShards(
-    animatedSvg,
-    createScatterAnimationOptions(options.speed),
-  ).finally(() => {
-    overlay?.remove();
-  });
+  try {
+    return {
+      overlay,
+      animation: prepareShardAnimation(overlay, {
+        type: "scatter",
+        ...options,
+      }),
+    };
+  } catch (cause) {
+    overlay.remove();
+    throw cause;
+  }
 }

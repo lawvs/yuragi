@@ -22,8 +22,8 @@ describe("createYuragiFont", () => {
       runtime,
     });
 
-    await expect(font.compile("复杂分层")).resolves.toBe(outline);
-    await expect(font.compile("复杂分层")).resolves.toBe(outline);
+    expect(font.compile("复杂分层")).toBe(outline);
+    expect(font.compile("复杂分层")).toBe(outline);
 
     expect(runtime.setFont).toHaveBeenCalledWith(expect.any(ArrayBuffer));
     expect(runtime.compileTitle).toHaveBeenCalledTimes(1);
@@ -45,7 +45,8 @@ describe("createYuragiFont", () => {
       preload: ["Dashboard"],
     });
 
-    await font.compile("Settings", { axes: { wght: 400 } });
+    expect(font.compile("Settings", { axes: { wght: 400 } })).toBe(outline);
+    expect(font.preload(["Settings"])).toBeUndefined();
 
     expect(runtime.compileTitle).toHaveBeenNthCalledWith(1, "Dashboard", {
       wght: 700,

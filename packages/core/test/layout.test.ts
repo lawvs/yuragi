@@ -18,6 +18,26 @@ function group(text: string, advance: number, breakAfter = true) {
   };
 }
 
+function word(text: string, glyphAdvance: number, breakAfter = true) {
+  const glyphs = Array.from(text, (char) => ({
+    char,
+    advance: glyphAdvance,
+    bbox: {
+      top: -800,
+      bottom: 200,
+      left: 0,
+      right: glyphAdvance,
+    },
+    shards: [{ path: "M0 0L1 0L1 1Z", direction: [1, 0] as const }],
+  }));
+  return {
+    text,
+    advance: glyphAdvance * glyphs.length,
+    breakAfter,
+    glyphs,
+  };
+}
+
 const outline: TextOutline = {
   em: 1000,
   ascender: 880,
@@ -85,29 +105,41 @@ describe("layoutShardedText", () => {
     expect(layout.dimensions.width).toBe(40);
   });
 
-  it("rejects any breakable group wider than maxWidth", () => {
-    expect(() =>
-      layoutShardedText(outline, {
-        size: 20,
-        maxWidth: 4,
-        lineHeight: 24,
-        align: "start",
-      }),
-    ).toThrow("Cannot fit group");
-
-    const wideLaterOutline: TextOutline = {
+  it("breaks an overwide group at glyph boundaries", () => {
+    const longWordOutline: TextOutline = {
       ...outline,
-      groups: [group("A", 250), group("B", 750), group("C", 250)],
+      groups: [word("Dashboard1111111", 500)],
     };
 
-    expect(() =>
-      layoutShardedText(wideLaterOutline, {
-        size: 20,
-        maxWidth: 10,
-        lineHeight: 24,
-        align: "start",
-      }),
-    ).toThrow('Cannot fit group "B"');
+    const layout = layoutShardedText(longWordOutline, {
+      size: 20,
+      maxWidth: 40,
+      lineHeight: 24,
+      align: "start",
+    });
+
+    expect(
+      layout.lines.map((line) =>
+        line.groups.map((item) => item.text).join(""),
+      ),
+    ).toEqual(["Dash", "boar", "d111", "1111"]);
+    expect(layout.lines.every((line) => line.width <= 40)).toBe(true);
+  });
+
+  it("allows a single overwide glyph on its own line", () => {
+    const overwideGlyphOutline: TextOutline = {
+      ...outline,
+      groups: [group("A", 750), group("B", 250)],
+    };
+
+    const layout = layoutShardedText(overwideGlyphOutline, {
+      size: 20,
+      maxWidth: 10,
+      lineHeight: 24,
+      align: "start",
+    });
+
+    expect(layout.lines.map((line) => line.width)).toEqual([15, 5]);
   });
 
   it("keeps unbreakable runs together until a valid break point", () => {
