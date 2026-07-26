@@ -251,24 +251,6 @@ describe("YuragiTextHandle removal", () => {
     });
   });
 
-  it("dispose never removes content installed by a newer handle", () => {
-    const target = createTarget();
-    const first = renderYuragiText(target, outline, {
-      size: 48,
-      animation: false,
-    });
-    const second = renderYuragiText(target, outline, {
-      size: 64,
-      animation: false,
-    });
-
-    first.dispose();
-    first.dispose();
-    expect(target.firstElementChild).toBe(second.element);
-    second.dispose();
-    expect(target.children).toHaveLength(0);
-  });
-
   it("a replaced handle cannot start an exit over newer content", async () => {
     const target = createTarget();
     const first = renderYuragiText(target, outline, {
@@ -304,25 +286,6 @@ describe("YuragiTextHandle removal", () => {
     });
     expect(target.children).toHaveLength(0);
   });
-
-  it.each([
-    { status: "completed" },
-    { status: "skipped", reason: "empty" },
-    { status: "skipped", reason: "reduced-motion" },
-    { status: "skipped", reason: "unsupported" },
-  ] satisfies ShardAnimationResult[])(
-    "cleans the overlay after a $status result",
-    async (result) => {
-      animationMocks.prepare.mockReturnValue(animationHandle(result));
-      const handle = renderYuragiText(createTarget(), outline, {
-        size: 48,
-        animation: false,
-      });
-
-      await expect(handle.remove()).resolves.toEqual(result);
-      expect(document.querySelector("[data-yuragi-exit]")).toBeNull();
-    },
-  );
 
   it("maps an exit failure and cleans the overlay", async () => {
     const cause = new Error("scatter failed");

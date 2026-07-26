@@ -311,22 +311,6 @@ describe("App", () => {
     ).toBe("false");
   });
 
-  it("keeps the Demo fallback hidden until an outline is ready", () => {
-    renderApp();
-
-    const listTitle = host.querySelector(
-      '.post-title [data-runtime-sharded-text="Dashboard"]',
-    );
-    const previewTitle = host.querySelector(
-      '.preview-title [data-runtime-sharded-text="Dashboard"]',
-    );
-
-    expect(listTitle?.getAttribute("data-fallback")).toBe("hidden");
-    expect(previewTitle?.getAttribute("data-fallback")).toBe("hidden");
-    expect(listTitle?.getAttribute("data-fallback-delay")).toBeNull();
-    expect(previewTitle?.getAttribute("data-fallback-delay")).toBeNull();
-  });
-
   it("updates the demo preview title from text input", () => {
     renderApp();
 

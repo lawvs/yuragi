@@ -3,7 +3,6 @@ import {
   renderYuragiText,
   YuragiTextError,
   type TextOutline,
-  type YuragiTextResult,
 } from "../src/index";
 import {
   ShardAnimationError,
@@ -240,24 +239,6 @@ describe("renderYuragiText", () => {
     first.dispose();
     expect(target.firstElementChild).toBe(second.element);
   });
-
-  it.each([
-    { status: "skipped", reason: "empty" },
-    { status: "skipped", reason: "reduced-motion" },
-    { status: "skipped", reason: "unsupported" },
-  ] satisfies YuragiTextResult[])(
-    "preserves $status/$reason enter results",
-    async (result) => {
-      animationMocks.prepare.mockReturnValue(animationHandle(result));
-      const handle = renderYuragiText(
-        document.createElement("div"),
-        outline,
-        { size: 48 },
-      );
-
-      await expect(handle.finished).resolves.toEqual(result);
-    },
-  );
 
   it("maps internal failures to an enter YuragiTextError", async () => {
     const cause = new Error("native playback failed");

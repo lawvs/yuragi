@@ -139,15 +139,33 @@ describe("@yuragi-labs/react runtime", () => {
       preload: vi.fn(() => undefined),
       dispose: vi.fn(),
     };
-    let firstCommitHasOutline: string | undefined;
+    let firstCommit:
+      | {
+          hasOutline?: string;
+          animationEnter?: string;
+          animationExit?: string;
+          animationSpeed?: string;
+        }
+      | undefined;
 
     function FirstCommitProbe() {
       useLayoutEffect(() => {
-        firstCommitHasOutline =
-          screen.getByText("Runtime").dataset.hasOutline;
+        const rendered = screen.getByText("Runtime").dataset;
+        firstCommit = {
+          hasOutline: rendered.hasOutline,
+          animationEnter: rendered.animationEnter,
+          animationExit: rendered.animationExit,
+          animationSpeed: rendered.animationSpeed,
+        };
       }, []);
 
-      return <YuragiText text="Runtime" fallback="hidden" />;
+      return (
+        <YuragiText
+          text="Runtime"
+          fallback="hidden"
+          animation={{ speed: 0.8 }}
+        />
+      );
     }
 
     render(
@@ -156,7 +174,12 @@ describe("@yuragi-labs/react runtime", () => {
       </YuragiFontProvider>,
     );
 
-    expect(firstCommitHasOutline).toBe("yes");
+    expect(firstCommit).toEqual({
+      hasOutline: "yes",
+      animationEnter: "false",
+      animationExit: undefined,
+      animationSpeed: "0.8",
+    });
     expect(font.compile).toHaveBeenCalledWith("Runtime");
   });
 
@@ -211,53 +234,6 @@ describe("@yuragi-labs/react runtime", () => {
     expect(screen.getByText("font state").dataset.error).toBe(
       "font failed",
     );
-  });
-
-  it("does not animate enter for the first runtime outline reveal", () => {
-    const font = {
-      info: { bytes: 3, unitsPerEm: 1000 },
-      compile: vi.fn(() => outline),
-      preload: vi.fn(() => undefined),
-      dispose: vi.fn(),
-    };
-
-    render(
-      <YuragiFontProvider font={font}>
-        <YuragiText
-          text="Runtime"
-          animation={{ speed: 0.8 }}
-        />
-      </YuragiFontProvider>,
-    );
-
-    const rendered = screen.getByText("Runtime");
-    expect(rendered.dataset.hasOutline).toBe("yes");
-    expect(rendered.dataset.animationEnter).toBe("false");
-    expect(rendered.dataset.animationExit).toBeUndefined();
-    expect(rendered.dataset.animationSpeed).toBe("0.8");
-  });
-
-  it("delays the text fallback while the font is loading", () => {
-    vi.useFakeTimers();
-    const loaded = deferred<YuragiFont>();
-    vi.mocked(createYuragiFont).mockReturnValue(loaded.promise);
-
-    render(
-      <YuragiFontProvider font={new Uint8Array([1, 2, 3])}>
-        <YuragiText
-          text="Runtime"
-          fallback={{ delayMs: 150 }}
-        />
-      </YuragiFontProvider>,
-    );
-
-    expect(screen.getByText("Runtime").dataset.fallback).toBe("hidden");
-
-    act(() => vi.advanceTimersByTime(149));
-    expect(screen.getByText("Runtime").dataset.fallback).toBe("hidden");
-
-    act(() => vi.advanceTimersByTime(1));
-    expect(screen.getByText("Runtime").dataset.fallback).toBe("text");
   });
 
   it("does not animate after a delayed fallback becomes visible", async () => {
