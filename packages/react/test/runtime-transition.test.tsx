@@ -1,4 +1,4 @@
-import { act, cleanup, render, waitFor } from "@testing-library/react";
+import { cleanup, render, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TextOutline } from "@yuragi-labs/core";
 import { YuragiFontProvider, YuragiText } from "../src/index";
@@ -10,14 +10,6 @@ const outline: TextOutline = {
   groups: [],
 };
 
-function deferred<T>() {
-  let resolve!: (value: T) => void;
-  const promise = new Promise<T>((nextResolve) => {
-    resolve = nextResolve;
-  });
-  return { promise, resolve };
-}
-
 describe("runtime animations", () => {
   afterEach(() => {
     cleanup();
@@ -27,15 +19,11 @@ describe("runtime animations", () => {
   });
 
   it("completes one exit when runtime text changes", async () => {
-    const first = deferred<TextOutline>();
-    const second = deferred<TextOutline>();
     const onExitComplete = vi.fn();
     const font = {
       info: { bytes: 3, unitsPerEm: 1000 },
-      compile: vi.fn((text: string) =>
-        text === "First" ? first.promise : second.promise,
-      ),
-      preload: vi.fn(async () => undefined),
+      compile: vi.fn(() => outline),
+      preload: vi.fn(() => undefined),
       dispose: vi.fn(),
     };
 
@@ -47,11 +35,6 @@ describe("runtime animations", () => {
         />
       </YuragiFontProvider>,
     );
-
-    await act(async () => {
-      first.resolve(outline);
-      await first.promise;
-    });
 
     rerender(
       <YuragiFontProvider font={font} includeStyles={false}>

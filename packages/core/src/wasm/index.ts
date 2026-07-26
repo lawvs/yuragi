@@ -22,8 +22,8 @@ export type CompileOptions = {
 
 export type YuragiFont = {
   readonly info: YuragiFontInfo;
-  compile(text: string, options?: CompileOptions): Promise<TextOutline>;
-  preload(texts?: readonly string[]): Promise<void>;
+  compile(text: string, options?: CompileOptions): TextOutline;
+  preload(texts?: readonly string[]): void;
   dispose(): void;
 };
 
@@ -94,7 +94,7 @@ class RuntimeYuragiFont implements YuragiFont {
   readonly info: YuragiFontInfo;
   #runtime: YuragiRuntime | null;
   #axes: FontAxes;
-  #cache = new Map<string, Promise<TextOutline>>();
+  #cache = new Map<string, TextOutline>();
 
   constructor(
     runtime: YuragiRuntime,
@@ -106,7 +106,7 @@ class RuntimeYuragiFont implements YuragiFont {
     this.#axes = axes;
   }
 
-  async compile(text: string, options: CompileOptions = {}) {
+  compile(text: string, options: CompileOptions = {}) {
     const runtime = this.#runtime;
     if (!runtime) {
       throw new Error("Cannot compile after YuragiFont has been disposed");
@@ -117,13 +117,13 @@ class RuntimeYuragiFont implements YuragiFont {
     const cached = this.#cache.get(cacheKey);
     if (cached) return cached;
 
-    const compiled = Promise.resolve(runtime.compileTitle(text, axes));
+    const compiled = runtime.compileTitle(text, axes);
     this.#cache.set(cacheKey, compiled);
     return compiled;
   }
 
-  async preload(texts: readonly string[] = []) {
-    await Promise.all(texts.map((text) => this.compile(text)));
+  preload(texts: readonly string[] = []) {
+    for (const text of texts) this.compile(text);
   }
 
   dispose() {
@@ -147,7 +147,7 @@ export async function createYuragiFont(
   const font = new RuntimeYuragiFont(runtime, info, axes);
 
   if (options.preload) {
-    await font.preload(options.preload);
+    font.preload(options.preload);
   }
 
   return font;

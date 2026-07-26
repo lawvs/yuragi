@@ -10,6 +10,11 @@ const reactMocks = vi.hoisted(() => ({
 const staticYuragiMocks = vi.hoisted(() => ({
   mountCount: 0,
   onEnterComplete: undefined as (() => void) | undefined,
+  onExitComplete: undefined as (() => void) | undefined,
+}));
+const runtimeProviderMocks = vi.hoisted(() => ({
+  mountCount: 0,
+  unmountCount: 0,
 }));
 
 (
@@ -24,63 +29,79 @@ vi.mock("react", async () => {
   };
 });
 
-vi.mock("@yuragi-labs/react", () => ({
-  useYuragiFont: () => ({
-    status: "ready",
-    ready: true,
-    font: {},
-    error: null,
-  }),
-  YuragiFontProvider: ({
-    axes,
-    children,
-    font,
-    preload,
-    wasm,
-  }: {
-    axes?: FontAxes;
-    children: ReactNode;
-    font: string;
-    preload?: readonly string[];
-    wasm?: string;
-  }) => (
-    <div
-      data-yuragi-runtime-provider=""
-      data-font={font}
-      data-wasm={wasm}
-      data-axes={axes ? JSON.stringify(axes) : undefined}
-      data-preload={preload ? JSON.stringify(preload) : undefined}
-    >
-      {children}
-    </div>
-  ),
-  YuragiText: ({
-    animation,
-    fallback,
-    text,
-  }: {
-    animation?: { enter?: boolean; exit?: boolean; speed?: number };
-    fallback?: string | { delayMs: number };
-    text: string;
-  }) => {
-    return (
-      <span
-        data-animation-exit={animation?.exit?.toString()}
-        data-animation-speed={animation?.speed}
-        data-fallback={
-          typeof fallback === "string" ? fallback : undefined
-        }
-        data-fallback-delay={
-          typeof fallback === "object" ? fallback.delayMs : undefined
-        }
-        data-runtime-sharded-text={text}
-        data-sharded-text={text}
-      >
-        {text}
-      </span>
-    );
-  },
-}));
+vi.mock("@yuragi-labs/react", async () => {
+  const { useEffect } = await vi.importActual<typeof import("react")>("react");
+
+  return {
+    useYuragiFont: () => ({
+      status: "ready",
+      ready: true,
+      font: {},
+      error: null,
+    }),
+    YuragiFontProvider: ({
+      axes,
+      children,
+      font,
+      includeStyles,
+      preload,
+      wasm,
+    }: {
+      axes?: FontAxes;
+      children: ReactNode;
+      font: string;
+      includeStyles?: boolean;
+      preload?: readonly string[];
+      wasm?: string;
+    }) => {
+      useEffect(() => {
+        runtimeProviderMocks.mountCount += 1;
+        return () => {
+          runtimeProviderMocks.unmountCount += 1;
+        };
+      }, []);
+
+      return (
+        <div
+          data-yuragi-runtime-provider=""
+          data-font={font}
+          data-wasm={wasm}
+          data-axes={axes ? JSON.stringify(axes) : undefined}
+          data-include-styles={includeStyles?.toString()}
+          data-preload={preload ? JSON.stringify(preload) : undefined}
+        >
+          {children}
+        </div>
+      );
+    },
+    YuragiText: ({
+      animation,
+      fallback,
+      text,
+    }: {
+      animation?: { enter?: boolean; exit?: boolean; speed?: number };
+      fallback?: string | { delayMs: number };
+      text: string;
+    }) => {
+      return (
+        <span
+          data-animation-exit={animation?.exit?.toString()}
+          data-animation-speed={animation?.speed}
+          data-fallback={
+            typeof fallback === "string" ? fallback : undefined
+          }
+          data-fallback-delay={
+            typeof fallback === "object" ? fallback.delayMs : undefined
+          }
+          data-runtime-sharded-text={text}
+          data-sharded-text={text}
+        >
+          {text}
+        </span>
+      );
+    },
+  };
+});
 
 vi.mock("@yuragi-labs/react/static", async () => {
   const { useEffect } = await vi.importActual<typeof import("react")>("react");
@@ -94,6 +115,7 @@ vi.mock("@yuragi-labs/react/static", async () => {
       hover,
       outline,
       onEnterComplete,
+      onExitComplete,
     }: {
       className?: string;
       text: string;
@@ -102,11 +124,13 @@ vi.mock("@yuragi-labs/react/static", async () => {
       hover?: string;
       outline?: unknown;
       onEnterComplete?: () => void;
+      onExitComplete?: () => void;
     }) => {
       useEffect(() => {
         staticYuragiMocks.mountCount += 1;
       }, []);
       staticYuragiMocks.onEnterComplete = onEnterComplete;
+      staticYuragiMocks.onExitComplete = onExitComplete;
 
       return (
         <span
@@ -134,6 +158,9 @@ describe("App", () => {
     reactMocks.startTransition.mockClear();
     staticYuragiMocks.mountCount = 0;
     staticYuragiMocks.onEnterComplete = undefined;
+    staticYuragiMocks.onExitComplete = undefined;
+    runtimeProviderMocks.mountCount = 0;
+    runtimeProviderMocks.unmountCount = 0;
   });
 
   function renderApp() {
@@ -171,7 +198,7 @@ describe("App", () => {
     expect(host.querySelector("section#playground")).not.toBeNull();
   });
 
-  it("reveals Replay after enter completes and remounts the wordmark", () => {
+  it("plays exit before remounting the wordmark for Replay", () => {
     renderApp();
 
     expect(host.querySelector(".hero-replay")).toBeNull();
@@ -185,7 +212,22 @@ describe("App", () => {
     act(() => replay?.click());
 
     expect(host.querySelector(".hero-replay")).toBeNull();
+    expect(
+      host.querySelector('[data-static-sharded-text="yuragi"]'),
+    ).toBeNull();
+    expect(staticYuragiMocks.mountCount).toBe(1);
+
+    act(() => staticYuragiMocks.onExitComplete?.());
+
     expect(staticYuragiMocks.mountCount).toBe(2);
+    expect(
+      host.querySelector('[data-static-sharded-text="yuragi"]'),
+    ).not.toBeNull();
+    expect(host.querySelector(".hero-replay")).toBeNull();
+
+    act(() => staticYuragiMocks.onEnterComplete?.());
+
+    expect(host.querySelector(".hero-replay")).not.toBeNull();
   });
 
   it("renders the default demo as the first playground tab through the public React API", () => {
@@ -246,6 +288,32 @@ describe("App", () => {
       '.wasm-lab-preview [data-static-sharded-text]',
     );
     expect(wasmPreview?.getAttribute("data-animation-exit")).toBe("false");
+  });
+
+  it("keeps the runtime font provider mounted across tab switches", () => {
+    renderApp();
+
+    expect(runtimeProviderMocks.mountCount).toBe(1);
+    expect(runtimeProviderMocks.unmountCount).toBe(0);
+
+    act(() => {
+      host
+        .querySelector<HTMLButtonElement>('button[data-view="shard-inspector"]')
+        ?.click();
+    });
+    act(() => {
+      host
+        .querySelector<HTMLButtonElement>('button[data-view="runtime-demo"]')
+        ?.click();
+    });
+
+    expect(runtimeProviderMocks.mountCount).toBe(1);
+    expect(runtimeProviderMocks.unmountCount).toBe(0);
+    expect(
+      host
+        .querySelector("[data-yuragi-runtime-provider]")
+        ?.getAttribute("data-include-styles"),
+    ).toBe("false");
   });
 
   it("keeps the Demo fallback hidden until an outline is ready", () => {

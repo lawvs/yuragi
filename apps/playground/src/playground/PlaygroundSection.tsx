@@ -1,7 +1,16 @@
 import { useState } from "react";
+import { YuragiFontProvider } from "@yuragi-labs/react";
+import { demoPosts } from "../data";
+import {
+  DEFAULT_AXES,
+  DEFAULT_FONT_URL,
+  DEFAULT_WASM_URL,
+} from "../font-presets";
 import { RuntimeDemo } from "../runtime-demo/RuntimeDemo";
 import { ShardInspector } from "../shard-inspector/ShardInspector";
 import { WasmLab } from "../wasm-lab/WasmLab";
+
+const demoTitles = demoPosts.map((post) => post.title);
 
 const VIEW_TABS = [
   { id: "runtime-demo", label: "Demo", View: RuntimeDemo },
@@ -41,7 +50,15 @@ export function PlaygroundSection() {
         </nav>
       </header>
 
-      <ActiveView />
+      <YuragiFontProvider
+        font={DEFAULT_FONT_URL}
+        wasm={DEFAULT_WASM_URL}
+        axes={DEFAULT_AXES}
+        preload={demoTitles}
+        includeStyles={false}
+      >
+        <ActiveView />
+      </YuragiFontProvider>
     </section>
   );
 }

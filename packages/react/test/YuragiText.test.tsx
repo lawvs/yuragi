@@ -471,13 +471,32 @@ describe("YuragiText", () => {
     expect(coreMocks.renderYuragiText).not.toHaveBeenCalled();
   });
 
-  it("supports hidden and error fallbacks", () => {
-    const { container } = render(
-      <YuragiText text="Missing" fallback="hidden" />,
+  it("reserves fallback layout while hidden", () => {
+    render(
+      <YuragiText
+        text="Missing"
+        size={88}
+        maxWidth={360}
+        align="center"
+        className="title"
+        style={{ color: "red" }}
+        fallback="hidden"
+      />,
     );
-    expect(container.children).toHaveLength(0);
-    cleanup();
 
+    const fallback = screen.getByText("Missing");
+    expect(fallback.getAttribute("aria-hidden")).toBe("true");
+    expect(fallback.className).toBe("title");
+    expect(fallback.style.visibility).toBe("hidden");
+    expect(fallback.style.color).toBe("red");
+    expect(fallback.style.fontSize).toBe("88px");
+    expect(fallback.style.lineHeight).toBe("1.2");
+    expect(fallback.style.maxWidth).toBe("360px");
+    expect(fallback.style.textAlign).toBe("center");
+    expect(coreMocks.renderYuragiText).not.toHaveBeenCalled();
+  });
+
+  it("throws for an error fallback", () => {
     expect(() =>
       render(<YuragiText text="Missing" fallback="error" />),
     ).toThrow('Missing yuragi outline for "Missing"');

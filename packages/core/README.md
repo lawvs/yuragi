@@ -115,7 +115,7 @@ const font = await createYuragiFont({
   preload: ["Dashboard"],
 });
 
-const outline = await font.compile("Dashboard");
+const outline = font.compile("Dashboard");
 font.dispose();
 ```
 
@@ -123,9 +123,13 @@ font.dispose();
 `YuragiFont` object with:
 
 - `info`: font metadata reported by the runtime.
-- `compile(text, options?)`: compile one string into a `TextOutline`.
-- `preload(texts?)`: compile and cache a group of strings.
+- `compile(text, options?)`: synchronously compile one string into a cached
+  `TextOutline`.
+- `preload(texts?)`: synchronously compile and cache a group of strings.
 - `dispose()`: release the runtime reference and clear the in-memory cache.
+
+Asset loading is asynchronous; compilation is synchronous after
+`createYuragiFont()` resolves.
 
 For advanced control, instantiate the runtime directly:
 

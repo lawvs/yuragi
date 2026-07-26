@@ -55,7 +55,9 @@ export function Title() {
 ```
 
 `YuragiFontProvider` loads the font and runtime compiler, caches compiled
-outlines in memory, and renders fallback text until the outline is ready.
+outlines in memory, and renders fallback text while those assets load. Once the
+font is ready, titles compile synchronously in the render that produces their
+SVG.
 
 For build-time generated outlines, see the
 [`@yuragi-labs/compiler` documentation](packages/compiler/README.md) and the

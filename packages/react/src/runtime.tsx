@@ -2,6 +2,8 @@ import {
   createContext,
   useContext,
   useEffect,
+  useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -126,13 +128,17 @@ export function YuragiFontProvider({
     let ownedFont: YuragiFont | null = null;
 
     if (isYuragiFont(font)) {
-      setValue(readyFontState(font));
+      setValue((current) =>
+        current.status === "ready" && current.font === font
+          ? current
+          : readyFontState(font),
+      );
       if (preload) {
-        void font.preload(preload).catch((error: unknown) => {
-          if (!cancelled) {
-            setValue(errorFontState(error));
-          }
-        });
+        try {
+          font.preload(preload);
+        } catch (error: unknown) {
+          if (!cancelled) setValue(errorFontState(error));
+        }
       }
 
       return () => {
@@ -204,52 +210,25 @@ export function YuragiText(props: YuragiTextProps) {
       "fallback.delayMs must be finite and non-negative",
     );
   }
-  const [compiled, setCompiled] = useState<{
-    text: string;
-    outline: NonNullable<StaticYuragiTextProps["outline"]>;
-    skipEnterSettle: boolean;
-  }>();
   const [revealedFallback, setRevealedFallback] = useState<{
     text: string;
     delayMs: number;
   }>();
-  const sessionRef = useRef({ error, font });
-  const hasDisplayedOutlineRef = useRef(false);
-  const outline = compiled?.text === props.text ? compiled.outline : undefined;
-
-  useEffect(() => {
-    let cancelled = false;
-    if (sessionRef.current.font !== font || sessionRef.current.error !== error) {
-      sessionRef.current = { error, font };
-      hasDisplayedOutlineRef.current = false;
+  const displayedFontRef = useRef<YuragiFont | null>(null);
+  const outline = useMemo(() => {
+    if (!font || error) return undefined;
+    try {
+      return font.compile(props.text);
+    } catch {
+      return undefined;
     }
-    setCompiled(undefined);
-
-    if (!font || error) return;
-
-    void font
-      .compile(props.text)
-      .then((compiledOutline) => {
-        if (!cancelled) {
-          const skipEnterSettle = !hasDisplayedOutlineRef.current;
-          hasDisplayedOutlineRef.current = true;
-          setCompiled({
-            text: props.text,
-            outline: compiledOutline,
-            skipEnterSettle,
-          });
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setCompiled(undefined);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
   }, [error, font, props.text]);
+  const firstOutlineForFont =
+    outline !== undefined && displayedFontRef.current !== font;
+
+  useLayoutEffect(() => {
+    if (outline && font) displayedFontRef.current = font;
+  }, [font, outline]);
 
   useEffect(() => {
     if (
@@ -276,7 +255,7 @@ export function YuragiText(props: YuragiTextProps) {
   let animation: boolean | YuragiAnimationOptions | undefined = props.animation;
   if (
     outline &&
-    (compiled?.skipEnterSettle || delayedFallbackRevealed) &&
+    (firstOutlineForFont || delayedFallbackRevealed) &&
     animation !== false
   ) {
     animation =
