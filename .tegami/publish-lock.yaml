@@ -1,18 +1,18 @@
 core:changelogs:
-  - content: "---\npackages:\n  group:yuragi:\n    type: minor\n---\n\n## Enable animations by default\n\nYuragiText now enables settle and scatter animations unless explicitly disabled. Replace the transition prop with animation, using booleans for enter and exit.\n"
-    filename: 2026-07-20-mrs7dt85.md
+  - content: "---\npackages:\n  group:yuragi:\n    type: minor\n---\n\n## Add a unified controllable text renderer\n\nAdd `renderYuragiText()` to `@yuragi-labs/core` for layout, SVG creation,\nmounting, and animation lifecycle control through one API. Its handle supports\nprepared playback, cancellation, animated removal, and synchronous disposal.\n`play()` and `remove()` return non-rejecting promises with completed,\ncancelled, skipped, or failed outcomes.\n\nReplace the staged root exports `layoutShardedText()`, `createShardedSvg()`,\nand `prepareShardAnimation()`, together with their related low-level layout,\nSVG, animation-handle types, and `ShardAnimationError`, with the unified\nrenderer.\n\nRuntime React text now accepts `fallback={{ delayMs }}` to suppress brief\nfallback flashes while preserving readable text when font loading takes longer.\nHidden fallbacks preserve fallback text layout without becoming visible. The\nplayground Demo reveals its title fallbacks after 150 ms.\nAfter asset loading, `YuragiFont.compile()` now returns a cached outline\nsynchronously and `YuragiFont.preload()` completes synchronously, so a ready\nfont can produce the SVG in the same React render instead of committing an\nempty fallback frame first. The playground keeps its runtime font provider\nmounted across tool tabs so returning to Demo reuses the ready font and outline\ncache. Replaying the playground hero now immediately remounts the wordmark and\nplays only its enter animation.\n\nText groups wider than `maxWidth` now wrap at glyph boundaries instead of\nthrowing. A single glyph wider than the available width renders on its own\noverflowing line.\n"
+    filename: 2026-07-25-mrz96huj.md
     v: 0.0.0
 core:packages:
   - changelogIds:
-      - 2026-07-20-mrs7dt85.md
+      - 2026-07-25-mrz96huj.md
     id: npm:@yuragi-labs/compiler
     updated: true
   - changelogIds:
-      - 2026-07-20-mrs7dt85.md
+      - 2026-07-25-mrz96huj.md
     id: npm:@yuragi-labs/core
     updated: true
   - changelogIds:
-      - 2026-07-20-mrs7dt85.md
+      - 2026-07-25-mrz96huj.md
     id: npm:@yuragi-labs/react
     updated: true
 npm:packages:

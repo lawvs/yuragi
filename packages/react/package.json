@@ -1,6 +1,6 @@
 {
   "name": "@yuragi-labs/react",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "React components for rendering animated Yuragi text from static or runtime-compiled outlines.",
   "license": "MIT",
   "keywords": [

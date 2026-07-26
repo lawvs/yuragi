@@ -1,3 +1,34 @@
+## @yuragi-labs/react@0.3.0
+
+### Add a unified controllable text renderer
+
+Add `renderYuragiText()` to `@yuragi-labs/core` for layout, SVG creation,
+mounting, and animation lifecycle control through one API. Its handle supports
+prepared playback, cancellation, animated removal, and synchronous disposal.
+`play()` and `remove()` return non-rejecting promises with completed,
+cancelled, skipped, or failed outcomes.
+
+Replace the staged root exports `layoutShardedText()`, `createShardedSvg()`,
+and `prepareShardAnimation()`, together with their related low-level layout,
+SVG, animation-handle types, and `ShardAnimationError`, with the unified
+renderer.
+
+Runtime React text now accepts `fallback={{ delayMs }}` to suppress brief
+fallback flashes while preserving readable text when font loading takes longer.
+Hidden fallbacks preserve fallback text layout without becoming visible. The
+playground Demo reveals its title fallbacks after 150 ms.
+After asset loading, `YuragiFont.compile()` now returns a cached outline
+synchronously and `YuragiFont.preload()` completes synchronously, so a ready
+font can produce the SVG in the same React render instead of committing an
+empty fallback frame first. The playground keeps its runtime font provider
+mounted across tool tabs so returning to Demo reuses the ready font and outline
+cache. Replaying the playground hero now immediately remounts the wordmark and
+plays only its enter animation.
+
+Text groups wider than `maxWidth` now wrap at glyph boundaries instead of
+throwing. A single glyph wider than the available width renders on its own
+overflowing line.
+
 ## @yuragi-labs/react@0.2.0
 
 ### Enable animations by default
