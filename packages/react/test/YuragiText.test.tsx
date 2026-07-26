@@ -37,7 +37,7 @@ vi.mock("@yuragi-labs/core", async () => {
 });
 
 type HandleConfig = {
-  finished?: YuragiTextResult | Promise<YuragiTextResult>;
+  playback?: YuragiTextResult | Promise<YuragiTextResult>;
   removal?: YuragiTextResult | Promise<YuragiTextResult>;
   onPlay?: (element: SVGSVGElement) => void;
 };
@@ -61,6 +61,10 @@ function rendererHandle(
     "svg",
   );
   element.dataset.yuragiRoot = "true";
+  const playback = Promise.resolve(
+    config.playback ??
+      ({ status: "completed" } satisfies YuragiTextResult),
+  );
   let removalPromise: Promise<YuragiTextResult> | null = null;
   let resolveRemoval:
     | ((result: YuragiTextResult) => void)
@@ -74,10 +78,10 @@ function rendererHandle(
   };
   const handle: TestHandle = {
     element,
-    finished: Promise.resolve(
-      config.finished ?? { status: "completed" },
-    ),
-    play: vi.fn(() => config.onPlay?.(element)),
+    play: vi.fn(() => {
+      config.onPlay?.(element);
+      return playback;
+    }),
     cancel: vi.fn(),
     remove: vi.fn(() => {
       if (!removalPromise) {
@@ -242,7 +246,7 @@ describe("YuragiText", () => {
       outline,
       expect.objectContaining({ animation: false }),
     );
-    expect(issuedHandles[0]?.play).not.toHaveBeenCalled();
+    expect(issuedHandles[0]?.play).toHaveBeenCalledOnce();
   });
 
   it("removes the previous handle before rendering changed content", async () => {
@@ -327,7 +331,7 @@ describe("YuragiText", () => {
   ] satisfies YuragiTextResult[])(
     "invokes onEnterComplete for a $status result",
     async (result) => {
-      queueHandle({ finished: result });
+      queueHandle({ playback: result });
       const onEnterComplete = vi.fn();
 
       render(
@@ -351,7 +355,7 @@ describe("YuragiText", () => {
   ] satisfies YuragiTextResult[])(
     "does not invoke onEnterComplete for a $status result",
     async (result) => {
-      queueHandle({ finished: result });
+      queueHandle({ playback: result });
       const onEnterComplete = vi.fn();
 
       render(
@@ -369,7 +373,7 @@ describe("YuragiText", () => {
 
   it("uses the latest committed completion callback", async () => {
     const enter = deferred<YuragiTextResult>();
-    queueHandle({ finished: enter.promise });
+    queueHandle({ playback: enter.promise });
     const firstCallback = vi.fn();
     const latestCallback = vi.fn();
     const { rerender } = render(

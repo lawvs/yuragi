@@ -27,7 +27,7 @@ React 19, pnpm workspaces, tsdown.
 - Do not add pause, resume, seeking, replay, progress events, or native
   `Animation` access.
 - Prepare settle animation before replacing target content.
-- `finished` and `remove()` promises never reject.
+- `play()` and `remove()` promises never reject.
 - Invalid caller input throws synchronously without changing the target or its
   current handle.
 - Operational animation failures leave readable content and resolve to a
@@ -195,7 +195,7 @@ it("prepares off-DOM, mounts atomically, and autoplays defaults", () => {
   });
 });
 
-it("mounts the prepared frame and waits when autoplay is false", () => {
+it("mounts the prepared frame and waits when autoplay is false", async () => {
   const prepared = animationHandle();
   animationMocks.prepare.mockReturnValue(prepared);
   const target = document.createElement("div");
@@ -206,9 +206,11 @@ it("mounts the prepared frame and waits when autoplay is false", () => {
 
   expect(target.firstElementChild).toBe(handle.element);
   expect(prepared.play).not.toHaveBeenCalled();
-  handle.play();
-  handle.play();
+  const firstPlayback = handle.play();
+  const secondPlayback = handle.play();
   expect(prepared.play).toHaveBeenCalledOnce();
+  expect(secondPlayback).toBe(firstPlayback);
+  await expect(firstPlayback).resolves.toEqual({ status: "completed" });
 });
 
 it("renders statically without preparing animation", async () => {
@@ -219,7 +221,7 @@ it("renders statically without preparing animation", async () => {
   });
 
   expect(animationMocks.prepare).not.toHaveBeenCalled();
-  await expect(handle.finished).resolves.toEqual({
+  await expect(handle.play()).resolves.toEqual({
     status: "skipped",
     reason: "disabled",
   });
@@ -339,8 +341,7 @@ export class YuragiTextError extends Error {
 
 export interface YuragiTextHandle {
   readonly element: SVGSVGElement;
-  readonly finished: Promise<YuragiTextResult>;
-  play(): void;
+  play(): Promise<YuragiTextResult>;
   cancel(): void;
   remove(
     options?: Omit<YuragiAnimationOptions, "autoplay">,
@@ -423,7 +424,8 @@ Implement a private `RendererHandle` and
 `WeakMap<Element, RendererHandle>`. Construct layout, SVG, label, and prepared
 settle handle before reading or cancelling the existing target owner. During
 the commit phase call the old owner's private replacement method, replace the
-children, register the new owner, and autoplay. Make `play()` single-use,
+children, register the new owner, and autoplay. Make `play()` idempotently
+start or join enter playback and return the same non-rejecting promise,
 `cancel()` restore the assembled SVG through the internal handle's
   `cancel()`, and keep `remove()` as an incremental `Promise.resolve({
 status: "cancelled" })` until Task 2.
@@ -482,7 +484,7 @@ it.each([
   const handle = renderYuragiText(document.createElement("div"), outline, {
     size: 48,
   });
-  await expect(handle.finished).resolves.toEqual(result);
+  await expect(handle.play()).resolves.toEqual(result);
 });
 
 it("maps internal failures to an enter YuragiTextError", async () => {
@@ -494,7 +496,7 @@ it("maps internal failures to an enter YuragiTextError", async () => {
   const handle = renderYuragiText(document.createElement("div"), outline, {
     size: 48,
   });
-  const result = await handle.finished;
+  const result = await handle.play();
   expect(result.status).toBe("failed");
   if (result.status === "failed") {
     expect(result.error).toBeInstanceOf(YuragiTextError);
@@ -933,7 +935,7 @@ vi.mock("@yuragi-labs/core", async () => {
 
 function rendererHandle(
   target: Element,
-  finished: YuragiTextResult | Promise<YuragiTextResult> = {
+  playback: YuragiTextResult | Promise<YuragiTextResult> = {
     status: "completed",
   },
 ): YuragiTextHandle {
@@ -944,8 +946,7 @@ function rendererHandle(
   element.dataset.yuragiRoot = "true";
   const handle: YuragiTextHandle = {
     element,
-    finished: Promise.resolve(finished),
-    play: vi.fn(),
+    play: vi.fn(() => Promise.resolve(playback)),
     cancel: vi.fn(),
     remove: vi.fn(async () => ({ status: "completed" })),
     dispose: vi.fn(),
@@ -965,7 +966,7 @@ to verify:
 - styles are applied before `handle.play()`;
 - `animation: false` passes `animation: false`;
 - outline replacement calls the old handle's `remove({ speed })` when exit is
-  enabled and calls the new handle's `play()` when enter is enabled;
+  enabled and calls the new handle's `play()` once to start or observe enter;
 - completed/skipped enter and exit results invoke callbacks, while
   cancelled/failed results do not;
 - unmount calls `remove({ speed })` when exit is enabled and `dispose()` when
@@ -1010,7 +1011,8 @@ For a new layout:
 2. call `renderYuragiText(host, props.outline, ...)` with `ariaLabel: false`
    and enter animation configured as `{ autoplay: false, speed }`, or `false`;
 3. call `applySvgStyle(handle.element, props.style)` before `handle.play()`;
-4. store the new handle and observe `handle.finished`;
+4. store the new handle and observe the promise returned by that `play()`
+   call;
 5. invoke `onEnterComplete` only for `completed` or `skipped`;
 6. invoke `onExitComplete` only for `completed` or `skipped`.
 
@@ -1246,7 +1248,7 @@ const title = renderYuragiText(host, outline, {
   maxWidth: 900,
 });
 
-const result = await title.finished;
+const result = await title.play();
 if (result.status === "failed") {
   console.error(result.error);
 }

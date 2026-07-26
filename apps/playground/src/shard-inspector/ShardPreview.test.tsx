@@ -68,10 +68,12 @@ function rendererHandle(target: Element): TestHandle {
   const removal =
     removalResults.shift() ??
     ({ status: "completed" } satisfies YuragiTextResult);
+  const playbackResult = {
+    status: "completed",
+  } satisfies YuragiTextResult;
   const handle: TestHandle = {
     element: svg,
-    finished: Promise.resolve({ status: "completed" }),
-    play: vi.fn(),
+    play: vi.fn(async () => playbackResult),
     cancel: vi.fn(),
     remove: vi.fn(() => {
       svg.remove();

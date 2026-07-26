@@ -204,11 +204,12 @@ describe("YuragiTextHandle removal", () => {
       animation: { autoplay: false },
     });
 
+    const playback = handle.play();
     handle.cancel();
 
     expect(enter.cancel).toHaveBeenCalledOnce();
     expect(target.firstElementChild).toBe(handle.element);
-    await expect(handle.finished).resolves.toEqual({
+    await expect(playback).resolves.toEqual({
       status: "cancelled",
     });
   });

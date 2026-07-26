@@ -38,7 +38,7 @@ const title = renderYuragiText(host, outline, {
   maxWidth: 900,
 });
 
-const result = await title.finished;
+const result = await title.play();
 if (result.status === "failed") {
   console.error(result.error);
 }
@@ -57,18 +57,18 @@ const title = renderYuragiText(host, outline, {
 });
 
 await transitionReady;
-title.play();
+const result = await title.play();
 ```
 
-The handle exposes its `element`, a non-rejecting `finished` promise, and four
-lifecycle methods:
+The handle exposes its `element` and four lifecycle methods:
 
-- `play()` starts a prepared enter animation once.
+- `play()` starts or joins the prepared enter animation and returns its
+  non-rejecting result promise. Repeated calls return the same promise.
 - `cancel()` stops the active enter or exit animation.
 - `remove(options?)` removes the title and scatters a fixed-position clone.
 - `dispose()` synchronously cancels and removes resources owned by the handle.
 
-`finished` describes the enter lifecycle. Both it and `remove()` resolve with
+Both `play()` and `remove()` resolve with
 `completed`, `cancelled`, `skipped`, or `failed`. A skipped result reports
 `disabled`, `empty`, `reduced-motion`, or `unsupported`; a failed result
 contains a `YuragiTextError` whose phase is `enter` or `exit`.

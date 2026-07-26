@@ -89,7 +89,7 @@ describe("renderYuragiText", () => {
     });
   });
 
-  it("mounts the prepared frame and waits when autoplay is false", () => {
+  it("mounts the prepared frame and waits when autoplay is false", async () => {
     const prepared = animationHandle();
     animationMocks.prepare.mockReturnValue(prepared);
     const target = document.createElement("div");
@@ -100,9 +100,11 @@ describe("renderYuragiText", () => {
 
     expect(target.firstElementChild).toBe(handle.element);
     expect(prepared.play).not.toHaveBeenCalled();
-    handle.play();
-    handle.play();
+    const firstPlayback = handle.play();
+    const secondPlayback = handle.play();
     expect(prepared.play).toHaveBeenCalledOnce();
+    expect(secondPlayback).toBe(firstPlayback);
+    await expect(firstPlayback).resolves.toEqual({ status: "completed" });
   });
 
   it("renders statically without preparing animation", async () => {
@@ -113,7 +115,8 @@ describe("renderYuragiText", () => {
     });
 
     expect(animationMocks.prepare).not.toHaveBeenCalled();
-    await expect(handle.finished).resolves.toEqual({
+    expect(handle).not.toHaveProperty("finished");
+    await expect(handle.play()).resolves.toEqual({
       status: "skipped",
       reason: "disabled",
     });
@@ -254,7 +257,7 @@ describe("renderYuragiText", () => {
       { size: 48 },
     );
 
-    const result = await handle.finished;
+    const result = await handle.play();
     expect(result.status).toBe("failed");
     if (result.status === "failed") {
       expect(result.error).toBeInstanceOf(YuragiTextError);
@@ -273,7 +276,7 @@ describe("renderYuragiText", () => {
     const handle = renderYuragiText(target, outline, { size: 48 });
 
     expect(target.firstElementChild).toBe(handle.element);
-    const result = await handle.finished;
+    const result = await handle.play();
     expect(result.status).toBe("failed");
     if (result.status === "failed") {
       expect(result.error.phase).toBe("enter");

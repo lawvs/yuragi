@@ -60,9 +60,8 @@ export class YuragiTextError extends Error {
 
 export interface YuragiTextHandle {
   readonly element: SVGSVGElement;
-  readonly finished: Promise<YuragiTextResult>;
 
-  play(): void;
+  play(): Promise<YuragiTextResult>;
   cancel(): void;
   remove(
     options?: Omit<YuragiAnimationOptions, "autoplay">,
@@ -204,9 +203,8 @@ function mapAnimationFinished(
 }
 
 class RendererHandle implements YuragiTextHandle {
-  readonly finished: Promise<YuragiTextResult>;
-
-  private readonly resolveFinished: (result: YuragiTextResult) => void;
+  private readonly playback: Promise<YuragiTextResult>;
+  private readonly resolvePlayback: (result: YuragiTextResult) => void;
   private enterClosed = false;
   private enterStarted = false;
   private disposed = false;
@@ -226,33 +224,33 @@ class RendererHandle implements YuragiTextHandle {
     readonly animation: ResolvedAnimationOptions,
   ) {
     const deferred = createDeferred<YuragiTextResult>();
-    this.finished = deferred.promise;
-    this.resolveFinished = once((result) => {
+    this.playback = deferred.promise;
+    this.resolvePlayback = once((result) => {
       this.enterClosed = true;
       deferred.resolve(result);
     });
 
     if (initialResult) {
-      this.resolveFinished(initialResult);
+      this.resolvePlayback(initialResult);
     } else if (enterAnimation) {
       void mapAnimationFinished(
         "enter",
         enterAnimation.finished,
-      ).then(this.resolveFinished);
+      ).then(this.resolvePlayback);
     }
   }
 
-  play(): void {
+  play(): Promise<YuragiTextResult> {
     if (
-      this.disposed ||
-      this.replaced ||
-      this.enterClosed ||
-      this.enterStarted
+      !this.disposed &&
+      !this.replaced &&
+      !this.enterClosed &&
+      !this.enterStarted
     ) {
-      return;
+      this.enterStarted = true;
+      this.enterAnimation?.play();
     }
-    this.enterStarted = true;
-    this.enterAnimation?.play();
+    return this.playback;
   }
 
   cancel(): void {
@@ -362,7 +360,7 @@ class RendererHandle implements YuragiTextHandle {
     } catch {
       // The public lifecycle still reaches a readable cancelled state.
     }
-    this.resolveFinished({ status: "cancelled" });
+    this.resolvePlayback({ status: "cancelled" });
   }
 
   private finishExit(

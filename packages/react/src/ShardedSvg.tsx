@@ -128,8 +128,7 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
     };
     renderedRef.current = rendered;
 
-    if (props.animation.enter) handle.play();
-    void handle.finished.then((result) => {
+    void handle.play().then((result) => {
       if (
         mountedRef.current &&
         renderedRef.current === rendered &&
