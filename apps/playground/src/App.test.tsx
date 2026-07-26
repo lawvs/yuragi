@@ -285,6 +285,20 @@ describe("App", () => {
     expect(wasmPreview?.getAttribute("data-animation-exit")).toBe("false");
   });
 
+  it("reveals demo title fallbacks after 150ms", () => {
+    renderApp();
+
+    const listTitle = host.querySelector(
+      '.post-title [data-runtime-sharded-text="Dashboard"]',
+    );
+    const previewTitle = host.querySelector(
+      '.preview-title [data-runtime-sharded-text="Dashboard"]',
+    );
+
+    expect(listTitle?.getAttribute("data-fallback-delay")).toBe("150");
+    expect(previewTitle?.getAttribute("data-fallback-delay")).toBe("150");
+  });
+
   it("keeps the runtime font provider mounted across tab switches", () => {
     renderApp();
 

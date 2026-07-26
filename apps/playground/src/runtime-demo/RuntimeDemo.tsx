@@ -54,7 +54,7 @@ export function RuntimeDemo() {
                   text={post.title}
                   size={30}
                   maxWidth={320}
-                  fallback="hidden"
+                  fallback={{ delayMs: 150 }}
                   hover={hoverOutline ? "outline" : "none"}
                   animation={{ exit: false }}
                 />
@@ -153,7 +153,7 @@ export function RuntimeDemo() {
               size={size}
               maxWidth={760}
               align={align}
-              fallback="hidden"
+              fallback={{ delayMs: 150 }}
               hover={hoverOutline ? "outline" : "none"}
               animation={{ exit: true, speed: animationSpeed }}
             />

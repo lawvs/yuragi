@@ -42,10 +42,14 @@ function animationHandle(
     | ShardAnimationResult
     | Promise<ShardAnimationResult> = { status: "completed" },
 ): ShardAnimationHandle {
+  const cancellation = deferred<ShardAnimationResult>();
+
   return {
     play: vi.fn(),
-    cancel: vi.fn(),
-    finished: Promise.resolve(result),
+    cancel: vi.fn(() => {
+      cancellation.resolve({ status: "cancelled" });
+    }),
+    finished: Promise.race([Promise.resolve(result), cancellation.promise]),
   };
 }
 
@@ -195,7 +199,7 @@ describe("YuragiTextHandle removal", () => {
     expect(document.querySelector("[data-yuragi-exit]")).toBeNull();
   });
 
-  it("cancel resolves enter even when the internal handle never settles", async () => {
+  it("cancel resolves enter playback as cancelled", async () => {
     const enter = animationHandle(new Promise(() => undefined));
     animationMocks.prepare.mockReturnValue(enter);
     const target = createTarget();

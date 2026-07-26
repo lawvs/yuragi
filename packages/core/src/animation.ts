@@ -162,6 +162,17 @@ function resolvedHandle(
 
 const activeHandles = new WeakMap<ParentNode, ShardAnimationHandle>();
 
+function cancelAnimations(animations: readonly Animation[]): void {
+  animations.forEach((animation) => {
+    try {
+      animation.cancel();
+    } catch {
+      // Native animation cleanup is best-effort. The handle still has to
+      // settle so callers are not coupled to browser-specific exceptions.
+    }
+  });
+}
+
 function createPreparedHandle(
   root: ParentNode,
   animations: Animation[],
@@ -190,7 +201,7 @@ function createPreparedHandle(
   const release = () => {
     if (released) return;
     released = true;
-    animations.forEach((animation) => animation.cancel());
+    cancelAnimations(animations);
   };
   const detach = () => {
     if (activeHandles.get(root) === handle) {
@@ -324,7 +335,7 @@ export function prepareShardAnimation(
     activeHandles.set(root, handle);
     return handle;
   } catch (cause) {
-    animations.forEach((animation) => animation.cancel());
+    cancelAnimations(animations);
     return resolvedHandle({
       status: "failed",
       error: new ShardAnimationError("prepare", cause),

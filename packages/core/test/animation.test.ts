@@ -140,6 +140,21 @@ describe("prepareShardAnimation", () => {
     await expect(handle.finished).resolves.toEqual({ status: "cancelled" });
   });
 
+  it("settles cancellation when native cleanup throws", async () => {
+    const native = nativeAnimation();
+    vi.mocked(native.animation.cancel).mockImplementation(() => {
+      throw new Error("cancel failed");
+    });
+    vi.mocked(Element.prototype.animate).mockReturnValue(native.animation);
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.append(shard());
+
+    const handle = prepareShardAnimation(svg, { type: "settle" });
+
+    expect(() => handle.cancel()).not.toThrow();
+    await expect(handle.finished).resolves.toEqual({ status: "cancelled" });
+  });
+
   it("cancels the previous handle prepared for the same root", async () => {
     const first = nativeAnimation();
     const second = nativeAnimation();

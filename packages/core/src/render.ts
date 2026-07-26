@@ -80,23 +80,6 @@ const DEFAULT_ANIMATION: ResolvedAnimationOptions = {
 
 const targetOwners = new WeakMap<Element, RendererHandle>();
 
-function createDeferred<T>() {
-  let resolve!: (value: T) => void;
-  const promise = new Promise<T>((nextResolve) => {
-    resolve = nextResolve;
-  });
-  return { promise, resolve };
-}
-
-function once<T>(resolve: (value: T) => void): (value: T) => void {
-  let settled = false;
-  return (value) => {
-    if (settled) return;
-    settled = true;
-    resolve(value);
-  };
-}
-
 function positiveFinite(name: string, value: number): void {
   if (!Number.isFinite(value) || value <= 0) {
     throw new RangeError(`${name} must be finite and greater than zero`);
@@ -204,17 +187,9 @@ function mapAnimationFinished(
 
 class RendererHandle implements YuragiTextHandle {
   private readonly playback: Promise<YuragiTextResult>;
-  private readonly resolvePlayback: (result: YuragiTextResult) => void;
-  private enterClosed = false;
-  private enterStarted = false;
   private disposed = false;
-  private replaced = false;
   private removal: Promise<YuragiTextResult> | null = null;
-  private resolveRemoval:
-    | ((result: YuragiTextResult) => void)
-    | null = null;
-  private exitAnimation: ShardAnimationHandle | null = null;
-  private exitOverlay: SVGSVGElement | null = null;
+  private exit: PreparedSvgExit | null = null;
 
   constructor(
     private readonly target: Element,
@@ -223,72 +198,51 @@ class RendererHandle implements YuragiTextHandle {
     initialResult: YuragiTextResult | undefined,
     readonly animation: ResolvedAnimationOptions,
   ) {
-    const deferred = createDeferred<YuragiTextResult>();
-    this.playback = deferred.promise;
-    this.resolvePlayback = once((result) => {
-      this.enterClosed = true;
-      deferred.resolve(result);
-    });
-
-    if (initialResult) {
-      this.resolvePlayback(initialResult);
-    } else if (enterAnimation) {
-      void mapAnimationFinished(
-        "enter",
-        enterAnimation.finished,
-      ).then(this.resolvePlayback);
-    }
+    this.playback = initialResult
+      ? Promise.resolve(initialResult)
+      : enterAnimation
+        ? mapAnimationFinished("enter", enterAnimation.finished)
+        : Promise.resolve({ status: "skipped", reason: "disabled" });
   }
 
   play(): Promise<YuragiTextResult> {
-    if (
-      !this.disposed &&
-      !this.replaced &&
-      !this.enterClosed &&
-      !this.enterStarted
-    ) {
-      this.enterStarted = true;
-      this.enterAnimation?.play();
-    }
+    if (!this.disposed) this.enterAnimation?.play();
     return this.playback;
   }
 
   cancel(): void {
-    if (this.disposed || this.replaced) return;
-    if (this.exitAnimation) {
+    if (this.disposed) return;
+    if (this.exit) {
       this.cancelExit();
       return;
     }
-    this.cancelEnter();
+    this.enterAnimation?.cancel();
   }
 
   remove(
     options: Omit<YuragiAnimationOptions, "autoplay"> = {},
   ): Promise<YuragiTextResult> {
     if (this.removal) return this.removal;
-    if (this.disposed || this.replaced) {
-      return Promise.resolve({ status: "cancelled" });
+    if (this.disposed) {
+      this.removal = Promise.resolve({ status: "cancelled" });
+      return this.removal;
     }
     validateAnimationOptions(options);
-
-    const deferred = createDeferred<YuragiTextResult>();
-    this.removal = deferred.promise;
-    this.resolveRemoval = once(deferred.resolve);
 
     let snapshot;
     try {
       snapshot = captureSvgExitSnapshot(this.element);
     } catch (cause) {
-      this.cancelEnter();
+      this.enterAnimation?.cancel();
       this.releaseOwnedElement();
-      this.resolveRemoval({
+      this.removal = Promise.resolve({
         status: "failed",
         error: new YuragiTextError("exit", cause),
       });
       return this.removal;
     }
 
-    this.cancelEnter();
+    this.enterAnimation?.cancel();
     const exitOptions = {
       speed: options.speed ?? this.animation.speed,
       distance: options.distance ?? this.animation.distance,
@@ -303,7 +257,7 @@ class RendererHandle implements YuragiTextHandle {
       );
     } catch (cause) {
       this.releaseOwnedElement();
-      this.resolveRemoval({
+      this.removal = Promise.resolve({
         status: "failed",
         error: new YuragiTextError("exit", cause),
       });
@@ -312,86 +266,53 @@ class RendererHandle implements YuragiTextHandle {
 
     this.releaseOwnedElement();
     if (!prepared) {
-      this.resolveRemoval({
+      this.removal = Promise.resolve({
         status: "skipped",
         reason: "unsupported",
       });
       return this.removal;
     }
 
-    this.exitAnimation = prepared.animation;
-    this.exitOverlay = prepared.overlay;
-    void mapAnimationFinished(
+    this.exit = prepared;
+    this.removal = mapAnimationFinished(
       "exit",
       prepared.animation.finished,
-    ).then((result) => {
-      this.finishExit(prepared, result);
-    });
-    try {
-      prepared.animation.play();
-    } catch (cause) {
-      this.finishExit(prepared, {
-        status: "failed",
-        error: new YuragiTextError("exit", cause),
-      });
-    }
+    ).then((result) => this.finishExit(prepared, result));
+    prepared.animation.play();
     return this.removal;
   }
 
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
-    if (this.exitAnimation) this.cancelExit();
-    else this.cancelEnter();
+    if (this.exit) this.cancelExit();
+    else this.enterAnimation?.cancel();
     this.releaseOwnedElement();
   }
 
-  replace(): void {
-    if (this.disposed || this.replaced) return;
-    this.replaced = true;
-    this.cancelEnter();
-  }
-
-  private cancelEnter(): void {
-    if (this.enterClosed) return;
-    this.enterClosed = true;
-    try {
-      this.enterAnimation?.cancel();
-    } catch {
-      // The public lifecycle still reaches a readable cancelled state.
-    }
-    this.resolvePlayback({ status: "cancelled" });
+  supersede(): void {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.enterAnimation?.cancel();
   }
 
   private finishExit(
     prepared: PreparedSvgExit,
     result: YuragiTextResult,
-  ): void {
-    try {
+  ): YuragiTextResult {
+    if (this.exit === prepared) {
+      this.exit = null;
       prepared.animation.cancel();
-    } catch {
-      // Cleanup is best-effort after the public result is known.
     }
     prepared.overlay.remove();
-    if (this.exitAnimation === prepared.animation) {
-      this.exitAnimation = null;
-      this.exitOverlay = null;
-    }
-    this.resolveRemoval?.(result);
+    return result;
   }
 
   private cancelExit(): void {
-    const animation = this.exitAnimation;
-    const overlay = this.exitOverlay;
-    this.exitAnimation = null;
-    this.exitOverlay = null;
-    try {
-      animation?.cancel();
-    } catch {
-      // The public lifecycle still resolves and the overlay is removed.
-    }
-    overlay?.remove();
-    this.resolveRemoval?.({ status: "cancelled" });
+    const exit = this.exit;
+    this.exit = null;
+    exit?.animation.cancel();
+    exit?.overlay.remove();
   }
 
   private releaseOwnedElement(): void {
@@ -476,7 +397,7 @@ export function renderYuragiText(
     initialResult,
     animation,
   );
-  targetOwners.get(target)?.replace();
+  targetOwners.get(target)?.supersede();
   target.replaceChildren(svg);
   targetOwners.set(target, handle);
 

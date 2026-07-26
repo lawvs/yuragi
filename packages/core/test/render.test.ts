@@ -101,8 +101,8 @@ describe("renderYuragiText", () => {
     expect(target.firstElementChild).toBe(handle.element);
     expect(prepared.play).not.toHaveBeenCalled();
     const firstPlayback = handle.play();
-    const secondPlayback = handle.play();
     expect(prepared.play).toHaveBeenCalledOnce();
+    const secondPlayback = handle.play();
     expect(secondPlayback).toBe(firstPlayback);
     await expect(firstPlayback).resolves.toEqual({ status: "completed" });
   });
