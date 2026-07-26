@@ -7,12 +7,12 @@ import "./Hero.css";
 const heroOutline = heroAsset.outline as unknown as TextOutline;
 
 export function Hero() {
-  const [phase, setPhase] = useState<"entering" | "ready" | "exiting">(
-    "entering",
-  );
+  const [animationRun, setAnimationRun] = useState(0);
+  const [animationReady, setAnimationReady] = useState(false);
 
   function replayAnimation() {
-    setPhase("exiting");
+    setAnimationReady(false);
+    setAnimationRun((run) => run + 1);
   }
 
   return (
@@ -21,23 +21,21 @@ export function Hero() {
 
       <div className="hero-wordmark-stage">
         <h1 className="hero-title" id="hero-title">
-          {phase !== "exiting" ? (
-            <YuragiText
-              className="hero-wordmark"
-              text={heroAsset.text}
-              outline={heroOutline}
-              size={190}
-              maxWidth={900}
-              fallback="error"
-              hover="outline"
-              animation={{ speed: 1.4 }}
-              onEnterComplete={() => setPhase("ready")}
-              onExitComplete={() => setPhase("entering")}
-            />
-          ) : null}
+          <YuragiText
+            key={animationRun}
+            className="hero-wordmark"
+            text={heroAsset.text}
+            outline={heroOutline}
+            size={190}
+            maxWidth={900}
+            fallback="error"
+            hover="outline"
+            animation={{ enter: true, exit: false, speed: 1.4 }}
+            onEnterComplete={() => setAnimationReady(true)}
+          />
         </h1>
 
-        {phase === "ready" ? (
+        {animationReady ? (
           <button
             className="hero-replay"
             type="button"

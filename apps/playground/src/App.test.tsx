@@ -198,7 +198,7 @@ describe("App", () => {
     expect(host.querySelector("section#playground")).not.toBeNull();
   });
 
-  it("plays exit before remounting the wordmark for Replay", () => {
+  it("remounts the wordmark to replay enter without playing exit", () => {
     renderApp();
 
     expect(host.querySelector(".hero-replay")).toBeNull();
@@ -212,18 +212,13 @@ describe("App", () => {
     act(() => replay?.click());
 
     expect(host.querySelector(".hero-replay")).toBeNull();
-    expect(
-      host.querySelector('[data-static-sharded-text="yuragi"]'),
-    ).toBeNull();
-    expect(staticYuragiMocks.mountCount).toBe(1);
-
-    act(() => staticYuragiMocks.onExitComplete?.());
-
     expect(staticYuragiMocks.mountCount).toBe(2);
-    expect(
-      host.querySelector('[data-static-sharded-text="yuragi"]'),
-    ).not.toBeNull();
-    expect(host.querySelector(".hero-replay")).toBeNull();
+    const remounted = host.querySelector(
+      '[data-static-sharded-text="yuragi"]',
+    );
+    expect(remounted).not.toBeNull();
+    expect(remounted?.getAttribute("data-animation-exit")).toBe("false");
+    expect(staticYuragiMocks.onExitComplete).toBeUndefined();
 
     act(() => staticYuragiMocks.onEnterComplete?.());
 
