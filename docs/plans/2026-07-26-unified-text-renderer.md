@@ -1303,13 +1303,14 @@ Run:
 ```bash
 pnpm --filter @yuragi-labs/core exec vitest run test/public-api.test.ts
 pnpm build
-node scripts/release-smoke.mjs
+node scripts/check-release.mts
 pnpm test
 pnpm typecheck
 pnpm playground:build
 ```
 
-Expected: public API test PASS; all packages build; release smoke prints
+Expected: public API test PASS; all packages build; release check installs the
+packed packages in a temporary consumer and its smoke script prints
 `Release tarball smoke test passed.`; all tests and typechecks pass; playground
 production build exits 0.
 

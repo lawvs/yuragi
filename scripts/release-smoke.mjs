@@ -10,7 +10,7 @@ const [core, coreWasm, compiler, react, reactStatic] = await Promise.all([
 ]);
 
 for (const [name, value] of [
-  ["@yuragi-labs/core#createShardedSvg", core.createShardedSvg],
+  ["@yuragi-labs/core#renderYuragiText", core.renderYuragiText],
   ["@yuragi-labs/core/wasm#createYuragiFont", coreWasm.createYuragiFont],
   [
     "@yuragi-labs/core/wasm#YuragiWasmRuntime",
@@ -22,6 +22,17 @@ for (const [name, value] of [
 ]) {
   if (typeof value !== "function") {
     throw new Error(name + " is not a function");
+  }
+}
+
+for (const removed of [
+  "layoutShardedText",
+  "createShardedSvg",
+  "prepareShardAnimation",
+  "ShardAnimationError",
+]) {
+  if (removed in core) {
+    throw new Error(`@yuragi-labs/core must not export ${removed}`);
   }
 }
 

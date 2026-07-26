@@ -1,6 +1,10 @@
-export * from "./animation";
-export * from "./layout";
-export * from "./render";
+export {
+  renderYuragiText,
+  YuragiTextError,
+  type RenderYuragiTextOptions,
+  type YuragiAnimationOptions,
+  type YuragiTextHandle,
+  type YuragiTextResult,
+} from "./render";
 export * from "./style-text";
-export * from "./svg";
 export * from "./types";
