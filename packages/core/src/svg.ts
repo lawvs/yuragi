@@ -8,18 +8,20 @@ export type SvgOptions = {
 };
 
 function svgEl<K extends keyof SVGElementTagNameMap>(
+  ownerDocument: Document,
   tag: K,
 ): SVGElementTagNameMap[K] {
-  return document.createElementNS(SVG_NS, tag);
+  return ownerDocument.createElementNS(SVG_NS, tag);
 }
 
 export function createShardedSvg(
   layout: ShardedTextLayout,
   options: SvgOptions = {},
+  ownerDocument: Document = document,
 ): SVGSVGElement {
   const scale = layout.options.size / layout.outline.em;
   const ascender = layout.outline.ascender * scale;
-  const svg = svgEl("svg");
+  const svg = svgEl(ownerDocument, "svg");
   svg.dataset.yuragiRoot = "true";
   svg.classList.add("yuragi-root");
   const classNames = options.className?.trim().split(/\s+/).filter(Boolean);
@@ -38,7 +40,7 @@ export function createShardedSvg(
 
   for (const line of layout.lines) {
     const baselineY = ascender + line.y;
-    const lineEl = svgEl("g");
+    const lineEl = svgEl(ownerDocument, "g");
     lineEl.dataset.line = String(line.index);
     lineEl.style.setProperty("--yuragi-line-x", `${line.x}px`);
     lineEl.style.setProperty("--yuragi-line-y", `${baselineY}px`);
@@ -46,27 +48,27 @@ export function createShardedSvg(
     svg.append(lineEl);
 
     for (const group of line.groups) {
-      const groupEl = svgEl("g");
+      const groupEl = svgEl(ownerDocument, "g");
       groupEl.dataset.group = group.text;
       groupEl.dataset.groupIndex = String(group.groupIndex);
       groupEl.style.setProperty("--yuragi-group-x", `${group.x}px`);
       groupEl.setAttribute("transform", `translate(${group.x} 0)`);
       lineEl.append(groupEl);
 
-      const motionEl = svgEl("g");
+      const motionEl = svgEl(ownerDocument, "g");
       motionEl.dataset.groupMotion = "true";
       groupEl.append(motionEl);
 
       let glyphX = 0;
       for (const glyph of group.glyphs) {
-        const glyphEl = svgEl("g");
+        const glyphEl = svgEl(ownerDocument, "g");
         glyphEl.dataset.glyph = glyph.char;
         glyphEl.style.setProperty("--yuragi-glyph-x", `${glyphX}px`);
         glyphEl.setAttribute("transform", `translate(${glyphX} 0)`);
         motionEl.append(glyphEl);
 
         for (const shard of glyph.shards) {
-          const shardMotionEl = svgEl("g");
+          const shardMotionEl = svgEl(ownerDocument, "g");
           shardMotionEl.dataset.shardMotion = "true";
           shardMotionEl.dataset.directionX = String(shard.direction[0]);
           shardMotionEl.dataset.directionY = String(shard.direction[1]);
@@ -77,11 +79,11 @@ export function createShardedSvg(
               ((glyph.advance / layout.outline.em) * layout.options.size) / 2,
           );
 
-          const scaleEl = svgEl("g");
+          const scaleEl = svgEl(ownerDocument, "g");
           scaleEl.dataset.shardScale = "true";
           scaleEl.setAttribute("transform", `scale(${scale})`);
 
-          const path = svgEl("path");
+          const path = svgEl(ownerDocument, "path");
           path.dataset.shard = "true";
           path.setAttribute("d", shard.path);
           scaleEl.append(path);

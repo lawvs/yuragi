@@ -2,6 +2,8 @@ import {
   createContext,
   useContext,
   useEffect,
+  useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -54,7 +56,14 @@ export type YuragiFontProviderProps = {
   styleNonce?: string;
 };
 
-export type YuragiTextProps = Omit<StaticYuragiTextProps, "outline">;
+export type YuragiTextProps = Omit<
+  StaticYuragiTextProps,
+  "outline" | "fallback"
+> & {
+  fallback?:
+    | StaticYuragiTextProps["fallback"]
+    | { delayMs: number };
+};
 
 const YuragiFontContext = createContext<YuragiFontState | null>(null);
 
@@ -119,13 +128,17 @@ export function YuragiFontProvider({
     let ownedFont: YuragiFont | null = null;
 
     if (isYuragiFont(font)) {
-      setValue(readyFontState(font));
+      setValue((current) =>
+        current.status === "ready" && current.font === font
+          ? current
+          : readyFontState(font),
+      );
       if (preload) {
-        void font.preload(preload).catch((error: unknown) => {
-          if (!cancelled) {
-            setValue(errorFontState(error));
-          }
-        });
+        try {
+          font.preload(preload);
+        } catch (error: unknown) {
+          if (!cancelled) setValue(errorFontState(error));
+        }
       }
 
       return () => {
@@ -184,62 +197,85 @@ export function useYuragiFont() {
 
 export function YuragiText(props: YuragiTextProps) {
   const { error, font } = useYuragiFont();
-  const [compiled, setCompiled] = useState<{
+  const { fallback: requestedFallback, ...staticProps } = props;
+  const fallbackDelayMs =
+    typeof requestedFallback === "object"
+      ? requestedFallback.delayMs
+      : undefined;
+  if (
+    fallbackDelayMs !== undefined &&
+    (!Number.isFinite(fallbackDelayMs) || fallbackDelayMs < 0)
+  ) {
+    throw new RangeError(
+      "fallback.delayMs must be finite and non-negative",
+    );
+  }
+  const [revealedFallback, setRevealedFallback] = useState<{
     text: string;
-    outline: NonNullable<StaticYuragiTextProps["outline"]>;
-    skipEnterSettle: boolean;
+    delayMs: number;
   }>();
-  const sessionRef = useRef({ error, font });
-  const hasDisplayedOutlineRef = useRef(false);
-  const outline = compiled?.text === props.text ? compiled.outline : undefined;
+  const displayedFontRef = useRef<YuragiFont | null>(null);
+  const outline = useMemo(() => {
+    if (!font || error) return undefined;
+    try {
+      return font.compile(props.text);
+    } catch {
+      return undefined;
+    }
+  }, [error, font, props.text]);
+  const firstOutlineForFont =
+    outline !== undefined && displayedFontRef.current !== font;
+
+  useLayoutEffect(() => {
+    if (outline && font) displayedFontRef.current = font;
+  }, [font, outline]);
 
   useEffect(() => {
-    let cancelled = false;
-    if (sessionRef.current.font !== font || sessionRef.current.error !== error) {
-      sessionRef.current = { error, font };
-      hasDisplayedOutlineRef.current = false;
+    if (
+      fallbackDelayMs === undefined ||
+      fallbackDelayMs === 0 ||
+      outline
+    ) {
+      return;
     }
-    setCompiled(undefined);
 
-    if (!font || error) return;
-
-    void font
-      .compile(props.text)
-      .then((compiledOutline) => {
-        if (!cancelled) {
-          const skipEnterSettle = !hasDisplayedOutlineRef.current;
-          hasDisplayedOutlineRef.current = true;
-          setCompiled({
-            text: props.text,
-            outline: compiledOutline,
-            skipEnterSettle,
-          });
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setCompiled(undefined);
-        }
+    const timeout = setTimeout(() => {
+      setRevealedFallback({
+        text: props.text,
+        delayMs: fallbackDelayMs,
       });
+    }, fallbackDelayMs);
+    return () => clearTimeout(timeout);
+  }, [fallbackDelayMs, outline, props.text]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [error, font, props.text]);
-
+  const delayedFallbackRevealed =
+    fallbackDelayMs === 0 ||
+    (revealedFallback?.text === props.text &&
+      revealedFallback.delayMs === fallbackDelayMs);
   let animation: boolean | YuragiAnimationOptions | undefined = props.animation;
-  if (outline && compiled?.skipEnterSettle && animation !== false) {
+  if (
+    outline &&
+    (firstOutlineForFont || delayedFallbackRevealed) &&
+    animation !== false
+  ) {
     animation =
       typeof animation === "object"
         ? { ...animation, enter: false }
         : { enter: false };
   }
+  const fallback =
+    typeof requestedFallback !== "object"
+      ? requestedFallback
+      : delayedFallbackRevealed
+        ? "text"
+        : "hidden";
 
   return (
     <StaticYuragiText
-      {...props}
+      {...staticProps}
       outline={outline}
       animation={animation}
+      fallback={fallback}
     />
   );
 }

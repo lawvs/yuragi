@@ -1,30 +1,20 @@
 import { useEffectEvent, useLayoutEffect, useRef } from "react";
 import {
-  createShardedSvg,
-  layoutShardedText,
-  prepareShardAnimation,
-  type ShardAnimationHandle,
-  type ShardAnimationResult,
+  renderYuragiText,
   type TextOutline,
+  type YuragiTextHandle,
+  type YuragiTextResult,
 } from "@yuragi-labs/core";
-import { createSettleAnimationOptions } from "./animation-options";
-import {
-  animateSvgExit,
-  pickSvgExitSnapshot,
-  refreshRenderedSvgExitSnapshot,
-  type SvgExitSnapshot,
-} from "./exit-overlay";
 import { applySvgStyle } from "./style";
 import type { ResolvedYuragiTextProps } from "./types";
 
 type RenderedSvgState = {
-  svg: SVGSVGElement;
+  handle: YuragiTextHandle;
   outline: TextOutline;
   text: string;
   size: number;
   maxWidth?: number;
   align?: "start" | "center" | "end";
-  exitSnapshot?: SvgExitSnapshot;
 };
 
 function hasSameSvgLayout(
@@ -41,147 +31,113 @@ function hasSameSvgLayout(
   );
 }
 
+function completedOrSkipped(result: YuragiTextResult): boolean {
+  return result.status === "completed" || result.status === "skipped";
+}
+
 export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
   const hostRef = useRef<HTMLSpanElement>(null);
-  const svgRef = useRef<SVGSVGElement | null>(null);
-  const renderedSvgRef = useRef<RenderedSvgState | null>(null);
-  const settleAnimationRef = useRef<ShardAnimationHandle | null>(null);
-  const pendingScatterRef = useRef<{ cancelled: boolean } | null>(null);
+  const renderedRef = useRef<RenderedSvgState | null>(null);
+  const pendingUnmountRef = useRef<YuragiTextHandle | null>(null);
   const mountedRef = useRef(false);
   const notifyEnterComplete = useEffectEvent(() => {
     props.onEnterComplete?.();
   });
-  const notifyExitCompleteForResult = useEffectEvent(
-    (result: ShardAnimationResult) => {
-      if (result.status === "completed" || result.status === "skipped") {
-        props.onExitComplete?.();
-      }
+  const notifyExitComplete = useEffectEvent(() => {
+    props.onExitComplete?.();
+  });
+  const removeForExit = useEffectEvent(
+    (rendered: RenderedSvgState) => {
+      void rendered.handle
+        .remove({ speed: props.animation.speed })
+        .then((result) => {
+          if (completedOrSkipped(result)) notifyExitComplete();
+        });
     },
   );
-  const animateUnmountedSvgExit = useEffectEvent(() => {
-    const animation = props.animation;
-    if (!animation.exit) return;
-    const renderedSvg = renderedSvgRef.current;
-    const svg = renderedSvg?.svg ?? svgRef.current;
-    if (!svg) return;
-    const exitSnapshot = pickSvgExitSnapshot(
-      svg,
-      renderedSvg?.exitSnapshot,
-    );
+  const cleanupCurrent = useEffectEvent(() => {
+    mountedRef.current = false;
+    const rendered = renderedRef.current;
+    if (!rendered) return;
 
-    const nextPending = { cancelled: false };
-    pendingScatterRef.current = nextPending;
-    queueMicrotask(() => {
-      if (!nextPending.cancelled) {
-        void animateSvgExit(svg, {
-          snapshot: exitSnapshot,
-          speed: animation.speed,
-        }).then(notifyExitCompleteForResult);
-      }
-      if (pendingScatterRef.current === nextPending) {
-        pendingScatterRef.current = null;
-      }
-    });
+    pendingUnmountRef.current = rendered.handle;
+    if (props.animation.exit) removeForExit(rendered);
+    else rendered.handle.dispose();
   });
 
   useLayoutEffect(() => {
     mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-      const settleAnimation = settleAnimationRef.current;
-      queueMicrotask(() => {
-        if (
-          !mountedRef.current &&
-          settleAnimationRef.current === settleAnimation
-        ) {
-          settleAnimation?.cancel();
-          settleAnimationRef.current = null;
-        }
-      });
-    };
+    const pending = pendingUnmountRef.current;
+    if (pending) {
+      pendingUnmountRef.current = null;
+      pending.dispose();
+      if (renderedRef.current?.handle === pending) {
+        renderedRef.current = null;
+      }
+    }
+    return cleanupCurrent;
   }, []);
 
   useLayoutEffect(() => {
     const host = hostRef.current;
     if (!host || !props.outline) return;
 
-    const current = renderedSvgRef.current;
-    if (hasSameSvgLayout(current, props)) {
-      if (props.style && current) {
-        applySvgStyle(current.svg, props.style);
-        refreshRenderedSvgExitSnapshot(current, current.svg);
+    const current = renderedRef.current;
+    if (
+      hasSameSvgLayout(current, props) &&
+      current?.handle.element.parentElement === host
+    ) {
+      if (props.style) {
+        applySvgStyle(current.handle.element, props.style);
       }
       return;
     }
 
-    const previous = current;
-    const layout = layoutShardedText(props.outline, {
+    if (
+      current?.handle.element.parentElement === host &&
+      props.animation.exit
+    ) {
+      removeForExit(current);
+    }
+
+    const handle = renderYuragiText(host, props.outline, {
       size: props.size,
       maxWidth: props.maxWidth,
       align: props.align,
-    });
-    const svg = createShardedSvg(layout, {
       className: props.className,
       hover: props.hover === "outline" ? "outline" : "none",
+      ariaLabel: false,
+      animation: props.animation.enter
+        ? {
+            autoplay: false,
+            speed: props.animation.speed,
+          }
+        : false,
     });
     if (props.style) {
-      applySvgStyle(svg, props.style);
+      applySvgStyle(handle.element, props.style);
     }
-    svgRef.current = svg;
-    const renderedSvg: RenderedSvgState = {
-      svg,
+
+    const rendered: RenderedSvgState = {
+      handle,
       outline: props.outline,
       text: props.text,
       size: props.size,
       maxWidth: props.maxWidth,
       align: props.align,
     };
-    renderedSvgRef.current = renderedSvg;
+    renderedRef.current = rendered;
 
-    const previousSvg = previous?.svg;
-    const shouldScatterPrevious =
-      previousSvg?.parentElement === host &&
-      props.animation.exit;
-
-    settleAnimationRef.current?.cancel();
-    const settleAnimation = props.animation.enter
-      ? prepareShardAnimation(
-          svg,
-          createSettleAnimationOptions(props.animation.speed),
-        )
-      : null;
-    settleAnimationRef.current = settleAnimation;
-
-    if (shouldScatterPrevious && previousSvg) {
-      const exitSnapshot = pickSvgExitSnapshot(
-        previousSvg,
-        previous?.exitSnapshot,
-      );
-      host.replaceChildren(svg);
-      void animateSvgExit(previousSvg, {
-        snapshot: exitSnapshot,
-        speed: props.animation.speed,
-      }).then(notifyExitCompleteForResult);
-    } else {
-      host.replaceChildren(svg);
-    }
-    refreshRenderedSvgExitSnapshot(renderedSvg, svg);
-
-    settleAnimation?.play();
-    if (settleAnimation) {
-      void settleAnimation.finished.then((result) => {
-        const isCurrent =
-          mountedRef.current &&
-          renderedSvgRef.current?.svg === svg &&
-          settleAnimationRef.current === settleAnimation;
-        if (
-          isCurrent &&
-          (result.status === "completed" || result.status === "skipped")
-        ) {
-          notifyEnterComplete();
-        }
-      });
-    }
+    if (props.animation.enter) handle.play();
+    void handle.finished.then((result) => {
+      if (
+        mountedRef.current &&
+        renderedRef.current === rendered &&
+        completedOrSkipped(result)
+      ) {
+        notifyEnterComplete();
+      }
+    });
   }, [
     props.align,
     props.animation.enter,
@@ -195,15 +151,6 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
     props.style,
     props.text,
   ]);
-
-  useLayoutEffect(() => {
-    const pending = pendingScatterRef.current;
-    if (pending) pending.cancelled = true;
-
-    return () => {
-      animateUnmountedSvgExit();
-    };
-  }, [props.animation.exit]);
 
   return <span ref={hostRef} aria-label={props.text} />;
 }

@@ -1,6 +1,6 @@
 # @yuragi-labs/core
 
-Shared types, layout helpers, SVG helpers, animation helpers, CSS, and the
+Shared outline types, DOM rendering, animation lifecycle control, CSS, and the
 lower-level runtime WASM compiler for Yuragi packages.
 
 Most applications use this package indirectly through `@yuragi-labs/react`. Static
@@ -26,51 +26,61 @@ import type {
 - `OutlineMap`: title string to outline mapping.
 - `TextOutline`: glyph shard geometry for one rendered string.
 
-## Animation
+## DOM Rendering
 
-Use `prepareShardAnimation` when integrating Yuragi's shard animations without
-the React package:
+Use `renderYuragiText` when integrating Yuragi without the React package:
 
 ```ts
-import {
-  createShardedSvg,
-  layoutShardedText,
-  prepareShardAnimation,
-} from "@yuragi-labs/core";
+import { renderYuragiText } from "@yuragi-labs/core";
 
-const svg = createShardedSvg(layoutShardedText(outline, { size: 72 }));
-const animation = prepareShardAnimation(svg, {
-  type: "settle",
-  stagger: "by-x",
+const title = renderYuragiText(host, outline, {
+  size: 72,
+  maxWidth: 900,
 });
 
-host.replaceChildren(svg);
-animation.play();
-
-const result = await animation.finished;
+const result = await title.finished;
 if (result.status === "failed") {
   console.error(result.error);
 }
 ```
 
+The renderer lays out the outline, creates its SVG in the target's document,
+prepares the initial settle frame before changing the target, mounts it, and
+autoplays by default. Set `animation: false` for a static SVG.
+
+For a page-transition gate, prepare and mount first, then start playback:
+
+```ts
+const title = renderYuragiText(host, outline, {
+  size: 72,
+  animation: { autoplay: false },
+});
+
+await transitionReady;
+title.play();
+```
+
+The handle exposes its `element`, a non-rejecting `finished` promise, and four
+lifecycle methods:
+
+- `play()` starts a prepared enter animation once.
+- `cancel()` stops the active enter or exit animation.
+- `remove(options?)` removes the title and scatters a fixed-position clone.
+- `dispose()` synchronously cancels and removes resources owned by the handle.
+
+`finished` describes the enter lifecycle. Both it and `remove()` resolve with
+`completed`, `cancelled`, `skipped`, or `failed`. A skipped result reports
+`disabled`, `empty`, `reduced-motion`, or `unsupported`; a failed result
+contains a `YuragiTextError` whose phase is `enter` or `exit`.
+
 When provided, `speed` must be finite and greater than zero, and `distance`
-must be finite and non-negative.
+must be finite and non-negative. Rendering another title into the same target
+automatically cancels the previous owner without allowing a stale handle to
+alter the replacement.
 
-Preparation captures the current shards and synchronously applies the initial
-frame. The handle's non-rejecting `finished` Promise resolves with one of four
-statuses:
-
-- `completed`: every shard animation finished.
-- `cancelled`: `cancel()` stopped the animation.
-- `skipped`: playback was unnecessary or unavailable. Its reason is `empty`
-  when no shards were captured, `reduced-motion` when the user's motion
-  preference disables animation, or `unsupported` when the Web Animations API
-  is unavailable.
-- `failed`: preparation or playback failed; the result includes a
-  `ShardAnimationError`.
-
-Callers must call `cancel()` on handles they abandon, such as when removing or
-replacing the animated SVG.
+By default, the SVG's accessible label is reconstructed from the outline.
+Pass `ariaLabel: "..."` to override it or `ariaLabel: false` when a separate
+accessible text node already labels the title.
 
 ## CSS Export
 
@@ -105,7 +115,7 @@ const font = await createYuragiFont({
   preload: ["Dashboard"],
 });
 
-const outline = await font.compile("Dashboard");
+const outline = font.compile("Dashboard");
 font.dispose();
 ```
 
@@ -113,9 +123,13 @@ font.dispose();
 `YuragiFont` object with:
 
 - `info`: font metadata reported by the runtime.
-- `compile(text, options?)`: compile one string into a `TextOutline`.
-- `preload(texts?)`: compile and cache a group of strings.
+- `compile(text, options?)`: synchronously compile one string into a cached
+  `TextOutline`.
+- `preload(texts?)`: synchronously compile and cache a group of strings.
 - `dispose()`: release the runtime reference and clear the in-memory cache.
+
+Asset loading is asynchronous; compilation is synchronous after
+`createYuragiFont()` resolves.
 
 For advanced control, instantiate the runtime directly:
 
