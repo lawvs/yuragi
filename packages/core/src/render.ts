@@ -3,6 +3,11 @@ import {
   type ShardAnimationHandle,
   type ShardAnimationResult,
 } from "./animation";
+import {
+  captureSvgExitSnapshot,
+  prepareSvgExit,
+  type PreparedSvgExit,
+} from "./exit-overlay";
 import { layoutShardedText } from "./layout";
 import { createShardedSvg } from "./svg";
 import type { TextOutline } from "./types";
@@ -76,6 +81,23 @@ const DEFAULT_ANIMATION: ResolvedAnimationOptions = {
 
 const targetOwners = new WeakMap<Element, RendererHandle>();
 
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((nextResolve) => {
+    resolve = nextResolve;
+  });
+  return { promise, resolve };
+}
+
+function once<T>(resolve: (value: T) => void): (value: T) => void {
+  let settled = false;
+  return (value) => {
+    if (settled) return;
+    settled = true;
+    resolve(value);
+  };
+}
+
 function positiveFinite(name: string, value: number): void {
   if (!Number.isFinite(value) || value <= 0) {
     throw new RangeError(`${name} must be finite and greater than zero`);
@@ -120,20 +142,29 @@ function validateRenderInput(
   });
 
   if (options.animation !== false) {
-    const speed = options.animation?.speed;
-    if (
-      speed !== undefined &&
-      (!Number.isFinite(speed) || speed <= 0)
-    ) {
-      throw new RangeError("speed must be finite and greater than zero");
-    }
-    const distance = options.animation?.distance;
-    if (
-      distance !== undefined &&
-      (!Number.isFinite(distance) || distance < 0)
-    ) {
-      throw new RangeError("distance must be finite and non-negative");
-    }
+    validateAnimationOptions(options.animation);
+  }
+}
+
+function validateAnimationOptions(
+  options:
+    | Omit<YuragiAnimationOptions, "autoplay">
+    | YuragiAnimationOptions
+    | undefined,
+): void {
+  const speed = options?.speed;
+  if (
+    speed !== undefined &&
+    (!Number.isFinite(speed) || speed <= 0)
+  ) {
+    throw new RangeError("speed must be finite and greater than zero");
+  }
+  const distance = options?.distance;
+  if (
+    distance !== undefined &&
+    (!Number.isFinite(distance) || distance < 0)
+  ) {
+    throw new RangeError("distance must be finite and non-negative");
   }
 }
 
@@ -175,22 +206,40 @@ function mapAnimationFinished(
 class RendererHandle implements YuragiTextHandle {
   readonly finished: Promise<YuragiTextResult>;
 
+  private readonly resolveFinished: (result: YuragiTextResult) => void;
   private enterClosed = false;
   private enterStarted = false;
   private disposed = false;
   private replaced = false;
+  private removal: Promise<YuragiTextResult> | null = null;
+  private resolveRemoval:
+    | ((result: YuragiTextResult) => void)
+    | null = null;
+  private exitAnimation: ShardAnimationHandle | null = null;
+  private exitOverlay: SVGSVGElement | null = null;
 
   constructor(
     private readonly target: Element,
     readonly element: SVGSVGElement,
     private readonly enterAnimation: ShardAnimationHandle | null,
-    finished: Promise<YuragiTextResult>,
+    initialResult: YuragiTextResult | undefined,
     readonly animation: ResolvedAnimationOptions,
   ) {
-    this.finished = finished;
-    void finished.then(() => {
+    const deferred = createDeferred<YuragiTextResult>();
+    this.finished = deferred.promise;
+    this.resolveFinished = once((result) => {
       this.enterClosed = true;
+      deferred.resolve(result);
     });
+
+    if (initialResult) {
+      this.resolveFinished(initialResult);
+    } else if (enterAnimation) {
+      void mapAnimationFinished(
+        "enter",
+        enterAnimation.finished,
+      ).then(this.resolveFinished);
+    }
   }
 
   play(): void {
@@ -207,35 +256,153 @@ class RendererHandle implements YuragiTextHandle {
   }
 
   cancel(): void {
-    if (this.disposed || this.replaced || this.enterClosed) return;
-    this.enterClosed = true;
-    this.enterAnimation?.cancel();
+    if (this.disposed || this.replaced) return;
+    if (this.exitAnimation) {
+      this.cancelExit();
+      return;
+    }
+    this.cancelEnter();
   }
 
   remove(
-    _options: Omit<YuragiAnimationOptions, "autoplay"> = {},
+    options: Omit<YuragiAnimationOptions, "autoplay"> = {},
   ): Promise<YuragiTextResult> {
-    return Promise.resolve({ status: "cancelled" });
+    if (this.removal) return this.removal;
+    if (this.disposed || this.replaced) {
+      return Promise.resolve({ status: "cancelled" });
+    }
+    validateAnimationOptions(options);
+
+    const deferred = createDeferred<YuragiTextResult>();
+    this.removal = deferred.promise;
+    this.resolveRemoval = once(deferred.resolve);
+
+    let snapshot;
+    try {
+      snapshot = captureSvgExitSnapshot(this.element);
+    } catch (cause) {
+      this.cancelEnter();
+      this.releaseOwnedElement();
+      this.resolveRemoval({
+        status: "failed",
+        error: new YuragiTextError("exit", cause),
+      });
+      return this.removal;
+    }
+
+    this.cancelEnter();
+    const exitOptions = {
+      speed: options.speed ?? this.animation.speed,
+      distance: options.distance ?? this.animation.distance,
+      stagger: options.stagger ?? this.animation.stagger,
+    };
+    let prepared: PreparedSvgExit | null;
+    try {
+      prepared = prepareSvgExit(
+        this.element,
+        snapshot,
+        exitOptions,
+      );
+    } catch (cause) {
+      this.releaseOwnedElement();
+      this.resolveRemoval({
+        status: "failed",
+        error: new YuragiTextError("exit", cause),
+      });
+      return this.removal;
+    }
+
+    this.releaseOwnedElement();
+    if (!prepared) {
+      this.resolveRemoval({
+        status: "skipped",
+        reason: "unsupported",
+      });
+      return this.removal;
+    }
+
+    this.exitAnimation = prepared.animation;
+    this.exitOverlay = prepared.overlay;
+    void mapAnimationFinished(
+      "exit",
+      prepared.animation.finished,
+    ).then((result) => {
+      this.finishExit(prepared, result);
+    });
+    try {
+      prepared.animation.play();
+    } catch (cause) {
+      this.finishExit(prepared, {
+        status: "failed",
+        error: new YuragiTextError("exit", cause),
+      });
+    }
+    return this.removal;
   }
 
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
-    this.enterClosed = true;
-    this.enterAnimation?.cancel();
-    if (targetOwners.get(this.target) !== this) return;
-
-    targetOwners.delete(this.target);
-    if (this.element.parentNode === this.target) {
-      this.element.remove();
-    }
+    if (this.exitAnimation) this.cancelExit();
+    else this.cancelEnter();
+    this.releaseOwnedElement();
   }
 
   replace(): void {
     if (this.disposed || this.replaced) return;
     this.replaced = true;
+    this.cancelEnter();
+  }
+
+  private cancelEnter(): void {
+    if (this.enterClosed) return;
     this.enterClosed = true;
-    this.enterAnimation?.cancel();
+    try {
+      this.enterAnimation?.cancel();
+    } catch {
+      // The public lifecycle still reaches a readable cancelled state.
+    }
+    this.resolveFinished({ status: "cancelled" });
+  }
+
+  private finishExit(
+    prepared: PreparedSvgExit,
+    result: YuragiTextResult,
+  ): void {
+    try {
+      prepared.animation.cancel();
+    } catch {
+      // Cleanup is best-effort after the public result is known.
+    }
+    prepared.overlay.remove();
+    if (this.exitAnimation === prepared.animation) {
+      this.exitAnimation = null;
+      this.exitOverlay = null;
+    }
+    this.resolveRemoval?.(result);
+  }
+
+  private cancelExit(): void {
+    const animation = this.exitAnimation;
+    const overlay = this.exitOverlay;
+    this.exitAnimation = null;
+    this.exitOverlay = null;
+    try {
+      animation?.cancel();
+    } catch {
+      // The public lifecycle still resolves and the overlay is removed.
+    }
+    overlay?.remove();
+    this.resolveRemoval?.({ status: "cancelled" });
+  }
+
+  private releaseOwnedElement(): void {
+    if (targetOwners.get(this.target) === this) {
+      targetOwners.delete(this.target);
+    }
+    if (this.element.parentNode === this.target) {
+      this.element.remove();
+    }
   }
 }
 
@@ -281,13 +448,13 @@ export function renderYuragiText(
     options.animation === false ? undefined : options.animation,
   );
   let enterAnimation: ShardAnimationHandle | null = null;
-  let finished: Promise<YuragiTextResult>;
+  let initialResult: YuragiTextResult | undefined;
 
   if (options.animation === false) {
-    finished = Promise.resolve({
+    initialResult = {
       status: "skipped",
       reason: "disabled",
-    });
+    };
   } else {
     try {
       enterAnimation = prepareShardAnimation(svg, {
@@ -296,15 +463,11 @@ export function renderYuragiText(
         distance: animation.distance,
         stagger: animation.stagger,
       });
-      finished = mapAnimationFinished(
-        "enter",
-        enterAnimation.finished,
-      );
     } catch (cause) {
-      finished = Promise.resolve({
+      initialResult = {
         status: "failed",
         error: new YuragiTextError("enter", cause),
-      });
+      };
     }
   }
 
@@ -312,7 +475,7 @@ export function renderYuragiText(
     target,
     svg,
     enterAnimation,
-    finished,
+    initialResult,
     animation,
   );
   targetOwners.get(target)?.replace();
