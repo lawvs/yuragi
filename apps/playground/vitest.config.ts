@@ -23,6 +23,10 @@ export default defineConfig({
         "../../packages/core/src/wasm/index.ts",
         import.meta.url,
       ).pathname,
+      "@yuragi-labs/core": new URL(
+        "../../packages/core/src/index.ts",
+        import.meta.url,
+      ).pathname,
     },
   },
   test: {

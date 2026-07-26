@@ -5,10 +5,8 @@ import {
   type MouseEvent,
 } from "react";
 import {
-  createShardedSvg,
-  layoutShardedText,
-  prepareShardAnimation,
-  type ShardAnimationHandle,
+  renderYuragiText,
+  type YuragiTextHandle,
 } from "@yuragi-labs/core";
 import type { InspectorGlyph } from "./model";
 
@@ -52,17 +50,11 @@ export function ShardPreview({
   selectedShard: number | null;
 }) {
   const hostRef = useRef<HTMLSpanElement>(null);
-  const svgRef = useRef<SVGSVGElement | null>(null);
-  const activeAnimationRef = useRef<ShardAnimationHandle | null>(null);
+  const renderedRef = useRef<YuragiTextHandle | null>(null);
+  const playbackRef = useRef<YuragiTextHandle | null>(null);
 
-  useLayoutEffect(() => {
-    const host = hostRef.current;
-    if (!host) return;
-
-    const layout = layoutShardedText(data.outline, { size: 220 });
-    const svg = createShardedSvg(layout);
+  function decorateSvg(svg: SVGSVGElement): void {
     svg.classList.add("inspector-glyph-svg");
-    svg.setAttribute("aria-label", data.char);
     const motions = Array.from(
       svg.querySelectorAll<SVGGElement>("[data-shard-motion]"),
     );
@@ -71,6 +63,7 @@ export function ShardPreview({
       motion.dataset.inspectorShard = String(index);
       const selected = selectedShard === index;
       if (selected) motion.dataset.selected = "true";
+      else delete motion.dataset.selected;
       const path = motion.querySelector<SVGPathElement>("[data-shard]");
       if (path) {
         path.style.fill =
@@ -85,34 +78,114 @@ export function ShardPreview({
         motion.style.transform = `translate(${direction[0] * explodeDistance}px, ${direction[1] * explodeDistance}px)`;
       }
     });
+  }
 
-    const activeAnimation = activeAnimationRef.current;
-    if (activeAnimation) {
-      activeAnimationRef.current = null;
-      activeAnimation.cancel();
+  function renderPreview(
+    animation:
+      | false
+      | {
+          autoplay: false;
+          distance: number;
+          stagger: "by-x";
+        },
+  ): YuragiTextHandle | null {
+    const host = hostRef.current;
+    if (!host) return null;
+    const handle = renderYuragiText(host, data.outline, {
+      size: 220,
+      ariaLabel: data.char,
+      animation,
+    });
+    decorateSvg(handle.element);
+    renderedRef.current = handle;
+    return handle;
+  }
+
+  function renderStaticPreview(): YuragiTextHandle | null {
+    return renderPreview(false);
+  }
+
+  useLayoutEffect(() => {
+    const activePlayback = playbackRef.current;
+    playbackRef.current = null;
+    activePlayback?.dispose();
+    if (
+      renderedRef.current &&
+      renderedRef.current !== activePlayback
+    ) {
+      renderedRef.current.dispose();
     }
-    svgRef.current = svg;
-    host.replaceChildren(svg);
+    renderedRef.current = null;
+    renderStaticPreview();
   }, [data, explodeDistance, mode, selectedShard]);
 
   useLayoutEffect(() => {
-    const svg = svgRef.current;
-    if (!svg || !playback) return;
+    if (!playback) {
+      if (!renderedRef.current) renderStaticPreview();
+      return;
+    }
 
-    const animation = prepareShardAnimation(svg, {
-      type: playback.type,
-      stagger: "by-x",
-      distance: playback.distance,
-    });
-    activeAnimationRef.current = animation;
-    animation.play();
+    let active = true;
+    if (playback.type === "settle") {
+      renderedRef.current?.dispose();
+      const handle = renderPreview({
+        autoplay: false,
+        distance: playback.distance,
+        stagger: "by-x",
+      });
+      if (!handle) return;
+
+      playbackRef.current = handle;
+      handle.play();
+      return () => {
+        active = false;
+        if (playbackRef.current !== handle) return;
+        playbackRef.current = null;
+        if (renderedRef.current === handle) {
+          renderedRef.current = null;
+        }
+        handle.dispose();
+      };
+    }
+
+    const handle =
+      renderedRef.current ?? renderStaticPreview();
+    if (!handle) return;
+    playbackRef.current = handle;
+    void handle
+      .remove({ distance: playback.distance })
+      .then(() => {
+        if (!active || playbackRef.current !== handle) return;
+        playbackRef.current = null;
+        renderStaticPreview();
+      });
 
     return () => {
-      if (activeAnimationRef.current !== animation) return;
-      activeAnimationRef.current = null;
-      animation.cancel();
+      active = false;
+      if (playbackRef.current !== handle) return;
+      playbackRef.current = null;
+      if (renderedRef.current === handle) {
+        renderedRef.current = null;
+      }
+      handle.dispose();
     };
   }, [playback]);
+
+  useLayoutEffect(
+    () => () => {
+      const activePlayback = playbackRef.current;
+      playbackRef.current = null;
+      activePlayback?.dispose();
+      if (
+        renderedRef.current &&
+        renderedRef.current !== activePlayback
+      ) {
+        renderedRef.current.dispose();
+      }
+      renderedRef.current = null;
+    },
+    [],
+  );
 
   function selectShard(event: MouseEvent<HTMLSpanElement>) {
     const target = event.target as Element;
