@@ -266,7 +266,7 @@ it("creates SVG nodes in the target ownerDocument", () => {
 Run:
 
 ```bash
-pnpm vitest run --project core packages/core/test/render.test.ts
+pnpm --filter @yuragi-labs/core exec vitest run test/render.test.ts
 ```
 
 Expected: FAIL because `renderYuragiText` and its public types do not exist.
@@ -509,7 +509,7 @@ it("maps internal failures to an enter YuragiTextError", async () => {
 Run:
 
 ```bash
-pnpm vitest run --project core packages/core/test/render.test.ts packages/core/test/layout.test.ts packages/core/test/svg.test.ts packages/core/test/animation.test.ts
+pnpm --filter @yuragi-labs/core exec vitest run test/render.test.ts test/layout.test.ts test/svg.test.ts test/animation.test.ts
 pnpm --filter @yuragi-labs/core typecheck
 ```
 
@@ -730,7 +730,7 @@ failed result contains `YuragiTextError` with `phase === "exit"`.
 Run:
 
 ```bash
-pnpm vitest run --project core packages/core/test/render-remove.test.ts
+pnpm --filter @yuragi-labs/core exec vitest run test/render-remove.test.ts
 ```
 
 Expected: FAIL because no overlay is created and the removal lifecycle is not
@@ -883,7 +883,7 @@ Ensure only the current target owner releases the target registry.
 Run:
 
 ```bash
-pnpm vitest run --project core
+pnpm --filter @yuragi-labs/core test
 pnpm --filter @yuragi-labs/core typecheck
 ```
 
@@ -982,7 +982,7 @@ Remove React assertions about fixed overlay coordinates and internal
 Run:
 
 ```bash
-pnpm vitest run --project react
+pnpm --filter @yuragi-labs/react test
 ```
 
 Expected: FAIL because `ShardedSvg.tsx` still calls the three internal stages
@@ -1049,7 +1049,7 @@ Expected: no matches.
 Run:
 
 ```bash
-pnpm vitest run --project react
+pnpm --filter @yuragi-labs/react test
 pnpm --filter @yuragi-labs/react typecheck
 ```
 
@@ -1106,7 +1106,7 @@ handles receive `dispose()`.
 Run:
 
 ```bash
-pnpm vitest run --project playground apps/playground/src/shard-inspector/ShardPreview.test.tsx
+pnpm --filter @yuragi-labs/playground exec vitest run src/shard-inspector/ShardPreview.test.tsx
 ```
 
 Expected: FAIL because the inspector still imports and calls the old stages.
@@ -1152,8 +1152,8 @@ playback is still current. Dispose current handles in layout-effect cleanup.
 Run:
 
 ```bash
-pnpm vitest run --project playground apps/playground/src/shard-inspector/ShardPreview.test.tsx
-pnpm vitest run --project playground
+pnpm --filter @yuragi-labs/playground exec vitest run src/shard-inspector/ShardPreview.test.tsx
+pnpm --filter @yuragi-labs/playground test
 pnpm --filter @yuragi-labs/playground typecheck
 ```
 
@@ -1210,7 +1210,7 @@ describe("@yuragi-labs/core public surface", () => {
 Run:
 
 ```bash
-pnpm vitest run --project core packages/core/test/public-api.test.ts
+pnpm --filter @yuragi-labs/core exec vitest run test/public-api.test.ts
 ```
 
 Expected: FAIL because the old stage values are still root exports.
@@ -1301,7 +1301,7 @@ Expected: no matches.
 Run:
 
 ```bash
-pnpm vitest run --project core packages/core/test/public-api.test.ts
+pnpm --filter @yuragi-labs/core exec vitest run test/public-api.test.ts
 pnpm build
 node scripts/release-smoke.mjs
 pnpm test
