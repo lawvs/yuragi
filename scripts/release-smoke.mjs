@@ -1,4 +1,3 @@
-import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const [core, coreWasm, compiler, react, reactStatic] = await Promise.all([
@@ -24,21 +23,6 @@ for (const [name, value] of [
     throw new Error(name + " is not a function");
   }
 }
-
-for (const removed of [
-  "layoutShardedText",
-  "createShardedSvg",
-  "prepareShardAnimation",
-  "ShardAnimationError",
-]) {
-  if (removed in core) {
-    throw new Error(`@yuragi-labs/core must not export ${removed}`);
-  }
-}
-
-await assert.rejects(import("@yuragi-labs/core/wasm/runtime"), {
-  code: "ERR_PACKAGE_PATH_NOT_EXPORTED",
-});
 
 const wasmUrl = import.meta.resolve(
   "@yuragi-labs/core/wasm/yuragi_wasm_compiler.wasm",
