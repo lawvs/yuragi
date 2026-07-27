@@ -285,7 +285,7 @@ describe("App", () => {
     expect(wasmPreview?.getAttribute("data-animation-exit")).toBe("false");
   });
 
-  it("reveals demo title fallbacks after 150ms", () => {
+  it("uses the default fallback behavior for demo titles", () => {
     renderApp();
 
     const listTitle = host.querySelector(
@@ -295,8 +295,10 @@ describe("App", () => {
       '.preview-title [data-runtime-sharded-text="Dashboard"]',
     );
 
-    expect(listTitle?.getAttribute("data-fallback-delay")).toBe("150");
-    expect(previewTitle?.getAttribute("data-fallback-delay")).toBe("150");
+    expect(listTitle?.hasAttribute("data-fallback")).toBe(false);
+    expect(previewTitle?.hasAttribute("data-fallback")).toBe(false);
+    expect(listTitle?.hasAttribute("data-fallback-delay")).toBe(false);
+    expect(previewTitle?.hasAttribute("data-fallback-delay")).toBe(false);
   });
 
   it("keeps the runtime font provider mounted across tab switches", () => {

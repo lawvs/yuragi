@@ -20,7 +20,6 @@ export function RuntimeTitle({ title }: { title: string }) {
       <YuragiText
         text={title}
         size={88}
-        fallback="text"
         hover="outline"
       />
     </YuragiFontProvider>
@@ -157,7 +156,6 @@ one phase explicitly when needed:
 <YuragiText text="Static title" animation={false} />
 <YuragiText text="Enter only" animation={{ exit: false }} />
 <YuragiText text="Exit only" animation={{ enter: false }} />
-<YuragiText text="Delayed fallback" fallback={{ delayMs: 150 }} />
 ```
 
 Runtime `YuragiText` skips settle when replacing its initial fallback with the
