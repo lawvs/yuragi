@@ -103,7 +103,22 @@
 }
 
 .font-status {
+  gap: 7px;
   margin: 0;
+}
+
+.font-status[data-status="loading"] {
+  color: var(--color-fg);
+}
+
+.font-status-spinner {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border: 2px solid var(--color-border);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: font-status-spin 0.8s linear infinite;
 }
 
 .font-status[data-status="ready"] {
@@ -112,6 +127,18 @@
 
 .font-status[data-status="error"] {
   color: var(--color-danger);
+}
+
+@keyframes font-status-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .font-status-spinner {
+    animation: none;
+  }
 }
 
 .range-control {
