@@ -27,6 +27,28 @@ const outline: TextOutline = {
   ],
 };
 
+const multiGroupOutline: TextOutline = {
+  ...outline,
+  groups: [
+    ...outline.groups,
+    {
+      text: "B",
+      advance: 500,
+      breakAfter: true,
+      glyphs: [
+        {
+          char: "B",
+          advance: 500,
+          bbox: { top: -800, bottom: 200, left: 0, right: 500 },
+          shards: [
+            { path: "M0 0L500 500L0 500Z", direction: [-1, 0] },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
 describe("createShardedSvg", () => {
   it("materializes a stable SVG structure", () => {
     const layout = layoutShardedText(outline, { size: 20, maxWidth: 40 });
@@ -101,5 +123,35 @@ describe("createShardedSvg", () => {
     expect(firstShard.getAttribute("data-direction-x")).toBeNull();
     expect(firstShard.getAttribute("data-direction-y")).toBeNull();
     expect(secondShard.getAttribute("d")).toBe("M0 500L500 500L0 0Z");
+  });
+
+  it("assigns stable bounded two-dimensional hover offsets per group", () => {
+    const layout = layoutShardedText(multiGroupOutline, {
+      size: 20,
+      maxWidth: 40,
+    });
+    const first = createShardedSvg(layout, { hover: "outline" });
+    const second = createShardedSvg(layout, { hover: "outline" });
+
+    const readOffsets = (svg: SVGSVGElement) =>
+      [...svg.querySelectorAll<SVGGElement>("[data-group-motion]")].map(
+        (motion) => ({
+          x: motion.style.getPropertyValue("--yuragi-hover-x"),
+          y: motion.style.getPropertyValue("--yuragi-hover-y"),
+        }),
+      );
+
+    const offsets = readOffsets(first);
+    expect(offsets).toEqual(readOffsets(second));
+    expect(new Set(offsets.map(({ x, y }) => `${x},${y}`)).size).toBe(
+      offsets.length,
+    );
+    for (const { x, y } of offsets) {
+      expect(x).toMatch(/^-?\d+(?:\.\d+)?px$/);
+      expect(y).toMatch(/^-?\d+(?:\.\d+)?px$/);
+      expect(Math.abs(Number.parseFloat(x))).toBeLessThanOrEqual(2);
+      expect(Math.abs(Number.parseFloat(y))).toBeLessThanOrEqual(2);
+      expect(x).not.toBe(y);
+    }
   });
 });

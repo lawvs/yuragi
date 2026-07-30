@@ -14,6 +14,22 @@ function svgEl<K extends keyof SVGElementTagNameMap>(
   return ownerDocument.createElementNS(SVG_NS, tag);
 }
 
+function groupHoverOffsets(
+  text: string,
+  groupIndex: number,
+): { x: string; y: string } {
+  let hash = 2166136261 ^ groupIndex;
+  for (let index = 0; index < text.length; index += 1) {
+    hash = Math.imul(hash ^ text.charCodeAt(index), 16777619);
+  }
+  const offset = (value: number) =>
+    `${((value / 0xffff) * 4 - 2).toFixed(3)}px`;
+  return {
+    x: offset(hash & 0xffff),
+    y: offset((hash >>> 16) & 0xffff),
+  };
+}
+
 export function createShardedSvg(
   layout: ShardedTextLayout,
   options: SvgOptions = {},
@@ -57,6 +73,9 @@ export function createShardedSvg(
 
       const motionEl = svgEl(ownerDocument, "g");
       motionEl.dataset.groupMotion = "true";
+      const hoverOffsets = groupHoverOffsets(group.text, group.groupIndex);
+      motionEl.style.setProperty("--yuragi-hover-x", hoverOffsets.x);
+      motionEl.style.setProperty("--yuragi-hover-y", hoverOffsets.y);
       groupEl.append(motionEl);
 
       let glyphX = 0;
