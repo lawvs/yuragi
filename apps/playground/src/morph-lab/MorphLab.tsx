@@ -32,15 +32,14 @@ function MorphExperiment({ font }: { font: YuragiFont }) {
   );
   const [error, setError] = useState<string>();
 
-  function updateText(nextText: string) {
-    setText(nextText);
-    if (!nextText) {
+  function morph() {
+    if (!text) {
       setError("Enter at least one visible character");
       return;
     }
 
     try {
-      setTarget(compileTarget(font, nextText));
+      setTarget(compileTarget(font, text));
       setError(undefined);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
@@ -49,26 +48,33 @@ function MorphExperiment({ font }: { font: YuragiFont }) {
 
   return (
     <div className="morph-lab-grid">
-      <div className="morph-lab-controls">
+      <form
+        className="morph-lab-controls"
+        onSubmit={(event) => {
+          event.preventDefault();
+          morph();
+        }}
+      >
         <label>
           <span>Text</span>
           <input
             name="morph-text"
             value={text}
-            onChange={(event) => updateText(event.target.value)}
+            onChange={(event) => setText(event.target.value)}
             autoComplete="off"
           />
         </label>
+        <button type="submit">Morph</button>
         <p>
-          Each valid edit compiles a new font outline. Morphicons retargets
-          the current shape without restarting from the previous endpoint.
+          Submit text to compile a new font outline. Morphicons retargets the
+          current shape without restarting from the previous endpoint.
         </p>
         {error ? (
           <p className="morph-lab-error" role="alert">
             {error}
           </p>
         ) : null}
-      </div>
+      </form>
 
       <div className="morph-lab-stage">
         <MorphIcon

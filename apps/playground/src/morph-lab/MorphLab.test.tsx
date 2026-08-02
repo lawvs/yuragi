@@ -78,18 +78,32 @@ describe("MorphLab", () => {
     host.remove();
   });
 
-  it("morphs to the path compiled from the latest input", () => {
+  it("morphs only after submitting the latest input", () => {
     act(() => root.render(<MorphLab />));
 
     const input = host.querySelector<HTMLInputElement>(
       'input[name="morph-text"]',
     )!;
+    const submit = host.querySelector<HTMLButtonElement>(
+      'button[type="submit"]',
+    );
     const initialIcon = host
       .querySelector("[data-morph-icon]")
       ?.getAttribute("data-morph-icon");
 
     act(() => {
       changeInput(input, "B");
+    });
+
+    expect(fontMocks.compile).toHaveBeenCalledTimes(1);
+    expect(
+      host
+        .querySelector("[data-morph-icon]")
+        ?.getAttribute("data-morph-icon"),
+    ).toBe(initialIcon);
+
+    act(() => {
+      submit?.click();
     });
 
     expect(fontMocks.compile).toHaveBeenLastCalledWith("B");
@@ -106,6 +120,9 @@ describe("MorphLab", () => {
     const input = host.querySelector<HTMLInputElement>(
       'input[name="morph-text"]',
     )!;
+    const submit = host.querySelector<HTMLButtonElement>(
+      'button[type="submit"]',
+    );
     const initialIcon = host
       .querySelector("[data-morph-icon]")
       ?.getAttribute("data-morph-icon");
@@ -115,6 +132,9 @@ describe("MorphLab", () => {
 
     act(() => {
       changeInput(input, "?");
+    });
+    act(() => {
+      submit?.click();
     });
 
     expect(
