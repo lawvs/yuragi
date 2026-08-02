@@ -13,6 +13,11 @@ type MorphTarget = {
   text: string;
 };
 
+type MorphPair = {
+  previous: MorphTarget;
+  current: MorphTarget;
+};
+
 function compileTarget(font: YuragiFont, text: string): MorphTarget {
   const outline = font.compile(text);
   const path = outlineToSvgPath(outline, { size: outline.em });
@@ -27,9 +32,11 @@ function compileTarget(font: YuragiFont, text: string): MorphTarget {
 
 function MorphExperiment({ font }: { font: YuragiFont }) {
   const [text, setText] = useState(INITIAL_TEXT);
-  const [target, setTarget] = useState(() =>
-    compileTarget(font, INITIAL_TEXT),
-  );
+  const [pair, setPair] = useState<MorphPair>(() => {
+    const initial = compileTarget(font, INITIAL_TEXT);
+    return { previous: initial, current: initial };
+  });
+  const [progress, setProgress] = useState(1);
   const [error, setError] = useState<string>();
 
   function morph() {
@@ -39,7 +46,9 @@ function MorphExperiment({ font }: { font: YuragiFont }) {
     }
 
     try {
-      setTarget(compileTarget(font, text));
+      const next = compileTarget(font, text);
+      setPair(({ current }) => ({ previous: current, current: next }));
+      setProgress(1);
       setError(undefined);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
@@ -66,8 +75,8 @@ function MorphExperiment({ font }: { font: YuragiFont }) {
         </label>
         <button type="submit">Morph</button>
         <p>
-          Submit text to compile a new font outline. Morphicons retargets the
-          current shape without restarting from the previous endpoint.
+          Submit text to compile a new font outline, then scrub between the
+          previous and current shapes.
         </p>
         {error ? (
           <p className="morph-lab-error" role="alert">
@@ -76,16 +85,32 @@ function MorphExperiment({ font }: { font: YuragiFont }) {
         ) : null}
       </form>
 
-      <div className="morph-lab-stage">
-        <MorphIcon
-          className="morph-lab-icon"
-          icon={target.icon}
-          label={target.text}
-          size={360}
-          spring="snappy"
-          fill="currentColor"
-          stroke="none"
-        />
+      <div className="morph-lab-preview">
+        <div className="morph-lab-stage">
+          <MorphIcon
+            className="morph-lab-icon"
+            from={pair.previous.icon}
+            to={pair.current.icon}
+            progress={progress}
+            label={pair.current.text}
+            size={360}
+            fill="currentColor"
+            stroke="none"
+          />
+        </div>
+        <label className="morph-lab-scrub">
+          <input
+            type="range"
+            name="morph-progress"
+            min="0"
+            max="1"
+            step="0.001"
+            value={progress}
+            aria-label="Scrub the morph between the previous and current text"
+            onChange={(event) => setProgress(Number(event.target.value))}
+          />
+          <output>t={progress.toFixed(2)}</output>
+        </label>
       </div>
     </div>
   );

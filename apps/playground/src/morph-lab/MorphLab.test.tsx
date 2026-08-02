@@ -22,14 +22,27 @@ vi.mock("morphicons", () => ({
 vi.mock("morphicons/react", () => ({
   MorphIcon: ({
     fill,
+    from,
     icon,
+    progress,
     stroke,
+    to,
   }: {
     fill?: string;
-    icon: string;
+    from?: string;
+    icon?: string;
+    progress?: number;
     stroke?: string;
+    to?: string;
   }) => (
-    <svg data-fill={fill} data-morph-icon={icon} data-stroke={stroke} />
+    <svg
+      data-fill={fill}
+      data-from={from}
+      data-morph-icon={icon ?? to}
+      data-progress={progress}
+      data-stroke={stroke}
+      data-to={to}
+    />
   ),
 }));
 
@@ -128,6 +141,40 @@ describe("MorphLab", () => {
         .querySelector("[data-morph-icon]")
         ?.getAttribute("data-morph-icon"),
     ).not.toBe(initialIcon);
+  });
+
+  it("scrubs from the previous shape to the current shape", () => {
+    act(() => root.render(<MorphLab />));
+
+    const input = host.querySelector<HTMLInputElement>(
+      'input[name="morph-text"]',
+    )!;
+    const initialIcon = host
+      .querySelector("[data-morph-icon]")
+      ?.getAttribute("data-morph-icon");
+
+    act(() => {
+      changeInput(input, "B");
+    });
+    act(() => {
+      host.querySelector<HTMLButtonElement>('button[type="submit"]')?.click();
+    });
+
+    const range = host.querySelector<HTMLInputElement>(
+      'input[name="morph-progress"]',
+    );
+    expect(range).not.toBeNull();
+    expect(range?.value).toBe("1");
+
+    act(() => {
+      changeInput(range!, "0.5");
+    });
+
+    const icon = host.querySelector("[data-morph-icon]");
+    expect(icon?.getAttribute("data-from")).toBe(initialIcon);
+    expect(icon?.getAttribute("data-progress")).toBe("0.5");
+    expect(icon?.getAttribute("data-to")).not.toBe(initialIcon);
+    expect(host.querySelector("output")?.textContent).toBe("t=0.50");
   });
 
   it("keeps the latest valid shape when compilation fails", () => {

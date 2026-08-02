@@ -77,6 +77,11 @@
   color: var(--color-danger);
 }
 
+.morph-lab-preview {
+  display: grid;
+  gap: 14px;
+}
+
 .morph-lab-stage {
   display: grid;
   min-height: 360px;
@@ -89,6 +94,26 @@
 .morph-lab-icon {
   width: min(70%, 360px);
   height: auto;
+}
+
+.morph-lab-scrub {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.morph-lab-scrub input {
+  width: 100%;
+  accent-color: var(--color-fg);
+}
+
+.morph-lab-scrub output {
+  width: 48px;
+  flex: none;
+  color: var(--color-fg-secondary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
+  text-align: right;
 }
 
 @media (max-width: 720px) {
