@@ -6,6 +6,7 @@ import {
   DEFAULT_FONT_URL,
   DEFAULT_WASM_URL,
 } from "../font-presets";
+import { MorphLab } from "../morph-lab/MorphLab";
 import { RuntimeDemo } from "../runtime-demo/RuntimeDemo";
 import { ShardInspector } from "../shard-inspector/ShardInspector";
 import { WasmLab } from "../wasm-lab/WasmLab";
@@ -20,6 +21,7 @@ const VIEW_TABS = [
     View: ShardInspector,
   },
   { id: "wasm-lab", label: "WASM Lab", View: WasmLab },
+  { id: "morph-lab", label: "Morph Lab", View: MorphLab },
 ] as const;
 
 type PlaygroundView = (typeof VIEW_TABS)[number]["id"];

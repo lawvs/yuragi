@@ -1,0 +1,92 @@
+.morph-lab {
+  min-height: 560px;
+  padding: clamp(20px, 4vw, 44px);
+  border: 1px solid var(--color-border);
+  border-top: 0;
+}
+
+.morph-lab-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: clamp(28px, 6vw, 64px);
+}
+
+.morph-lab-header h2 {
+  margin: 0;
+  font-size: clamp(2rem, 6vw, 4.5rem);
+  line-height: 0.95;
+}
+
+.morph-lab-header a {
+  color: var(--color-fg-secondary);
+  font-size: 0.86rem;
+}
+
+.morph-lab-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.3fr);
+  gap: clamp(24px, 5vw, 72px);
+  align-items: stretch;
+}
+
+.morph-lab-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.morph-lab-controls label {
+  display: grid;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.morph-lab-controls input {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: var(--color-bg);
+  font-size: 1.1rem;
+  text-transform: none;
+}
+
+.morph-lab-controls p,
+.morph-lab-status {
+  margin: 0;
+  color: var(--color-fg-secondary);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.morph-lab-controls .morph-lab-error {
+  color: var(--color-danger);
+}
+
+.morph-lab-stage {
+  display: grid;
+  min-height: 360px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--color-bg-block);
+}
+
+.morph-lab-icon {
+  width: min(70%, 360px);
+  height: auto;
+}
+
+@media (max-width: 720px) {
+  .morph-lab-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .morph-lab-stage {
+    min-height: 300px;
+  }
+}

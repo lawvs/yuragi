@@ -240,7 +240,12 @@ describe("App", () => {
       '.preview-title [data-runtime-sharded-text="Dashboard"]',
     );
 
-    expect(tabLabels).toEqual(["Demo", "Shard Inspector", "WASM Lab"]);
+    expect(tabLabels).toEqual([
+      "Demo",
+      "Shard Inspector",
+      "WASM Lab",
+      "Morph Lab",
+    ]);
     expect(runtimeTab?.getAttribute("aria-pressed")).toBe("true");
     expect(provider?.getAttribute("data-font")).toContain(
       "SourceHanSerifSC-VF.otf",
