@@ -20,9 +20,22 @@ const PARAMETER_COUNTS = {
   Z: 0,
 } as const;
 
-function formatNumber(value: number): string {
-  const rounded = Math.abs(value) < 1e-9 ? 0 : Number(value.toFixed(6));
-  return String(rounded);
+type Bounds = {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+};
+
+function normalizeNumber(value: number): number {
+  return Math.abs(value) < 1e-9 ? 0 : Number(value.toFixed(6));
+}
+
+function includePoint(bounds: Bounds, x: number, y: number): void {
+  bounds.minX = Math.min(bounds.minX, x);
+  bounds.minY = Math.min(bounds.minY, y);
+  bounds.maxX = Math.max(bounds.maxX, x);
+  bounds.maxY = Math.max(bounds.maxY, y);
 }
 
 function transformPath(
@@ -30,7 +43,15 @@ function transformPath(
   scale: number,
   offsetX: number,
   offsetY: number,
+  bounds: Bounds,
 ): string {
+  const remainder = path
+    .replace(PATH_TOKEN, "")
+    .replace(/[\s,]/g, "");
+  if (remainder) {
+    throw new Error(`Invalid Yuragi path data: ${path}`);
+  }
+
   const tokens = path.match(PATH_TOKEN) ?? [];
   let result = "";
 
@@ -51,8 +72,11 @@ function transformPath(
       if (!Number.isFinite(x) || !Number.isFinite(y)) {
         throw new Error(`Invalid Yuragi path data: ${path}`);
       }
+      const transformedX = offsetX + x * scale;
+      const transformedY = offsetY + y * scale;
+      includePoint(bounds, transformedX, transformedY);
       const separator = parameter === 0 ? "" : " ";
-      result += `${separator}${formatNumber(offsetX + x * scale)} ${formatNumber(offsetY + y * scale)}`;
+      result += `${separator}${normalizeNumber(transformedX)} ${normalizeNumber(transformedY)}`;
     }
   }
 
@@ -67,6 +91,15 @@ export function outlineToSvgPath(
   const scale = layout.options.size / outline.em;
   const ascender = outline.ascender * scale;
   const paths: string[] = [];
+  const canvasWidth = Number.isFinite(layout.options.maxWidth)
+    ? Math.max(layout.dimensions.width, layout.options.maxWidth)
+    : layout.dimensions.width;
+  const bounds: Bounds = {
+    minX: 0,
+    minY: 0,
+    maxX: canvasWidth,
+    maxY: layout.dimensions.height,
+  };
 
   for (const line of layout.lines) {
     const baselineY = ascender + line.y;
@@ -76,7 +109,13 @@ export function outlineToSvgPath(
         const offsetX = line.x + group.x + glyphX;
         for (const shard of glyph.shards) {
           paths.push(
-            transformPath(shard.path, scale, offsetX, baselineY),
+            transformPath(
+              shard.path,
+              scale,
+              offsetX,
+              baselineY,
+              bounds,
+            ),
           );
         }
         glyphX += (glyph.advance / outline.em) * layout.options.size;
@@ -84,13 +123,18 @@ export function outlineToSvgPath(
     }
   }
 
+  const minX = normalizeNumber(bounds.minX);
+  const minY = normalizeNumber(bounds.minY);
+  const maxX = normalizeNumber(bounds.maxX);
+  const maxY = normalizeNumber(bounds.maxY);
+
   return {
     d: paths.join(""),
     viewBox: [
-      0,
-      0,
-      layout.dimensions.width,
-      layout.dimensions.height,
+      minX,
+      minY,
+      normalizeNumber(maxX - minX),
+      normalizeNumber(maxY - minY),
     ],
   };
 }

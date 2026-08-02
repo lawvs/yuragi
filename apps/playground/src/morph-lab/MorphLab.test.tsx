@@ -52,6 +52,15 @@ function outlineFor(text: string): TextOutline {
   };
 }
 
+function changeInput(input: HTMLInputElement, value: string): void {
+  const setter = Object.getOwnPropertyDescriptor(
+    HTMLInputElement.prototype,
+    "value",
+  )?.set;
+  setter?.call(input, value);
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
 describe("MorphLab", () => {
   let host: HTMLDivElement;
   let root: Root;
@@ -80,12 +89,7 @@ describe("MorphLab", () => {
       ?.getAttribute("data-morph-icon");
 
     act(() => {
-      const setter = Object.getOwnPropertyDescriptor(
-        HTMLInputElement.prototype,
-        "value",
-      )?.set;
-      setter?.call(input, "B");
-      input.dispatchEvent(new Event("input", { bubbles: true }));
+      changeInput(input, "B");
     });
 
     expect(fontMocks.compile).toHaveBeenLastCalledWith("B");
@@ -94,5 +98,32 @@ describe("MorphLab", () => {
         .querySelector("[data-morph-icon]")
         ?.getAttribute("data-morph-icon"),
     ).not.toBe(initialIcon);
+  });
+
+  it("keeps the latest valid shape when compilation fails", () => {
+    act(() => root.render(<MorphLab />));
+
+    const input = host.querySelector<HTMLInputElement>(
+      'input[name="morph-text"]',
+    )!;
+    const initialIcon = host
+      .querySelector("[data-morph-icon]")
+      ?.getAttribute("data-morph-icon");
+    fontMocks.compile.mockImplementationOnce(() => {
+      throw new Error("Unsupported text");
+    });
+
+    act(() => {
+      changeInput(input, "?");
+    });
+
+    expect(
+      host
+        .querySelector("[data-morph-icon]")
+        ?.getAttribute("data-morph-icon"),
+    ).toBe(initialIcon);
+    expect(host.querySelector('[role="alert"]')?.textContent).toBe(
+      "Unsupported text",
+    );
   });
 });

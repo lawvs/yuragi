@@ -97,4 +97,81 @@ describe("outlineToSvgPath", () => {
       viewBox: [0, 0, 15, 44],
     });
   });
+
+  it("preserves a finite alignment canvas", () => {
+    const singleGlyphOutline: TextOutline = {
+      ...outline,
+      groups: [outline.groups[0]!],
+    };
+
+    expect(
+      outlineToSvgPath(singleGlyphOutline, {
+        size: 20,
+        maxWidth: 20,
+        align: "center",
+      }),
+    ).toEqual({
+      d: "M5 16L15 16L15 0Z",
+      viewBox: [0, 0, 20, 20],
+    });
+  });
+
+  it("includes glyph overhangs in the view box", () => {
+    const overhangingOutline: TextOutline = {
+      ...outline,
+      groups: [
+        {
+          ...outline.groups[0]!,
+          glyphs: [
+            {
+              ...outline.groups[0]!.glyphs[0]!,
+              bbox: {
+                top: -900,
+                bottom: 100,
+                left: -100,
+                right: 600,
+              },
+              shards: [
+                {
+                  path: "M -100 100L 600 100L 600 -900Z",
+                  direction: [1, 0],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(outlineToSvgPath(overhangingOutline, { size: 20 })).toEqual({
+      d: "M-2 18L12 18L12 -2Z",
+      viewBox: [-2, -2, 14, 22],
+    });
+  });
+
+  it("rejects malformed path data instead of skipping it", () => {
+    const malformedOutline: TextOutline = {
+      ...outline,
+      groups: [
+        {
+          ...outline.groups[0]!,
+          glyphs: [
+            {
+              ...outline.groups[0]!.glyphs[0]!,
+              shards: [
+                {
+                  path: "M0 0L500 0@L500 -800Z",
+                  direction: [1, 0],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(() =>
+      outlineToSvgPath(malformedOutline, { size: 20 }),
+    ).toThrow("Invalid Yuragi path data");
+  });
 });
