@@ -165,8 +165,10 @@ first compiled outline. Later text changes use the configured enter animation.
 - `size`: text size in CSS pixels.
 - `maxWidth`: wrapping width.
 - `align`: `"start"`, `"center"`, or `"end"`.
-- `hover`: `"outline"` enables the hollow title hover treatment;
-  `"none"` disables it.
+- `hover`: `"outline"` enables the hollow title hover treatment; `"none"`
+  disables it.
+- `hoverMotion`: toggles the accompanying group movement and defaults to the
+  outline setting.
 - `fallback`: `"text"` renders readable text while the font is loading;
   `"hidden"` keeps the same fallback layout visually hidden; `"error"` throws.
   The runtime entry also accepts `{ delayMs }`, which keeps that hidden layout

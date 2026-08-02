@@ -35,6 +35,20 @@ function completedOrSkipped(result: YuragiTextResult): boolean {
   return result.status === "completed" || result.status === "skipped";
 }
 
+function syncHoverAttributes(
+  svg: SVGSVGElement,
+  props: ResolvedYuragiTextProps,
+): void {
+  if (props.hover === "outline") svg.dataset.hover = "outline";
+  else delete svg.dataset.hover;
+
+  if (props.hoverMotion ?? props.hover === "outline") {
+    svg.dataset.hoverMotion = "true";
+  } else {
+    delete svg.dataset.hoverMotion;
+  }
+}
+
 export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
   const hostRef = useRef<HTMLSpanElement>(null);
   const renderedRef = useRef<RenderedSvgState | null>(null);
@@ -87,6 +101,7 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
       hasSameSvgLayout(current, props) &&
       current?.handle.element.parentElement === host
     ) {
+      syncHoverAttributes(current.handle.element, props);
       if (props.style) {
         applySvgStyle(current.handle.element, props.style);
       }
@@ -106,6 +121,7 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
       align: props.align,
       className: props.className,
       hover: props.hover === "outline" ? "outline" : "none",
+      hoverMotion: props.hoverMotion,
       ariaLabel: false,
       animation: props.animation.enter
         ? {
@@ -144,6 +160,7 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
     props.animation.speed,
     props.className,
     props.hover,
+    props.hoverMotion,
     props.maxWidth,
     props.outline,
     props.size,

@@ -102,4 +102,24 @@ describe("createShardedSvg", () => {
     expect(firstShard.getAttribute("data-direction-y")).toBeNull();
     expect(secondShard.getAttribute("d")).toBe("M0 500L500 500L0 0Z");
   });
+
+  it("defaults hover motion to the outline setting and allows overrides", () => {
+    const layout = layoutShardedText(outline, { size: 20, maxWidth: 40 });
+
+    expect(
+      createShardedSvg(layout, { hover: "outline" }).dataset.hoverMotion,
+    ).toBe("true");
+    expect(
+      createShardedSvg(layout, {
+        hover: "outline",
+        hoverMotion: false,
+      }).dataset.hoverMotion,
+    ).toBeUndefined();
+    expect(
+      createShardedSvg(layout, {
+        hover: "none",
+        hoverMotion: true,
+      }).dataset.hoverMotion,
+    ).toBe("true");
+  });
 });

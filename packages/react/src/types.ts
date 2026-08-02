@@ -20,6 +20,7 @@ export type StaticYuragiTextProps = {
   maxWidth?: number;
   align?: "start" | "center" | "end";
   hover?: "none" | "outline";
+  hoverMotion?: boolean;
   animation?: boolean | YuragiAnimationOptions;
   onEnterComplete?: () => void;
   onExitComplete?: () => void;

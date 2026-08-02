@@ -5,6 +5,7 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 export type SvgOptions = {
   className?: string;
   hover?: "none" | "outline";
+  hoverMotion?: boolean;
 };
 
 function svgEl<K extends keyof SVGElementTagNameMap>(
@@ -12,6 +13,17 @@ function svgEl<K extends keyof SVGElementTagNameMap>(
   tag: K,
 ): SVGElementTagNameMap[K] {
   return ownerDocument.createElementNS(SVG_NS, tag);
+}
+
+function randomWithin(start: number, end: number): number {
+  const theta = Math.random() * Math.PI * 2;
+  const radius = Math.sqrt(Math.random());
+  const x = Math.cos(theta) * radius;
+  return (start + end) / 2 + (x * (start - end)) / 2;
+}
+
+function groupHoverOffset(): string {
+  return `${(randomWithin(-1, 1) * 2).toFixed(3)}px`;
 }
 
 export function createShardedSvg(
@@ -27,6 +39,9 @@ export function createShardedSvg(
   const classNames = options.className?.trim().split(/\s+/).filter(Boolean);
   if (classNames?.length) svg.classList.add(...classNames);
   if (options.hover === "outline") svg.dataset.hover = "outline";
+  if (options.hoverMotion ?? options.hover === "outline") {
+    svg.dataset.hoverMotion = "true";
+  }
 
   svg.setAttribute(
     "viewBox",
@@ -57,6 +72,10 @@ export function createShardedSvg(
 
       const motionEl = svgEl(ownerDocument, "g");
       motionEl.dataset.groupMotion = "true";
+      motionEl.style.setProperty(
+        "--yuragi-hover-offset",
+        groupHoverOffset(),
+      );
       groupEl.append(motionEl);
 
       let glyphX = 0;
