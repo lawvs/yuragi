@@ -1,3 +1,5 @@
+// Keep this embedded stylesheet in sync with ./style.css.
+// Enforced by packages/core/test/style-text.test.ts.
 export const YURAGI_STYLE_TEXT = `.yuragi-root {
   overflow: visible;
   fill: currentColor;
