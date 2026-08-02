@@ -26,6 +26,7 @@ export type RenderYuragiTextOptions = {
   align?: "start" | "center" | "end";
   className?: string;
   hover?: "none" | "outline";
+  hoverMotion?: boolean;
   ariaLabel?: string | false;
   animation?: false | YuragiAnimationOptions;
 };
@@ -358,6 +359,7 @@ export function renderYuragiText(
     {
       className: options.className,
       hover: options.hover,
+      hoverMotion: options.hoverMotion,
     },
     target.ownerDocument,
   );

@@ -21,7 +21,7 @@ export const YURAGI_STYLE_TEXT = `.yuragi-root {
   stroke: currentColor;
 }
 
-.yuragi-root[data-hover="outline"]:hover [data-group-motion] {
+.yuragi-root[data-hover-motion="true"]:hover [data-group-motion] {
   transform: translate(
     var(--yuragi-hover-x, 0px),
     var(--yuragi-hover-y, 0px)
@@ -34,7 +34,7 @@ export const YURAGI_STYLE_TEXT = `.yuragi-root {
     transition-duration: 0ms;
   }
 
-  .yuragi-root[data-hover="outline"]:hover [data-group-motion] {
+  .yuragi-root[data-hover-motion="true"]:hover [data-group-motion] {
     transform: translate(0, 0);
   }
 }

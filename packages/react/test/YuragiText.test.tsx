@@ -325,6 +325,35 @@ describe("YuragiText", () => {
     expect(issuedHandles[0]?.element.style.color).toBe("blue");
   });
 
+  it("updates hover effects without recreating the SVG", () => {
+    const { rerender } = render(
+      <YuragiText
+        text="A"
+        outline={outline}
+        hover="outline"
+        hoverMotion
+      />,
+    );
+    const handle = issuedHandles[0]!;
+
+    expect(handle.element.dataset.hover).toBe("outline");
+    expect(handle.element.dataset.hoverMotion).toBe("true");
+
+    rerender(
+      <YuragiText
+        text="A"
+        outline={outline}
+        hover="none"
+        hoverMotion={false}
+      />,
+    );
+
+    expect(handle.element.dataset.hover).toBeUndefined();
+    expect(handle.element.dataset.hoverMotion).toBeUndefined();
+    expect(coreMocks.renderYuragiText).toHaveBeenCalledOnce();
+    expect(handle.play).toHaveBeenCalledOnce();
+  });
+
   it.each([
     { status: "completed" },
     { status: "skipped", reason: "empty" },

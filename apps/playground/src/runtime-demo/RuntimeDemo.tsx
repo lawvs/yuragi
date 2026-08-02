@@ -12,6 +12,7 @@ export function RuntimeDemo() {
   const [size, setSize] = useState(88);
   const [align, setAlign] = useState<Align>("start");
   const [hoverOutline, setHoverOutline] = useState(true);
+  const [hoverMotion, setHoverMotion] = useState(true);
   const [animationSpeed, setAnimationSpeed] = useState(1);
 
   const selectedPost = useMemo(
@@ -55,6 +56,7 @@ export function RuntimeDemo() {
                   size={30}
                   maxWidth={320}
                   hover={hoverOutline ? "outline" : "none"}
+                  hoverMotion={hoverMotion}
                   animation={{ exit: false }}
                 />
               </span>
@@ -142,6 +144,16 @@ export function RuntimeDemo() {
               />
               <span>Hover outline</span>
             </label>
+
+            <label className="toggle-control">
+              <input
+                type="checkbox"
+                name="hover-motion"
+                checked={hoverMotion}
+                onChange={(event) => setHoverMotion(event.target.checked)}
+              />
+              <span>Hover motion</span>
+            </label>
           </div>
         </div>
 
@@ -153,6 +165,7 @@ export function RuntimeDemo() {
               maxWidth={760}
               align={align}
               hover={hoverOutline ? "outline" : "none"}
+              hoverMotion={hoverMotion}
               animation={{ exit: true, speed: animationSpeed }}
             />
           </div>

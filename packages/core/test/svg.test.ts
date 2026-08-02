@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { layoutShardedText } from "../src/layout";
 import { createShardedSvg } from "../src/svg";
 import type { TextOutline } from "../src/types";
@@ -125,33 +125,48 @@ describe("createShardedSvg", () => {
     expect(secondShard.getAttribute("d")).toBe("M0 500L500 500L0 0Z");
   });
 
-  it("assigns stable bounded two-dimensional hover offsets per group", () => {
+  it("enables hover motion with outline by default and allows disabling it", () => {
+    const layout = layoutShardedText(outline, { size: 20, maxWidth: 40 });
+
+    expect(
+      createShardedSvg(layout, { hover: "outline" }).dataset.hoverMotion,
+    ).toBe("true");
+    expect(
+      createShardedSvg(layout, {
+        hover: "outline",
+        hoverMotion: false,
+      }).dataset.hoverMotion,
+    ).toBeUndefined();
+  });
+
+  it("assigns Layered-style two-dimensional hover offsets per group", () => {
+    const random = vi
+      .spyOn(Math, "random")
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(1)
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(1)
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(1)
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(1);
     const layout = layoutShardedText(multiGroupOutline, {
       size: 20,
       maxWidth: 40,
     });
-    const first = createShardedSvg(layout, { hover: "outline" });
-    const second = createShardedSvg(layout, { hover: "outline" });
+    const svg = createShardedSvg(layout, { hover: "outline" });
+    const offsets = [
+      ...svg.querySelectorAll<SVGGElement>("[data-group-motion]"),
+    ].map((motion) => [
+      motion.style.getPropertyValue("--yuragi-hover-x"),
+      motion.style.getPropertyValue("--yuragi-hover-y"),
+    ]);
 
-    const readOffsets = (svg: SVGSVGElement) =>
-      [...svg.querySelectorAll<SVGGElement>("[data-group-motion]")].map(
-        (motion) => ({
-          x: motion.style.getPropertyValue("--yuragi-hover-x"),
-          y: motion.style.getPropertyValue("--yuragi-hover-y"),
-        }),
-      );
-
-    const offsets = readOffsets(first);
-    expect(offsets).toEqual(readOffsets(second));
-    expect(new Set(offsets.map(({ x, y }) => `${x},${y}`)).size).toBe(
-      offsets.length,
-    );
-    for (const { x, y } of offsets) {
-      expect(x).toMatch(/^-?\d+(?:\.\d+)?px$/);
-      expect(y).toMatch(/^-?\d+(?:\.\d+)?px$/);
-      expect(Math.abs(Number.parseFloat(x))).toBeLessThanOrEqual(2);
-      expect(Math.abs(Number.parseFloat(y))).toBeLessThanOrEqual(2);
-      expect(x).not.toBe(y);
-    }
+    expect(offsets).toEqual([
+      ["-2.000px", "2.000px"],
+      ["2.000px", "-2.000px"],
+    ]);
+    expect(random).toHaveBeenCalledTimes(8);
+    random.mockRestore();
   });
 });
