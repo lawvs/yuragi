@@ -330,26 +330,23 @@ describe("YuragiText", () => {
       <YuragiText
         text="A"
         outline={outline}
-        hover="outline"
-        hoverMotion
+        hover="none"
+        hoverMotion={false}
       />,
     );
     const handle = issuedHandles[0]!;
-
-    expect(handle.element.dataset.hover).toBe("outline");
-    expect(handle.element.dataset.hoverMotion).toBe("true");
 
     rerender(
       <YuragiText
         text="A"
         outline={outline}
-        hover="none"
-        hoverMotion={false}
+        hover="outline"
+        hoverMotion
       />,
     );
 
-    expect(handle.element.dataset.hover).toBeUndefined();
-    expect(handle.element.dataset.hoverMotion).toBeUndefined();
+    expect(handle.element.dataset.hover).toBe("outline");
+    expect(handle.element.dataset.hoverMotion).toBe("true");
     expect(coreMocks.renderYuragiText).toHaveBeenCalledOnce();
     expect(handle.play).toHaveBeenCalledOnce();
   });

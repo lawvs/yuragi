@@ -35,7 +35,7 @@ function completedOrSkipped(result: YuragiTextResult): boolean {
   return result.status === "completed" || result.status === "skipped";
 }
 
-function applyHoverEffects(
+function syncHoverAttributes(
   svg: SVGSVGElement,
   props: ResolvedYuragiTextProps,
 ): void {
@@ -101,7 +101,7 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
       hasSameSvgLayout(current, props) &&
       current?.handle.element.parentElement === host
     ) {
-      applyHoverEffects(current.handle.element, props);
+      syncHoverAttributes(current.handle.element, props);
       if (props.style) {
         applySvgStyle(current.handle.element, props.style);
       }
@@ -130,7 +130,6 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
           }
         : false,
     });
-    applyHoverEffects(handle.element, props);
     if (props.style) {
       applySvgStyle(handle.element, props.style);
     }

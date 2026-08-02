@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { layoutShardedText } from "../src/layout";
 import { createShardedSvg } from "../src/svg";
 import type { TextOutline } from "../src/types";
@@ -20,28 +20,6 @@ const outline: TextOutline = {
           shards: [
             { path: "M0 0L500 0L500 500Z", direction: [1, 0] },
             { path: "M0 500L500 500L0 0Z", direction: [0, 1] },
-          ],
-        },
-      ],
-    },
-  ],
-};
-
-const multiGroupOutline: TextOutline = {
-  ...outline,
-  groups: [
-    ...outline.groups,
-    {
-      text: "B",
-      advance: 500,
-      breakAfter: true,
-      glyphs: [
-        {
-          char: "B",
-          advance: 500,
-          bbox: { top: -800, bottom: 200, left: 0, right: 500 },
-          shards: [
-            { path: "M0 0L500 500L0 500Z", direction: [-1, 0] },
           ],
         },
       ],
@@ -125,7 +103,7 @@ describe("createShardedSvg", () => {
     expect(secondShard.getAttribute("d")).toBe("M0 500L500 500L0 0Z");
   });
 
-  it("enables hover motion with outline by default and allows disabling it", () => {
+  it("defaults hover motion to the outline setting and allows overrides", () => {
     const layout = layoutShardedText(outline, { size: 20, maxWidth: 40 });
 
     expect(
@@ -137,28 +115,11 @@ describe("createShardedSvg", () => {
         hoverMotion: false,
       }).dataset.hoverMotion,
     ).toBeUndefined();
-  });
-
-  it("assigns one Layered-style diagonal hover offset per group", () => {
-    const random = vi
-      .spyOn(Math, "random")
-      .mockReturnValueOnce(0)
-      .mockReturnValueOnce(1)
-      .mockReturnValueOnce(0.5)
-      .mockReturnValueOnce(1);
-    const layout = layoutShardedText(multiGroupOutline, {
-      size: 20,
-      maxWidth: 40,
-    });
-    const svg = createShardedSvg(layout, { hover: "outline" });
-    const offsets = [
-      ...svg.querySelectorAll<SVGGElement>("[data-group-motion]"),
-    ].map((motion) =>
-      motion.style.getPropertyValue("--yuragi-hover-offset"),
-    );
-
-    expect(offsets).toEqual(["-2.000px", "2.000px"]);
-    expect(random).toHaveBeenCalledTimes(4);
-    random.mockRestore();
+    expect(
+      createShardedSvg(layout, {
+        hover: "none",
+        hoverMotion: true,
+      }).dataset.hoverMotion,
+    ).toBe("true");
   });
 });

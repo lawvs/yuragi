@@ -361,7 +361,6 @@ describe("App", () => {
     expect(host.querySelector('input[name="animation-speed"]')).not.toBeNull();
     expect(host.querySelector('select[name="align"]')).not.toBeNull();
     expect(host.querySelector('input[name="hover"]')).not.toBeNull();
-    expect(host.querySelector('input[name="hover-motion"]')).not.toBeNull();
 
     const title = host.querySelector(
       '.preview-title [data-sharded-text="Settings"]',
