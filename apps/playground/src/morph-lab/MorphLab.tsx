@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { outlineToSvgPath } from "@yuragi-labs/core";
 import type { YuragiFont } from "@yuragi-labs/core/wasm";
 import { useYuragiFont } from "@yuragi-labs/react";
-import { fitIcon } from "morphicons";
+import { fitIcon, SPRING_PRESETS, Spring } from "morphicons";
 import { MorphIcon } from "morphicons/react";
 import "./MorphLab.css";
 
@@ -38,6 +38,51 @@ function MorphExperiment({ font }: { font: YuragiFont }) {
   });
   const [progress, setProgress] = useState(1);
   const [error, setError] = useState<string>();
+  const animationFrame = useRef<number | null>(null);
+
+  function stopAnimation() {
+    if (animationFrame.current === null) return;
+    cancelAnimationFrame(animationFrame.current);
+    animationFrame.current = null;
+  }
+
+  useEffect(
+    () => () => {
+      stopAnimation();
+    },
+    [],
+  );
+
+  function playMorph() {
+    stopAnimation();
+    if (
+      typeof matchMedia !== "undefined" &&
+      matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      setProgress(1);
+      return;
+    }
+
+    const spring = new Spring();
+    spring.config(SPRING_PRESETS.snappy.k, SPRING_PRESETS.snappy.c);
+    spring.start();
+    let previousTime = performance.now();
+    setProgress(0);
+
+    function tick(time: number) {
+      const delta = Math.min(Math.max((time - previousTime) / 1_000, 0), 0.1);
+      previousTime = time;
+      const settled = spring.step(delta);
+      setProgress(
+        settled ? 1 : Math.min(1, Math.max(0, spring.x)),
+      );
+      animationFrame.current = settled
+        ? null
+        : requestAnimationFrame(tick);
+    }
+
+    animationFrame.current = requestAnimationFrame(tick);
+  }
 
   function morph() {
     if (!text) {
@@ -48,7 +93,7 @@ function MorphExperiment({ font }: { font: YuragiFont }) {
     try {
       const next = compileTarget(font, text);
       setPair(({ current }) => ({ previous: current, current: next }));
-      setProgress(1);
+      playMorph();
       setError(undefined);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
@@ -107,7 +152,10 @@ function MorphExperiment({ font }: { font: YuragiFont }) {
             step="0.001"
             value={progress}
             aria-label="Scrub the morph between the previous and current text"
-            onChange={(event) => setProgress(Number(event.target.value))}
+            onChange={(event) => {
+              stopAnimation();
+              setProgress(Number(event.target.value));
+            }}
           />
           <output>t={progress.toFixed(2)}</output>
         </label>

@@ -15,9 +15,15 @@ vi.mock("@yuragi-labs/react", () => ({
   }),
 }));
 
-vi.mock("morphicons", () => ({
-  fitIcon: (d: string) => `fitted:${d}`,
-}));
+vi.mock("morphicons", async () => {
+  const actual = await vi.importActual<typeof import("morphicons")>(
+    "morphicons",
+  );
+  return {
+    ...actual,
+    fitIcon: (d: string) => `fitted:${d}`,
+  };
+});
 
 vi.mock("morphicons/react", () => ({
   MorphIcon: ({
@@ -50,7 +56,9 @@ function outlineFor(text: string): TextOutline {
   const path =
     text === "A"
       ? "M0 0L500 0L500 -800Z"
-      : "M0 0L0 -800L500 -800Z";
+      : text === "B"
+        ? "M0 0L0 -800L500 -800Z"
+        : "M0 0Q250 -800 500 0Z";
   return {
     em: 1000,
     ascender: 800,
@@ -87,6 +95,7 @@ describe("MorphLab", () => {
   let root: Root;
 
   beforeEach(() => {
+    vi.useFakeTimers();
     fontMocks.compile.mockReset();
     fontMocks.compile.mockImplementation(outlineFor);
     host = document.createElement("div");
@@ -97,6 +106,7 @@ describe("MorphLab", () => {
   afterEach(() => {
     act(() => root.unmount());
     host.remove();
+    vi.useRealTimers();
   });
 
   it("renders the morph as a solid shape", () => {
@@ -159,6 +169,9 @@ describe("MorphLab", () => {
     act(() => {
       host.querySelector<HTMLButtonElement>('button[type="submit"]')?.click();
     });
+    act(() => {
+      vi.runAllTimers();
+    });
 
     const range = host.querySelector<HTMLInputElement>(
       'input[name="morph-progress"]',
@@ -175,6 +188,50 @@ describe("MorphLab", () => {
     expect(icon?.getAttribute("data-progress")).toBe("0.5");
     expect(icon?.getAttribute("data-to")).not.toBe(initialIcon);
     expect(host.querySelector("output")?.textContent).toBe("t=0.50");
+  });
+
+  it("replays the morph after scrubbing and submitting new text", () => {
+    act(() => root.render(<MorphLab />));
+
+    const input = host.querySelector<HTMLInputElement>(
+      'input[name="morph-text"]',
+    )!;
+    const submit = host.querySelector<HTMLButtonElement>(
+      'button[type="submit"]',
+    );
+    const range = host.querySelector<HTMLInputElement>(
+      'input[name="morph-progress"]',
+    )!;
+
+    act(() => {
+      changeInput(input, "B");
+    });
+    act(() => {
+      submit?.click();
+    });
+    act(() => {
+      vi.runAllTimers();
+      changeInput(range, "0.5");
+      changeInput(input, "C");
+    });
+    act(() => {
+      submit?.click();
+    });
+
+    expect(fontMocks.compile).toHaveBeenLastCalledWith("C");
+    expect(vi.getTimerCount()).toBeGreaterThan(0);
+    expect(range.value).toBe("0");
+
+    act(() => {
+      vi.advanceTimersByTime(32);
+    });
+    expect(Number(range.value)).toBeGreaterThan(0);
+    expect(Number(range.value)).toBeLessThan(1);
+
+    act(() => {
+      vi.runAllTimers();
+    });
+    expect(range.value).toBe("1");
   });
 
   it("keeps the latest valid shape when compilation fails", () => {
