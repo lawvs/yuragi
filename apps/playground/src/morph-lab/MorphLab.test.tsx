@@ -20,8 +20,16 @@ vi.mock("morphicons", () => ({
 }));
 
 vi.mock("morphicons/react", () => ({
-  MorphIcon: ({ icon }: { icon: string }) => (
-    <svg data-morph-icon={icon} />
+  MorphIcon: ({
+    fill,
+    icon,
+    stroke,
+  }: {
+    fill?: string;
+    icon: string;
+    stroke?: string;
+  }) => (
+    <svg data-fill={fill} data-morph-icon={icon} data-stroke={stroke} />
   ),
 }));
 
@@ -76,6 +84,14 @@ describe("MorphLab", () => {
   afterEach(() => {
     act(() => root.unmount());
     host.remove();
+  });
+
+  it("renders the morph as a solid shape", () => {
+    act(() => root.render(<MorphLab />));
+
+    const icon = host.querySelector("[data-morph-icon]");
+    expect(icon?.getAttribute("data-fill")).toBe("currentColor");
+    expect(icon?.getAttribute("data-stroke")).toBe("none");
   });
 
   it("morphs only after submitting the latest input", () => {

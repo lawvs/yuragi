@@ -83,7 +83,8 @@ function MorphExperiment({ font }: { font: YuragiFont }) {
           label={target.text}
           size={360}
           spring="snappy"
-          strokeWidth={0.7}
+          fill="currentColor"
+          stroke="none"
         />
       </div>
     </div>
