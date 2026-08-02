@@ -139,16 +139,12 @@ describe("createShardedSvg", () => {
     ).toBeUndefined();
   });
 
-  it("assigns Layered-style two-dimensional hover offsets per group", () => {
+  it("assigns one Layered-style diagonal hover offset per group", () => {
     const random = vi
       .spyOn(Math, "random")
       .mockReturnValueOnce(0)
       .mockReturnValueOnce(1)
       .mockReturnValueOnce(0.5)
-      .mockReturnValueOnce(1)
-      .mockReturnValueOnce(0.5)
-      .mockReturnValueOnce(1)
-      .mockReturnValueOnce(0)
       .mockReturnValueOnce(1);
     const layout = layoutShardedText(multiGroupOutline, {
       size: 20,
@@ -157,16 +153,12 @@ describe("createShardedSvg", () => {
     const svg = createShardedSvg(layout, { hover: "outline" });
     const offsets = [
       ...svg.querySelectorAll<SVGGElement>("[data-group-motion]"),
-    ].map((motion) => [
-      motion.style.getPropertyValue("--yuragi-hover-x"),
-      motion.style.getPropertyValue("--yuragi-hover-y"),
-    ]);
+    ].map((motion) =>
+      motion.style.getPropertyValue("--yuragi-hover-offset"),
+    );
 
-    expect(offsets).toEqual([
-      ["-2.000px", "2.000px"],
-      ["2.000px", "-2.000px"],
-    ]);
-    expect(random).toHaveBeenCalledTimes(8);
+    expect(offsets).toEqual(["-2.000px", "2.000px"]);
+    expect(random).toHaveBeenCalledTimes(4);
     random.mockRestore();
   });
 });

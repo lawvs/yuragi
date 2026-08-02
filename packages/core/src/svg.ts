@@ -22,12 +22,8 @@ function randomWithin(start: number, end: number): number {
   return (start + end) / 2 + (x * (start - end)) / 2;
 }
 
-function groupHoverOffsets(): { x: string; y: string } {
-  const offset = () => `${(randomWithin(-1, 1) * 2).toFixed(3)}px`;
-  return {
-    x: offset(),
-    y: offset(),
-  };
+function groupHoverOffset(): string {
+  return `${(randomWithin(-1, 1) * 2).toFixed(3)}px`;
 }
 
 export function createShardedSvg(
@@ -76,9 +72,10 @@ export function createShardedSvg(
 
       const motionEl = svgEl(ownerDocument, "g");
       motionEl.dataset.groupMotion = "true";
-      const hoverOffsets = groupHoverOffsets();
-      motionEl.style.setProperty("--yuragi-hover-x", hoverOffsets.x);
-      motionEl.style.setProperty("--yuragi-hover-y", hoverOffsets.y);
+      motionEl.style.setProperty(
+        "--yuragi-hover-offset",
+        groupHoverOffset(),
+      );
       groupEl.append(motionEl);
 
       let glyphX = 0;
