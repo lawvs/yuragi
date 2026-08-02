@@ -16,6 +16,7 @@ const runtimeProviderMocks = vi.hoisted(() => ({
   mountCount: 0,
   unmountCount: 0,
 }));
+const morphLabMocks = vi.hoisted(() => ({ moduleLoads: 0 }));
 
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -150,6 +151,13 @@ vi.mock("@yuragi-labs/react/static", async () => {
   };
 });
 
+vi.mock("./morph-lab/MorphLab", () => {
+  morphLabMocks.moduleLoads += 1;
+  return {
+    MorphLab: () => <div className="morph-lab" />,
+  };
+});
+
 describe("App", () => {
   let host: HTMLDivElement;
 
@@ -179,6 +187,21 @@ describe("App", () => {
     setter?.call(input, value);
     input.dispatchEvent(new Event("input", { bubbles: true }));
   }
+
+  it("loads the Morph Lab module only when its tab is selected", async () => {
+    renderApp();
+
+    expect(morphLabMocks.moduleLoads).toBe(0);
+
+    await act(async () => {
+      host
+        .querySelector<HTMLButtonElement>('button[data-view="morph-lab"]')
+        ?.click();
+    });
+
+    expect(morphLabMocks.moduleLoads).toBe(1);
+    expect(host.querySelector(".morph-lab")).not.toBeNull();
+  });
 
   it("renders a self-hosted Yuragi hero from a static outline", () => {
     renderApp();

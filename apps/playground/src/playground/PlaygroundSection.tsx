@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { YuragiFontProvider } from "@yuragi-labs/react";
 import { demoPosts } from "../data";
 import {
@@ -6,12 +6,16 @@ import {
   DEFAULT_FONT_URL,
   DEFAULT_WASM_URL,
 } from "../font-presets";
-import { MorphLab } from "../morph-lab/MorphLab";
 import { RuntimeDemo } from "../runtime-demo/RuntimeDemo";
 import { ShardInspector } from "../shard-inspector/ShardInspector";
 import { WasmLab } from "../wasm-lab/WasmLab";
 
 const demoTitles = demoPosts.map((post) => post.title);
+const MorphLab = lazy(() =>
+  import("../morph-lab/MorphLab").then((module) => ({
+    default: module.MorphLab,
+  })),
+);
 
 const VIEW_TABS = [
   { id: "runtime-demo", label: "Demo", View: RuntimeDemo },
@@ -59,7 +63,9 @@ export function PlaygroundSection() {
         preload={demoTitles}
         includeStyles={false}
       >
-        <ActiveView />
+        <Suspense fallback={<p role="status">Loading Morph Lab…</p>}>
+          <ActiveView />
+        </Suspense>
       </YuragiFontProvider>
     </section>
   );
