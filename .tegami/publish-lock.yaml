@@ -1,18 +1,20 @@
 core:changelogs:
-  - content: "---\npackages:\n  group:yuragi:\n    type: minor\n---\n\n## Add a unified controllable text renderer\n\nAdd `renderYuragiText()` to `@yuragi-labs/core` for layout, SVG creation,\nmounting, and animation lifecycle control through one API. Its handle supports\nprepared playback, cancellation, animated removal, and synchronous disposal.\n`play()` and `remove()` return non-rejecting promises with completed,\ncancelled, skipped, or failed outcomes.\n\nReplace the staged root exports `layoutShardedText()`, `createShardedSvg()`,\nand `prepareShardAnimation()`, together with their related low-level layout,\nSVG, animation-handle types, and `ShardAnimationError`, with the unified\nrenderer.\n\nRuntime React text now accepts `fallback={{ delayMs }}` to suppress brief\nfallback flashes while preserving readable text when font loading takes longer.\nHidden fallbacks preserve fallback text layout without becoming visible. The\nplayground Demo reveals its title fallbacks after 150 ms.\nAfter asset loading, `YuragiFont.compile()` now returns a cached outline\nsynchronously and `YuragiFont.preload()` completes synchronously, so a ready\nfont can produce the SVG in the same React render instead of committing an\nempty fallback frame first. The playground keeps its runtime font provider\nmounted across tool tabs so returning to Demo reuses the ready font and outline\ncache. Replaying the playground hero now immediately remounts the wordmark and\nplays only its enter animation.\n\nText groups wider than `maxWidth` now wrap at glyph boundaries instead of\nthrowing. A single glyph wider than the available width renders on its own\noverflowing line.\n"
-    filename: 2026-07-25-mrz96huj.md
+  - content: "---\npackages:\n  \"@yuragi-labs/core\":\n    type: patch\n  \"@yuragi-labs/react\":\n    type: patch\n---\n\n## Add configurable hover motion\n\nAdd Layered-style group movement to the hollow hover treatment. Each Unicode\nword-boundary group receives a small diagonal offset of up to 2 px per axis,\ngenerated once per SVG, while reduced-motion preferences disable the movement.\n\nAdd `hoverMotion` to the core renderer and React `YuragiText`. It follows the\noutline setting by default, can be disabled independently, and can be enabled\nwithout the outline treatment. React updates hover effects in place without\nrecreating the SVG or replaying its animation. The playground Demo includes a\nseparate Hover motion control.\n"
+    filename: 2026-08-03-mtfg7k2p.md
+    v: 0.0.0
+  - content: "---\npackages:\n  \"@yuragi-labs/core\":\n    type: minor\n---\n\n## Export static SVG path geometry\n\nAdd `outlineToSvgPath` for DOM-free integrations that need a single SVG path.\nIt reuses Yuragi's text layout, flattens glyph positions and font scaling into\nthe path coordinates, and returns the corresponding view box.\n"
+    filename: 2026-08-03-outline-svg-path.md
     v: 0.0.0
 core:packages:
-  - changelogIds:
-      - 2026-07-25-mrz96huj.md
-    id: npm:@yuragi-labs/compiler
+  - id: npm:@yuragi-labs/compiler
     updated: true
   - changelogIds:
-      - 2026-07-25-mrz96huj.md
+      - 2026-08-03-mtfg7k2p.md
+      - 2026-08-03-outline-svg-path.md
     id: npm:@yuragi-labs/core
     updated: true
   - changelogIds:
-      - 2026-07-25-mrz96huj.md
+      - 2026-08-03-mtfg7k2p.md
     id: npm:@yuragi-labs/react
     updated: true
 npm:packages:
