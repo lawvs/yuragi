@@ -215,9 +215,10 @@ describe("App", () => {
     expect(title?.getAttribute("data-fallback")).toBe("error");
     expect(title?.getAttribute("data-hover")).toBe("outline");
     expect(title?.getAttribute("data-animation-speed")).toBe("1.4");
-    expect(
-      hero?.querySelector('a[href="#playground"]')?.textContent,
-    ).toContain("Playground");
+    expect(host.querySelector(".site-nav")?.textContent).not.toContain(
+      "Packages",
+    );
+    expect(hero?.querySelector('a[href="#playground"]')).toBeNull();
     expect(host.querySelector("section#playground")).not.toBeNull();
   });
 
@@ -387,7 +388,8 @@ describe("App", () => {
 
     expect(host.querySelector('input[type="range"]')).not.toBeNull();
     expect(host.querySelector('input[name="animation-speed"]')).not.toBeNull();
-    expect(host.querySelector('select[name="align"]')).not.toBeNull();
+    expect(host.querySelector(".back-button")).toBeNull();
+    expect(host.querySelector('select[name="align"]')).toBeNull();
     expect(host.querySelector('input[name="hover"]')).not.toBeNull();
 
     const title = host.querySelector(

@@ -17,13 +17,14 @@ import type { InspectorGlyph } from "./model";
 import {
   ShardPreview,
   shardColor,
-  type InspectorMode,
   type InspectorPlayback,
 } from "./ShardPreview";
 import {
   useShardInspectorCompiler,
   type InspectorStatus,
 } from "./useShardInspectorCompiler";
+
+const PLAYBACK_DISTANCE = 80;
 
 export function ShardInspector() {
   const defaultPreset = findFontPreset(DEFAULT_FONT_PRESET_ID);
@@ -33,8 +34,8 @@ export function ShardInspector() {
   const [searchGlyphs, setSearchGlyphs] = useState<string[]>([]);
   const [selectedGlyph, setSelectedGlyph] = useState("a");
   const [selectedShard, setSelectedShard] = useState<number | null>(null);
-  const [mode, setMode] = useState<InspectorMode>("assembled");
-  const [explodeDistance, setExplodeDistance] = useState(80);
+  const [colorShards, setColorShards] = useState(true);
+  const [explodeDistance, setExplodeDistance] = useState(0);
   const [playback, setPlayback] = useState<InspectorPlayback | null>(null);
   const selectedPreset = findFontPreset(presetId);
   const catalogGlyphs = mergeUniqueGlyphs(DEFAULT_GLYPHS, searchGlyphs);
@@ -118,10 +119,10 @@ export function ShardInspector() {
   }
 
   function play(type: InspectorPlayback["type"]) {
-    setMode("assembled");
+    setExplodeDistance(0);
     setPlayback({
       type,
-      distance: explodeDistance,
+      distance: PLAYBACK_DISTANCE,
     });
   }
 
@@ -227,22 +228,15 @@ export function ShardInspector() {
               <p>U+{selectedCodePoint.padStart(4, "0")}</p>
             </div>
           </div>
-          <div className="inspector-mode-controls" aria-label="Preview mode">
-            {(["assembled", "colored", "exploded"] as const).map(
-              (option) => (
-                <button
-                  key={option}
-                  type="button"
-                  data-mode={option}
-                  aria-pressed={mode === option}
-                  onClick={() => setMode(option)}
-                >
-                  {option[0]?.toUpperCase()}
-                  {option.slice(1)}
-                </button>
-              ),
-            )}
-          </div>
+          <label className="inspector-color-control">
+            <input
+              name="color-shards"
+              type="checkbox"
+              checked={colorShards}
+              onChange={(event) => setColorShards(event.target.checked)}
+            />
+            <span>Color shards</span>
+          </label>
           <label className="explode-control">
             <span>Explode</span>
             <input
@@ -261,8 +255,8 @@ export function ShardInspector() {
           <div className="glyph-detail-preview" aria-label="Glyph preview">
             {selected ? (
               <ShardPreview
+                colorShards={colorShards}
                 data={selected}
-                mode={mode}
                 explodeDistance={explodeDistance}
                 playback={playback}
                 selectedShard={selectedShard}

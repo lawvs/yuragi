@@ -123,12 +123,6 @@
   border-color: var(--color-fg-secondary);
 }
 
-.hero-actions .primary-action {
-  border-color: var(--color-fg);
-  background: var(--color-fg);
-  color: var(--color-bg);
-}
-
 .install-command {
   color: var(--color-fg-secondary);
   font-size: 0.82rem;
