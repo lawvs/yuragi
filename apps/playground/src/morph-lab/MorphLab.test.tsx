@@ -2,6 +2,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { TextOutline } from "@yuragi-labs/core";
+import { SPRING_PRESETS, Spring } from "morphicons";
 import { MorphLab } from "./MorphLab";
 
 const fontMocks = vi.hoisted(() => ({ compile: vi.fn() }));
@@ -106,15 +107,8 @@ describe("MorphLab", () => {
   afterEach(() => {
     act(() => root.unmount());
     host.remove();
+    vi.restoreAllMocks();
     vi.useRealTimers();
-  });
-
-  it("renders the morph as a solid shape", () => {
-    act(() => root.render(<MorphLab />));
-
-    const icon = host.querySelector("[data-morph-icon]");
-    expect(icon?.getAttribute("data-fill")).toBe("currentColor");
-    expect(icon?.getAttribute("data-stroke")).toBe("none");
   });
 
   it("morphs only after submitting the latest input", () => {
@@ -129,6 +123,10 @@ describe("MorphLab", () => {
     const initialIcon = host
       .querySelector("[data-morph-icon]")
       ?.getAttribute("data-morph-icon");
+    const icon = host.querySelector("[data-morph-icon]");
+
+    expect(icon?.getAttribute("data-fill")).toBe("currentColor");
+    expect(icon?.getAttribute("data-stroke")).toBe("none");
 
     act(() => {
       changeInput(input, "B");
@@ -234,7 +232,35 @@ describe("MorphLab", () => {
     expect(range.value).toBe("1");
   });
 
-  it("keeps the latest valid shape when compilation fails", () => {
+  it("selects the spring used by the next morph", () => {
+    const config = vi.spyOn(Spring.prototype, "config");
+    act(() => root.render(<MorphLab />));
+
+    const smooth = host.querySelector<HTMLButtonElement>(
+      'button[name="morph-spring"][value="smooth"]',
+    )!;
+    const bouncy = host.querySelector<HTMLButtonElement>(
+      'button[name="morph-spring"][value="bouncy"]',
+    )!;
+
+    expect(smooth.getAttribute("aria-pressed")).toBe("true");
+    expect(bouncy.getAttribute("aria-pressed")).toBe("false");
+
+    act(() => {
+      bouncy.click();
+    });
+    act(() => {
+      host.querySelector<HTMLButtonElement>('button[type="submit"]')?.click();
+    });
+
+    expect(bouncy.getAttribute("aria-pressed")).toBe("true");
+    expect(config).toHaveBeenLastCalledWith(
+      SPRING_PRESETS.bouncy.k,
+      SPRING_PRESETS.bouncy.c,
+    );
+  });
+
+  it("replays the current morph when the submitted text is unchanged", () => {
     act(() => root.render(<MorphLab />));
 
     const input = host.querySelector<HTMLInputElement>(
@@ -242,28 +268,32 @@ describe("MorphLab", () => {
     )!;
     const submit = host.querySelector<HTMLButtonElement>(
       'button[type="submit"]',
-    );
-    const initialIcon = host
-      .querySelector("[data-morph-icon]")
-      ?.getAttribute("data-morph-icon");
-    fontMocks.compile.mockImplementationOnce(() => {
-      throw new Error("Unsupported text");
-    });
+    )!;
 
     act(() => {
-      changeInput(input, "?");
+      changeInput(input, "B");
     });
     act(() => {
-      submit?.click();
+      submit.click();
+      vi.runAllTimers();
     });
 
+    const icon = host.querySelector("[data-morph-icon]")!;
+    const from = icon.getAttribute("data-from");
+    const to = icon.getAttribute("data-to");
+
+    act(() => {
+      submit.click();
+    });
+
+    expect(icon.getAttribute("data-from")).toBe(from);
+    expect(icon.getAttribute("data-to")).toBe(to);
+    expect(from).not.toBe(to);
     expect(
-      host
-        .querySelector("[data-morph-icon]")
-        ?.getAttribute("data-morph-icon"),
-    ).toBe(initialIcon);
-    expect(host.querySelector('[role="alert"]')?.textContent).toBe(
-      "Unsupported text",
-    );
+      host.querySelector<HTMLInputElement>('input[name="morph-progress"]')
+        ?.value,
+    ).toBe("0");
+    expect(vi.getTimerCount()).toBeGreaterThan(0);
   });
+
 });
