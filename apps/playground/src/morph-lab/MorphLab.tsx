@@ -2,11 +2,17 @@ import { useEffect, useRef, useState } from "react";
 import { outlineToSvgPath } from "@yuragi-labs/core";
 import type { YuragiFont } from "@yuragi-labs/core/wasm";
 import { useYuragiFont } from "@yuragi-labs/react";
-import { fitIcon, SPRING_PRESETS, Spring } from "morphicons";
+import {
+  fitIcon,
+  SPRING_PRESETS,
+  Spring,
+  type SpringPreset,
+} from "morphicons";
 import { MorphIcon } from "morphicons/react";
 import "./MorphLab.css";
 
 const INITIAL_TEXT = "A";
+const SPRING_OPTIONS: SpringPreset[] = ["smooth", "snappy", "bouncy"];
 
 type MorphTarget = {
   icon: string;
@@ -37,6 +43,8 @@ function MorphExperiment({ font }: { font: YuragiFont }) {
     return { previous: initial, current: initial };
   });
   const [progress, setProgress] = useState(1);
+  const [springPreset, setSpringPreset] =
+    useState<SpringPreset>("smooth");
   const [error, setError] = useState<string>();
   const animationFrame = useRef<number | null>(null);
 
@@ -64,7 +72,8 @@ function MorphExperiment({ font }: { font: YuragiFont }) {
     }
 
     const spring = new Spring();
-    spring.config(SPRING_PRESETS.snappy.k, SPRING_PRESETS.snappy.c);
+    const preset = SPRING_PRESETS[springPreset];
+    spring.config(preset.k, preset.c);
     spring.start();
     let previousTime = performance.now();
     setProgress(0);
@@ -91,8 +100,10 @@ function MorphExperiment({ font }: { font: YuragiFont }) {
     }
 
     try {
-      const next = compileTarget(font, text);
-      setPair(({ current }) => ({ previous: current, current: next }));
+      if (text !== pair.current.text) {
+        const next = compileTarget(font, text);
+        setPair(({ current }) => ({ previous: current, current: next }));
+      }
       playMorph();
       setError(undefined);
     } catch (cause) {
@@ -159,6 +170,23 @@ function MorphExperiment({ font }: { font: YuragiFont }) {
           />
           <output>t={progress.toFixed(2)}</output>
         </label>
+        <fieldset className="morph-lab-spring">
+          <legend>Spring</legend>
+          <div>
+            {SPRING_OPTIONS.map((option) => (
+              <button
+                key={option}
+                type="button"
+                name="morph-spring"
+                value={option}
+                aria-pressed={springPreset === option}
+                onClick={() => setSpringPreset(option)}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </fieldset>
       </div>
     </div>
   );

@@ -116,6 +116,49 @@
   text-align: right;
 }
 
+.morph-lab-spring {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.morph-lab-spring legend {
+  float: left;
+  color: var(--color-fg-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.morph-lab-spring div {
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.morph-lab-spring button {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-left: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-fg-secondary);
+  cursor: pointer;
+}
+
+.morph-lab-spring button:first-child {
+  border-left: 0;
+}
+
+.morph-lab-spring button[aria-pressed="true"] {
+  background: var(--color-fg);
+  color: var(--color-bg);
+}
+
 @media (max-width: 720px) {
   .morph-lab-grid {
     grid-template-columns: 1fr;

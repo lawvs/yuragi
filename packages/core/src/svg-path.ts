@@ -31,19 +31,11 @@ function normalizeNumber(value: number): number {
   return Math.abs(value) < 1e-9 ? 0 : Number(value.toFixed(6));
 }
 
-function includePoint(bounds: Bounds, x: number, y: number): void {
-  bounds.minX = Math.min(bounds.minX, x);
-  bounds.minY = Math.min(bounds.minY, y);
-  bounds.maxX = Math.max(bounds.maxX, x);
-  bounds.maxY = Math.max(bounds.maxY, y);
-}
-
 function transformPath(
   path: string,
   scale: number,
   offsetX: number,
   offsetY: number,
-  bounds: Bounds,
 ): string {
   const remainder = path
     .replace(PATH_TOKEN, "")
@@ -74,7 +66,6 @@ function transformPath(
       }
       const transformedX = offsetX + x * scale;
       const transformedY = offsetY + y * scale;
-      includePoint(bounds, transformedX, transformedY);
       const separator = parameter === 0 ? "" : " ";
       result += `${separator}${normalizeNumber(transformedX)} ${normalizeNumber(transformedY)}`;
     }
@@ -107,15 +98,14 @@ export function outlineToSvgPath(
       let glyphX = 0;
       for (const glyph of group.glyphs) {
         const offsetX = line.x + group.x + glyphX;
+        const bbox = glyph.bbox;
+        bounds.minX = Math.min(bounds.minX, offsetX + bbox.left * scale);
+        bounds.minY = Math.min(bounds.minY, baselineY + bbox.top * scale);
+        bounds.maxX = Math.max(bounds.maxX, offsetX + bbox.right * scale);
+        bounds.maxY = Math.max(bounds.maxY, baselineY + bbox.bottom * scale);
         for (const shard of glyph.shards) {
           paths.push(
-            transformPath(
-              shard.path,
-              scale,
-              offsetX,
-              baselineY,
-              bounds,
-            ),
+            transformPath(shard.path, scale, offsetX, baselineY),
           );
         }
         glyphX += (glyph.advance / outline.em) * layout.options.size;
