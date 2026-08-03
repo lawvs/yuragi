@@ -13,9 +13,10 @@
     "wasm-lab:build": "pnpm --filter @yuragi-labs/core build"
   },
   "dependencies": {
+    "@vitejs/plugin-react": "^6.0.3",
     "@yuragi-labs/core": "workspace:*",
     "@yuragi-labs/react": "workspace:*",
-    "@vitejs/plugin-react": "^6.0.3",
+    "morphicons": "^1.1.1",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "vite": "^8.1.3"

@@ -26,6 +26,26 @@ import type {
 - `OutlineMap`: title string to outline mapping.
 - `TextOutline`: glyph shard geometry for one rendered string.
 
+## Static SVG Path
+
+Use `outlineToSvgPath` when another renderer needs portable SVG geometry
+without Yuragi's DOM structure, styles, or animation lifecycle:
+
+```ts
+import { outlineToSvgPath } from "@yuragi-labs/core";
+
+const outline = font.compile("Yuragi");
+const path = outlineToSvgPath(outline, { size: 72 });
+
+svg.setAttribute("viewBox", path.viewBox.join(" "));
+svgPath.setAttribute("d", path.d);
+```
+
+The function applies Yuragi's wrapping and alignment layout, flattens glyph
+positions and font scaling into one `d` string, and returns its view box. It is
+DOM-free; presentation such as fill, stroke, and animation belongs to the
+consumer.
+
 ## DOM Rendering
 
 Use `renderYuragiText` when integrating Yuragi without the React package:

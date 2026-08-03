@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { YuragiFontProvider } from "@yuragi-labs/react";
 import { demoPosts } from "../data";
 import {
@@ -11,6 +11,11 @@ import { ShardInspector } from "../shard-inspector/ShardInspector";
 import { WasmLab } from "../wasm-lab/WasmLab";
 
 const demoTitles = demoPosts.map((post) => post.title);
+const MorphLab = lazy(() =>
+  import("../morph-lab/MorphLab").then((module) => ({
+    default: module.MorphLab,
+  })),
+);
 
 const VIEW_TABS = [
   { id: "runtime-demo", label: "Demo", View: RuntimeDemo },
@@ -20,6 +25,7 @@ const VIEW_TABS = [
     View: ShardInspector,
   },
   { id: "wasm-lab", label: "WASM Lab", View: WasmLab },
+  { id: "morph-lab", label: "Morph Lab", View: MorphLab },
 ] as const;
 
 type PlaygroundView = (typeof VIEW_TABS)[number]["id"];
@@ -57,7 +63,9 @@ export function PlaygroundSection() {
         preload={demoTitles}
         includeStyles={false}
       >
-        <ActiveView />
+        <Suspense fallback={<p role="status">Loading Morph Lab…</p>}>
+          <ActiveView />
+        </Suspense>
       </YuragiFontProvider>
     </section>
   );
