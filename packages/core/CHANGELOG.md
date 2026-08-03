@@ -1,3 +1,23 @@
+## @yuragi-labs/core@0.4.0
+
+### Add configurable hover motion
+
+Add Layered-style group movement to the hollow hover treatment. Each Unicode
+word-boundary group receives a small diagonal offset of up to 2 px per axis,
+generated once per SVG, while reduced-motion preferences disable the movement.
+
+Add `hoverMotion` to the core renderer and React `YuragiText`. It follows the
+outline setting by default, can be disabled independently, and can be enabled
+without the outline treatment. React updates hover effects in place without
+recreating the SVG or replaying its animation. The playground Demo includes a
+separate Hover motion control.
+
+### Export static SVG path geometry
+
+Add `outlineToSvgPath` for DOM-free integrations that need a single SVG path.
+It reuses Yuragi's text layout, flattens glyph positions and font scaling into
+the path coordinates, and returns the corresponding view box.
+
 ## @yuragi-labs/core@0.3.0
 
 ### Add a unified controllable text renderer
