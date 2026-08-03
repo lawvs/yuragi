@@ -10,8 +10,6 @@ import {
 } from "@yuragi-labs/core";
 import type { InspectorGlyph } from "./model";
 
-export type InspectorMode = "assembled" | "colored" | "exploded";
-
 export type InspectorPlayback = {
   type: "settle" | "scatter";
   distance: number;
@@ -33,17 +31,17 @@ export function shardColor(index: number): string {
 }
 
 export function ShardPreview({
+  colorShards,
   data,
   explodeDistance,
-  mode,
   onPlay,
   playback,
   onSelectShard,
   selectedShard,
 }: {
+  colorShards: boolean;
   data: InspectorGlyph;
   explodeDistance: number;
-  mode: InspectorMode;
   onPlay: (type: InspectorPlayback["type"]) => void;
   playback: InspectorPlayback | null;
   onSelectShard: (index: number) => void;
@@ -67,16 +65,14 @@ export function ShardPreview({
       const path = motion.querySelector<SVGPathElement>("[data-shard]");
       if (path) {
         path.style.fill =
-          mode === "assembled" && !selected
-            ? "currentColor"
-            : shardColor(index);
-        path.style.stroke =
-          mode === "assembled" && selected ? shardColor(index) : "";
+          colorShards || selected ? shardColor(index) : "currentColor";
+        path.style.stroke = selected ? shardColor(index) : "";
       }
-      if (mode === "exploded") {
-        const direction = data.shards[index]?.direction ?? [0, 0];
-        motion.style.transform = `translate(${direction[0] * explodeDistance}px, ${direction[1] * explodeDistance}px)`;
-      }
+      const direction = data.shards[index]?.direction ?? [0, 0];
+      motion.style.transform =
+        explodeDistance === 0
+          ? ""
+          : `translate(${direction[0] * explodeDistance}px, ${direction[1] * explodeDistance}px)`;
     });
   }
 
@@ -117,7 +113,7 @@ export function ShardPreview({
     }
     renderedRef.current = null;
     renderStaticPreview();
-  }, [data, explodeDistance, mode, selectedShard]);
+  }, [colorShards, data, explodeDistance, selectedShard]);
 
   useLayoutEffect(() => {
     if (!playback) {
@@ -199,8 +195,7 @@ export function ShardPreview({
       className="inspector-preview-stage"
       style={
         {
-          "--inspector-explode-distance":
-            mode === "exploded" ? `${explodeDistance}px` : "0px",
+          "--inspector-explode-distance": `${explodeDistance}px`,
         } as CSSProperties
       }
     >

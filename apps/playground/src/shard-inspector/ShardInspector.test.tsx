@@ -191,15 +191,16 @@ describe("ShardInspector", () => {
     });
     expect(host.querySelectorAll("[data-shard-index]")).toHaveLength(2);
 
-    act(() => {
-      host
-        .querySelector<HTMLButtonElement>('button[data-mode="exploded"]')
-        ?.click();
-    });
     const explode = host.querySelector<HTMLInputElement>(
       'input[name="explode-distance"]',
     );
     expect(explode).not.toBeNull();
+    expect(explode?.value).toBe("0");
+    expect(host.querySelector("[data-mode]")).toBeNull();
+    const colorShards = host.querySelector<HTMLInputElement>(
+      'input[name="color-shards"]',
+    );
+    expect(colorShards?.checked).toBe(false);
     act(() => {
       const setter = Object.getOwnPropertyDescriptor(
         HTMLInputElement.prototype,
@@ -212,6 +213,13 @@ describe("ShardInspector", () => {
       host.querySelector<SVGGElement>('[data-inspector-shard="0"]')?.style
         .transform,
     ).toContain("60px");
+
+    act(() => colorShards?.click());
+    expect(
+      host.querySelector<SVGPathElement>(
+        '[data-inspector-shard="0"] [data-shard]',
+      )?.style.fill,
+    ).not.toBe("currentcolor");
 
     act(() => {
       host
@@ -228,11 +236,7 @@ describe("ShardInspector", () => {
         .querySelector<HTMLButtonElement>('[data-action="play-settle"]')
         ?.click();
     });
-    expect(
-      host
-        .querySelector<HTMLButtonElement>('button[data-mode="assembled"]')
-        ?.getAttribute("aria-pressed"),
-    ).toBe("true");
+    expect(explode?.value).toBe("0");
     const selectedPath = host.querySelector<SVGPathElement>(
       '[data-inspector-shard="1"] [data-shard]',
     );
@@ -242,7 +246,7 @@ describe("ShardInspector", () => {
       host.querySelector<SVGPathElement>(
         '[data-inspector-shard="0"] [data-shard]',
       )?.style.fill,
-    ).toBe("currentcolor");
+    ).not.toBe("currentcolor");
   });
 
   it("ignores stale font loads and does not reload WASM", () => {

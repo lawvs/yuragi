@@ -130,17 +130,27 @@ function glyph(char: string): InspectorGlyph {
 function preview(
   data: InspectorGlyph,
   playback: InspectorPlayback | null,
-  onSelectShard = vi.fn(),
+  {
+    colorShards = false,
+    explodeDistance = 0,
+    onSelectShard = vi.fn(),
+    selectedShard = null,
+  }: {
+    colorShards?: boolean;
+    explodeDistance?: number;
+    onSelectShard?: (index: number) => void;
+    selectedShard?: number | null;
+  } = {},
 ) {
   return (
     <ShardPreview
+      colorShards={colorShards}
       data={data}
-      explodeDistance={80}
-      mode="assembled"
+      explodeDistance={explodeDistance}
       onPlay={vi.fn()}
       playback={playback}
       onSelectShard={onSelectShard}
-      selectedShard={null}
+      selectedShard={selectedShard}
     />
   );
 }
@@ -175,7 +185,7 @@ describe("ShardPreview", () => {
     const onSelectShard = vi.fn();
 
     act(() => {
-      root.render(preview(data, null, onSelectShard));
+      root.render(preview(data, null, { onSelectShard }));
     });
 
     expect(coreMocks.renderYuragiText).toHaveBeenCalledWith(
@@ -194,6 +204,26 @@ describe("ShardPreview", () => {
         ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
     expect(onSelectShard).toHaveBeenCalledWith(0);
+  });
+
+  it("applies color and explode distance independently", () => {
+    act(() => {
+      root.render(
+        preview(glyph("a"), null, {
+          colorShards: true,
+          explodeDistance: 60,
+          selectedShard: 0,
+        }),
+      );
+    });
+
+    const motion = host.querySelector<SVGGElement>(
+      '[data-inspector-shard="0"]',
+    );
+    const path = motion?.querySelector<SVGPathElement>("[data-shard]");
+    expect(motion?.style.transform).toBe("translate(60px, 0px)");
+    expect(path?.style.fill).not.toBe("currentcolor");
+    expect(path?.style.stroke).toBe(path?.style.fill);
   });
 
   it("disposes the old handle before rendering changed glyph data", () => {

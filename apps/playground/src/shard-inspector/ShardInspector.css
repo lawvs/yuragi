@@ -228,21 +228,11 @@
   font-size: 1.8rem;
 }
 
-.inspector-mode-controls,
 .inspector-playback {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 5px;
 }
 
-.inspector-mode-controls {
-  padding: 4px;
-  border: 1px solid var(--color-border);
-  border-radius: 7px;
-  background: var(--color-bg);
-}
-
-.inspector-mode-controls button,
 .inspector-playback button {
   min-height: 34px;
   border: 0;
@@ -252,9 +242,21 @@
   cursor: pointer;
 }
 
-.inspector-mode-controls button[aria-pressed="true"] {
-  background: var(--color-fg);
-  color: var(--color-bg);
+.inspector-color-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  color: var(--color-fg-secondary);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.inspector-color-control input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--color-fg);
 }
 
 .explode-control {
