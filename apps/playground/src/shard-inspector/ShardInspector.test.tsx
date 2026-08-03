@@ -200,7 +200,7 @@ describe("ShardInspector", () => {
     const colorShards = host.querySelector<HTMLInputElement>(
       'input[name="color-shards"]',
     );
-    expect(colorShards?.checked).toBe(false);
+    expect(colorShards?.checked).toBe(true);
     act(() => {
       const setter = Object.getOwnPropertyDescriptor(
         HTMLInputElement.prototype,
@@ -214,7 +214,6 @@ describe("ShardInspector", () => {
         .transform,
     ).toContain("60px");
 
-    act(() => colorShards?.click());
     expect(
       host.querySelector<SVGPathElement>(
         '[data-inspector-shard="0"] [data-shard]',

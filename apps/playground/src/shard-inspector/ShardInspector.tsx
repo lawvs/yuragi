@@ -34,7 +34,7 @@ export function ShardInspector() {
   const [searchGlyphs, setSearchGlyphs] = useState<string[]>([]);
   const [selectedGlyph, setSelectedGlyph] = useState("a");
   const [selectedShard, setSelectedShard] = useState<number | null>(null);
-  const [colorShards, setColorShards] = useState(false);
+  const [colorShards, setColorShards] = useState(true);
   const [explodeDistance, setExplodeDistance] = useState(0);
   const [playback, setPlayback] = useState<InspectorPlayback | null>(null);
   const selectedPreset = findFontPreset(presetId);
