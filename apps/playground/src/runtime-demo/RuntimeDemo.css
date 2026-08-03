@@ -60,33 +60,16 @@
   min-width: 0;
 }
 
-.detail-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.back-button {
-  min-width: 76px;
-  min-height: 38px;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-bg-block);
-  cursor: pointer;
-}
-
 .controls {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 10px;
   min-width: 0;
+  margin-bottom: 12px;
 }
 
 .range-control,
-.select-control,
 .text-control,
 .font-status,
 .toggle-control {
@@ -157,17 +140,8 @@
   text-align: right;
 }
 
-.select-control,
 .text-control {
   gap: 7px;
-}
-
-.select-control select {
-  min-width: 92px;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  padding: 3px 8px;
-  background: var(--color-bg);
 }
 
 .text-control input {
@@ -231,11 +205,6 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .detail-header {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
   .controls {
     justify-content: stretch;
   }
@@ -244,7 +213,6 @@
     flex: 1 1 220px;
   }
 
-  .select-control,
   .text-control,
   .toggle-control {
     flex: 1 1 150px;
@@ -266,7 +234,6 @@
   }
 
   .range-control,
-  .select-control,
   .text-control,
   .toggle-control {
     width: 100%;

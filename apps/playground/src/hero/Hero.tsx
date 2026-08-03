@@ -55,9 +55,6 @@ export function Hero() {
 
         <div className="hero-cta">
           <div className="hero-actions">
-            <a className="primary-action" href="#playground">
-              Open Playground
-            </a>
             <a href="https://github.com/lawvs/yuragi">View on GitHub</a>
           </div>
           <code className="install-command">

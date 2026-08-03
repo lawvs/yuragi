@@ -10,7 +10,6 @@ export function App() {
         </a>
         <nav className="site-nav" aria-label="Main navigation">
           <a href="#playground">Playground</a>
-          <a href="https://github.com/lawvs/yuragi#packages">Packages</a>
           <a href="https://github.com/lawvs/yuragi">GitHub</a>
         </nav>
       </header>
