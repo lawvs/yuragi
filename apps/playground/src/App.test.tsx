@@ -218,7 +218,9 @@ describe("App", () => {
     expect(host.querySelector(".site-nav")?.textContent).not.toContain(
       "Packages",
     );
-    expect(hero?.querySelector('a[href="#playground"]')).toBeNull();
+    expect(
+      hero?.querySelector('a[href="#playground"]')?.textContent,
+    ).toContain("Try it");
     expect(host.querySelector("section#playground")).not.toBeNull();
   });
 

@@ -17,8 +17,6 @@ export function Hero() {
 
   return (
     <section className="hero" aria-labelledby="hero-title">
-      <p className="hero-eyebrow">揺らぎ · Text in motion</p>
-
       <div className="hero-wordmark-stage">
         <h1 className="hero-title" id="hero-title">
           <YuragiText
@@ -49,18 +47,11 @@ export function Hero() {
 
       <div className="hero-details">
         <p className="hero-summary">
-          Render text as animated SVG fragments, compiled ahead of time or
-          directly in the browser with WebAssembly.
+          Rust-powered glyph decomposition for animated SVG typography.
         </p>
-
-        <div className="hero-cta">
-          <div className="hero-actions">
-            <a href="https://github.com/lawvs/yuragi">View on GitHub</a>
-          </div>
-          <code className="install-command">
-            pnpm add @yuragi-labs/react
-          </code>
-        </div>
+        <a className="hero-playground-link" href="#playground">
+          Try it in the playground ↓
+        </a>
       </div>
     </section>
   );
