@@ -150,25 +150,12 @@ export function RuntimeDemo() {
 
 function RuntimeFontStatus() {
   const fontState = useYuragiFont();
-  const loading = fontState.status === "loading";
-  const label =
-    fontState.status === "ready"
-      ? "Font ready"
-      : fontState.status === "error"
-        ? "Font error"
-        : "Preparing demo…";
+  if (fontState.status !== "loading") return null;
 
   return (
-    <span
-      className="font-status"
-      data-status={fontState.status}
-      role="status"
-      aria-live="polite"
-    >
-      {loading ? (
-        <span className="font-status-spinner" aria-hidden="true" />
-      ) : null}
-      {label}
+    <span className="font-status" role="status" aria-live="polite">
+      <span className="font-status-spinner" aria-hidden="true" />
+      Preparing demo…
     </span>
   );
 }

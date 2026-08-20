@@ -282,7 +282,7 @@ describe("App", () => {
       '["Dashboard","Settings"]',
     );
     expect(dashboard).not.toBeNull();
-    expect(host.querySelector(".font-status")?.textContent).toBe("Font ready");
+    expect(host.querySelector(".font-status")).toBeNull();
     expect(
       host.querySelector(".preview-title [data-static-sharded-text]"),
     ).toBeNull();
