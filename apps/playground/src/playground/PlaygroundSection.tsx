@@ -42,11 +42,12 @@ export function PlaygroundSection() {
           <h2>Playground</h2>
         </div>
         <nav className="view-tabs" aria-label="Playground views">
-          {VIEW_TABS.map((tab) => (
+          {VIEW_TABS.map((tab, index) => (
             <button
               key={tab.id}
               type="button"
               data-view={tab.id}
+              data-index={String(index + 1).padStart(2, "0")}
               aria-pressed={view === tab.id}
               onClick={() => setView(tab.id)}
             >

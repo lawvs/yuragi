@@ -1,6 +1,7 @@
 import { startTransition, useMemo, useState } from "react";
-import { useYuragiFont, YuragiText } from "@yuragi-labs/react";
+import { YuragiText } from "@yuragi-labs/react";
 import { demoPosts } from "../data";
+import { RuntimeControls } from "./RuntimeControls";
 import "./RuntimeDemo.css";
 
 export function RuntimeDemo() {
@@ -65,71 +66,6 @@ export function RuntimeDemo() {
       </aside>
 
       <section className="detail-panel" aria-label="Selected post">
-        <div className="controls" aria-label="Text controls">
-          <RuntimeFontStatus />
-
-          <label className="range-control">
-            <span>Size</span>
-            <input
-              aria-label="Title size"
-              type="range"
-              min="48"
-              max="140"
-              step="2"
-              value={size}
-              onChange={(event) => setSize(Number(event.target.value))}
-            />
-            <output>{size}px</output>
-          </label>
-
-          <label className="text-control">
-            <span>Title</span>
-            <input
-              aria-label="Title text"
-              name="runtime-title"
-              value={draftTitle}
-              onChange={(event) => setDraftTitle(event.target.value)}
-            />
-          </label>
-
-          <label className="range-control">
-            <span>Speed</span>
-            <input
-              aria-label="Animation speed"
-              type="range"
-              name="animation-speed"
-              min="0.25"
-              max="2"
-              step="0.05"
-              value={animationSpeed}
-              onChange={(event) =>
-                setAnimationSpeed(Number(event.target.value))
-              }
-            />
-            <output>{animationSpeed.toFixed(2)}x</output>
-          </label>
-
-          <label className="toggle-control">
-            <input
-              type="checkbox"
-              name="hover"
-              checked={hoverOutline}
-              onChange={(event) => setHoverOutline(event.target.checked)}
-            />
-            <span>Hover outline</span>
-          </label>
-
-          <label className="toggle-control">
-            <input
-              type="checkbox"
-              name="hover-motion"
-              checked={hoverMotion}
-              onChange={(event) => setHoverMotion(event.target.checked)}
-            />
-            <span>Hover motion</span>
-          </label>
-        </div>
-
         <article className="preview-surface">
           <div className="preview-title">
             <YuragiText
@@ -143,19 +79,20 @@ export function RuntimeDemo() {
           </div>
           <p>{selectedPost.summary}</p>
         </article>
+
+        <RuntimeControls
+          title={draftTitle}
+          onTitleChange={setDraftTitle}
+          size={size}
+          onSizeChange={setSize}
+          speed={animationSpeed}
+          onSpeedChange={setAnimationSpeed}
+          hoverOutline={hoverOutline}
+          onHoverOutlineChange={setHoverOutline}
+          hoverMotion={hoverMotion}
+          onHoverMotionChange={setHoverMotion}
+        />
       </section>
     </section>
-  );
-}
-
-function RuntimeFontStatus() {
-  const fontState = useYuragiFont();
-  if (fontState.status !== "loading") return null;
-
-  return (
-    <span className="font-status" role="status" aria-live="polite">
-      <span className="font-status-spinner" aria-hidden="true" />
-      Preparing demo…
-    </span>
   );
 }
