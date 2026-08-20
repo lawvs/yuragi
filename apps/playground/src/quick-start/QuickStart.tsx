@@ -2,9 +2,13 @@ import "./QuickStart.css";
 
 const QUICK_START_EXAMPLE = `import { YuragiFontProvider, YuragiText } from "@yuragi-labs/react";
 
-<YuragiFontProvider font="/font.ttf">
-  <YuragiText text="Yuragi" size={72} hover="outline" />
-</YuragiFontProvider>`;
+export function Title() {
+  return (
+    <YuragiFontProvider font="/font.ttf">
+      <YuragiText text="Yuragi" size={72} hover="outline" />
+    </YuragiFontProvider>
+  );
+}`;
 
 export function QuickStart() {
   return (
