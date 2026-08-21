@@ -60,7 +60,14 @@
 .inspector-font-controls button,
 .glyph-search button {
   padding-inline: 14px;
+  white-space: nowrap;
   cursor: pointer;
+}
+
+.inspector-font-controls button:not(:disabled),
+.glyph-search button:not(:disabled) {
+  background: var(--color-fg);
+  color: var(--color-bg);
 }
 
 .inspector-font-controls button:disabled {

@@ -20,9 +20,7 @@ export function App() {
 
       <QuickStart />
 
-      <div className="site-tools">
-        <PlaygroundSection />
-      </div>
+      <PlaygroundSection />
 
       <footer className="site-footer">
         <div className="site-footer-brand">
