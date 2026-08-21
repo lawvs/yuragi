@@ -1,7 +1,7 @@
 .shard-inspector {
   display: grid;
   gap: 18px;
-  padding-top: 18px;
+  padding-top: 28px;
 }
 
 .inspector-header {
@@ -9,6 +9,8 @@
   grid-template-columns: minmax(200px, 0.55fr) minmax(0, 1.45fr);
   align-items: end;
   gap: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .shard-inspector h2 {
@@ -42,7 +44,7 @@
   min-width: 0;
   min-height: 40px;
   border: 1px solid var(--color-border);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   padding: 7px 9px;
   background: var(--color-bg);
 }
@@ -60,7 +62,14 @@
 .inspector-font-controls button,
 .glyph-search button {
   padding-inline: 14px;
+  white-space: nowrap;
   cursor: pointer;
+}
+
+.inspector-font-controls button:not(:disabled),
+.glyph-search button:not(:disabled) {
+  background: var(--color-fg);
+  color: var(--color-bg);
 }
 
 .inspector-font-controls button:disabled {
@@ -80,6 +89,7 @@
   gap: 8px;
   padding-block: 12px;
   border-block: 1px solid var(--color-border);
+  border-top: 0;
 }
 
 .inspector-layout {
@@ -143,7 +153,7 @@
   aspect-ratio: 1;
   overflow: hidden;
   border: 1px solid var(--color-border);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   padding: 7px;
   background: var(--color-bg-block);
   cursor: pointer;
@@ -198,7 +208,7 @@
   gap: 12px;
   min-width: 0;
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   padding: 14px;
   background: var(--color-bg-block);
 }
@@ -222,7 +232,7 @@
   height: 44px;
   place-items: center;
   border: 1px solid var(--color-border);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   background: var(--color-bg);
   font-family: serif;
   font-size: 1.8rem;
@@ -236,7 +246,7 @@
 .inspector-playback button {
   min-height: 34px;
   border: 0;
-  border-radius: 5px;
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--color-fg-secondary);
   cursor: pointer;
@@ -409,7 +419,7 @@
   gap: 7px;
   min-height: 34px;
   border: 1px solid transparent;
-  border-radius: 5px;
+  border-radius: var(--radius-control);
   padding: 5px 7px;
   background: var(--color-bg);
   color: var(--color-fg-secondary);
@@ -433,8 +443,13 @@
   color: var(--color-danger);
 }
 
+@media (max-width: 1080px) {
+  .inspector-header {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 820px) {
-  .inspector-header,
   .inspector-layout {
     grid-template-columns: 1fr;
   }

@@ -18,7 +18,7 @@
   min-width: 0;
   min-height: 128px;
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   padding: 16px;
   background: var(--color-bg-block);
   text-align: left;
@@ -61,9 +61,10 @@
 }
 
 .font-status {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 7px;
+  width: fit-content;
   min-height: 28px;
   border: 1px solid var(--color-border);
   border-radius: 6px;
@@ -102,7 +103,7 @@
   gap: 18px;
   min-height: 430px;
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   padding: clamp(20px, 5vw, 48px);
   background: var(--color-bg-block);
 }
@@ -112,21 +113,8 @@
   border-block: 1px solid var(--color-fg);
 }
 
-.runtime-controls-header {
-  display: flex;
-  align-items: center;
-  min-height: 42px;
-  gap: 18px;
-  color: var(--color-fg-secondary);
-  font: 700 0.66rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.runtime-controls-header > output {
-  margin-left: auto;
-  color: var(--color-fg);
-  font-variant-numeric: tabular-nums;
+.runtime-controls > .font-status {
+  margin: 7px 0 7px auto;
 }
 
 .runtime-control-title {
@@ -134,6 +122,9 @@
   grid-template-columns: 120px minmax(0, 1fr);
   align-items: center;
   min-height: 82px;
+}
+
+.runtime-controls > .font-status + .runtime-control-title {
   border-top: 1px solid var(--color-border);
 }
 
@@ -142,12 +133,6 @@
   color: var(--color-fg-secondary);
   font-size: 0.72rem;
   text-transform: uppercase;
-}
-
-.runtime-controls i {
-  margin-right: 12px;
-  color: var(--color-fg);
-  font: normal 0.62rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 .runtime-control-title input {
@@ -284,20 +269,6 @@
 
   .preview-surface {
     min-height: 330px;
-  }
-
-  .runtime-controls-header {
-    flex-wrap: wrap;
-    gap: 10px;
-    padding-block: 7px;
-  }
-
-  .runtime-controls-header > output {
-    margin-left: 0;
-  }
-
-  .runtime-controls-header > .font-status {
-    margin-left: auto;
   }
 
   .runtime-control-title {

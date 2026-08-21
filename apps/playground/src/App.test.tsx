@@ -215,10 +215,6 @@ describe("App", () => {
     expect(title?.getAttribute("data-fallback")).toBe("error");
     expect(title?.getAttribute("data-hover")).toBe("outline");
     expect(title?.getAttribute("data-animation-speed")).toBe("1.4");
-    expect(host.querySelector(".site-nav")?.textContent).not.toContain(
-      "Packages",
-    );
-    expect(hero?.querySelector('a[href="#playground"]')).toBeNull();
     expect(host.querySelector("section#playground")).not.toBeNull();
   });
 

@@ -16,18 +16,10 @@ type RuntimeControlsProps = {
 export function RuntimeControls(props: RuntimeControlsProps) {
   return (
     <section className="runtime-controls" aria-label="Text controls">
-      <header className="runtime-controls-header">
-        <span>Parameters</span>
-        <output>
-          {props.size}px / {props.speed.toFixed(2)}×
-        </output>
-        <RuntimeFontStatus />
-      </header>
+      <RuntimeFontStatus />
 
       <label className="runtime-control-title">
-        <span>
-          <i>01</i> Text
-        </span>
+        <span>Text</span>
         <input
           aria-label="Title text"
           name="runtime-title"
@@ -38,9 +30,7 @@ export function RuntimeControls(props: RuntimeControlsProps) {
 
       <div className="runtime-control-grid">
         <label className="runtime-control-range">
-          <span>
-            <i>02</i> Size
-          </span>
+          <span>Size</span>
           <input
             aria-label="Title size"
             type="range"
@@ -56,9 +46,7 @@ export function RuntimeControls(props: RuntimeControlsProps) {
         </label>
 
         <label className="runtime-control-range">
-          <span>
-            <i>03</i> Speed
-          </span>
+          <span>Speed</span>
           <input
             aria-label="Animation speed"
             type="range"
@@ -75,9 +63,7 @@ export function RuntimeControls(props: RuntimeControlsProps) {
         </label>
 
         <label className="runtime-control-check">
-          <span>
-            <i>04</i> Outline
-          </span>
+          <span>Outline</span>
           <input
             type="checkbox"
             name="hover"
@@ -90,9 +76,7 @@ export function RuntimeControls(props: RuntimeControlsProps) {
         </label>
 
         <label className="runtime-control-check">
-          <span>
-            <i>05</i> Motion
-          </span>
+          <span>Motion</span>
           <input
             type="checkbox"
             name="hover-motion"
