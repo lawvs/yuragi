@@ -18,7 +18,7 @@
   min-width: 0;
   min-height: 128px;
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   padding: 16px;
   background: var(--color-bg-block);
   text-align: left;
@@ -103,7 +103,7 @@
   gap: 18px;
   min-height: 430px;
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   padding: clamp(20px, 5vw, 48px);
   background: var(--color-bg-block);
 }
