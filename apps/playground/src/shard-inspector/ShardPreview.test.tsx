@@ -192,6 +192,7 @@ describe("ShardPreview", () => {
       expect.any(HTMLSpanElement),
       data.outline,
       {
+        selectable: false,
         size: 220,
         ariaLabel: "a",
         animation: false,
@@ -257,6 +258,7 @@ describe("ShardPreview", () => {
       expect.any(HTMLSpanElement),
       data.outline,
       {
+        selectable: false,
         size: 220,
         ariaLabel: "a",
         animation: {
@@ -296,6 +298,7 @@ describe("ShardPreview", () => {
     expect(
       coreMocks.renderYuragiText.mock.calls[1]?.[2],
     ).toEqual({
+      selectable: false,
       size: 220,
       ariaLabel: "a",
       animation: false,

@@ -162,6 +162,7 @@ Runtime `YuragiText` skips settle when replacing its initial fallback with the
 first compiled outline. Later text changes use the configured enter animation.
 
 - `text`: rendered string.
+- `selectable`: enables native text selection and copying (default `true`).
 - `size`: text size in CSS pixels.
 - `maxWidth`: wrapping width.
 - `align`: `"start"`, `"center"`, or `"end"`.

@@ -41,6 +41,7 @@ export function YuragiText(input: StaticYuragiTextProps) {
         className={props.className}
         style={{
           ...createTextFallbackStyle(props),
+          ...(props.selectable === false ? { userSelect: "none" } : {}),
           ...(hidden ? { visibility: "hidden" } : {}),
         }}
       >

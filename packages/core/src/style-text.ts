@@ -7,6 +7,17 @@ export const YURAGI_STYLE_TEXT = `.yuragi-root {
   stroke-width: 20px;
 }
 
+.yuragi-root [data-yuragi-text-layer] {
+  pointer-events: all;
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+}
+
+.yuragi-root[data-selectable="false"] [data-yuragi-text-layer] {
+  display: none;
+}
+
 .yuragi-root [data-group-motion] {
   transform-origin: 0 0;
   transition: transform 200ms ease;
