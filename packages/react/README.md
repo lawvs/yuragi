@@ -163,10 +163,6 @@ first compiled outline. Later text changes use the configured enter animation.
 
 - `text`: rendered string.
 - `selectable`: enables native text selection and copying (default `true`).
-  Set to `false` for decorative text or pointer-driven graphics. The transparent
-  selection layer stays at the final text position during animations. Its
-  selection height can differ from the outline because it uses browser font
-  metrics; the original font file is not required by the static renderer.
 - `size`: text size in CSS pixels.
 - `maxWidth`: wrapping width.
 - `align`: `"start"`, `"center"`, or `"end"`.
