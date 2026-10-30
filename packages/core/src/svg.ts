@@ -117,6 +117,16 @@ export function createShardedSvg(
     }
   }
 
+  svg.append(createSelectionText(layout, ownerDocument));
+  return svg;
+}
+
+function createSelectionText(
+  layout: ShardedTextLayout,
+  ownerDocument: Document,
+): SVGTextElement {
+  const scale = layout.options.size / layout.outline.em;
+  const ascender = layout.outline.ascender * scale;
   const selection = svgEl(ownerDocument, "text");
   selection.dataset.yuragiSelection = "true";
   selection.setAttribute("aria-hidden", "true");
@@ -145,6 +155,5 @@ export function createShardedSvg(
       }
     }
   }
-  svg.append(selection);
-  return svg;
+  return selection;
 }
