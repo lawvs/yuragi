@@ -28,6 +28,37 @@ const outline: TextOutline = {
 };
 
 describe("createShardedSvg", () => {
+  it("keeps mixed text and spaces in reading order across wrapped lines", () => {
+    const chars = [..."A 中😀B"];
+    const mixed: TextOutline = {
+      ...outline,
+      groups: chars.map((char) => ({
+        ...outline.groups[0],
+        text: char,
+        glyphs: [{ ...outline.groups[0].glyphs[0], char }],
+      })),
+    };
+    const layout = layoutShardedText(mixed, { size: 20, maxWidth: 20 });
+    const svg = createShardedSvg(layout);
+    const selection = svg.querySelector("text")!;
+
+    expect(svg.dataset.selectable).toBe("true");
+    expect(selection.textContent).toBe("A 中😀B");
+    expect(selection.children).toHaveLength(chars.length);
+    expect(
+      [...selection.children].map((span) => span.getAttribute("x")),
+    ).toEqual(["0", "10", "0", "10", "0"]);
+    expect(
+      [...selection.children].map((span) => Number(span.getAttribute("y"))),
+    ).toEqual([17.6, 17.6, 41.6, 41.6, 65.6]);
+    expect(selection.querySelector("tspan")?.getAttribute("textLength")).toBe("10");
+    expect(selection.closest("[data-shard-motion]")).toBeNull();
+    expect(selection.getAttribute("aria-hidden")).toBe("true");
+    expect(
+      createShardedSvg(layout, { selectable: false }).dataset.selectable,
+    ).toBe("false");
+  });
+
   it("materializes a stable SVG structure", () => {
     const layout = layoutShardedText(outline, { size: 20, maxWidth: 40 });
     const svg = createShardedSvg(layout, { className: "sample" });

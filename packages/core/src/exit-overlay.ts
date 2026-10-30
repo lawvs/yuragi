@@ -56,6 +56,7 @@ export function prepareSvgExit(
   if (!body) return null;
 
   const overlay = sourceSvg.cloneNode(true) as SVGSVGElement;
+  overlay.querySelector("[data-yuragi-selection]")?.remove();
   overlay.dataset.yuragiExit = "true";
   overlay.setAttribute("aria-hidden", "true");
   overlay.removeAttribute("aria-label");

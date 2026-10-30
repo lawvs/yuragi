@@ -102,6 +102,7 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
       current?.handle.element.parentElement === host
     ) {
       syncHoverAttributes(current.handle.element, props);
+      current.handle.element.dataset.selectable = String(props.selectable ?? true);
       if (props.style) {
         applySvgStyle(current.handle.element, props.style);
       }
@@ -122,6 +123,7 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
       className: props.className,
       hover: props.hover === "outline" ? "outline" : "none",
       hoverMotion: props.hoverMotion,
+      selectable: props.selectable,
       ariaLabel: false,
       animation: props.animation.enter
         ? {
@@ -164,6 +166,7 @@ export function ShardedSvg({ props }: { props: ResolvedYuragiTextProps }) {
     props.maxWidth,
     props.outline,
     props.size,
+    props.selectable,
     props.style,
     props.text,
   ]);

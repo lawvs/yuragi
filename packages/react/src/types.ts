@@ -21,6 +21,7 @@ export type StaticYuragiTextProps = {
   align?: "start" | "center" | "end";
   hover?: "none" | "outline";
   hoverMotion?: boolean;
+  selectable?: boolean;
   animation?: boolean | YuragiAnimationOptions;
   onEnterComplete?: () => void;
   onExitComplete?: () => void;

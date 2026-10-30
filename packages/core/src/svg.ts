@@ -6,6 +6,7 @@ export type SvgOptions = {
   className?: string;
   hover?: "none" | "outline";
   hoverMotion?: boolean;
+  selectable?: boolean;
 };
 
 function svgEl<K extends keyof SVGElementTagNameMap>(
@@ -36,6 +37,7 @@ export function createShardedSvg(
   const svg = svgEl(ownerDocument, "svg");
   svg.dataset.yuragiRoot = "true";
   svg.classList.add("yuragi-root");
+  svg.dataset.selectable = String(options.selectable ?? true);
   const classNames = options.className?.trim().split(/\s+/).filter(Boolean);
   if (classNames?.length) svg.classList.add(...classNames);
   if (options.hover === "outline") svg.dataset.hover = "outline";
@@ -115,5 +117,34 @@ export function createShardedSvg(
     }
   }
 
+  const selection = svgEl(ownerDocument, "text");
+  selection.dataset.yuragiSelection = "true";
+  selection.setAttribute("aria-hidden", "true");
+  selection.setAttribute("fill", "transparent");
+  selection.setAttribute("stroke", "none");
+  selection.setAttribute("font-size", String(layout.options.size));
+  selection.style.whiteSpace = "pre";
+
+  // One text node tree preserves reading order across positioned lines.
+  // Explicit glyph widths keep selection independent of the original font.
+  for (const line of layout.lines) {
+    for (const group of line.groups) {
+      let x = line.x + group.x;
+      for (const glyph of group.glyphs) {
+        const width = glyph.advance * scale;
+        const span = svgEl(ownerDocument, "tspan");
+        span.textContent = glyph.char;
+        span.setAttribute("x", String(x));
+        span.setAttribute("y", String(ascender + line.y));
+        if (width > 0) {
+          span.setAttribute("textLength", String(width));
+          span.setAttribute("lengthAdjust", "spacingAndGlyphs");
+        }
+        selection.append(span);
+        x += width;
+      }
+    }
+  }
+  svg.append(selection);
   return svg;
 }

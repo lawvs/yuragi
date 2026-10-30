@@ -102,6 +102,13 @@ By default, the SVG's accessible label is reconstructed from the outline.
 Pass `ariaLabel: "..."` to override it or `ariaLabel: false` when a separate
 accessible text node already labels the title.
 
+Text is selectable by default through a transparent SVG text layer. Set
+`selectable: false` for decorative graphics or when handling pointer events on
+individual shards. Selection follows the final layout, including automatic
+line wrapping, and does not move with the animated shards. The original font
+is not required; browser font metrics can make selection height differ from
+the visible outline. Exit animation clones do not contain selectable text.
+
 ## CSS Export
 
 The package exports:

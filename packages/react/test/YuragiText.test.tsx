@@ -325,16 +325,23 @@ describe("YuragiText", () => {
     expect(issuedHandles[0]?.element.style.color).toBe("blue");
   });
 
-  it("updates hover effects without recreating the SVG", () => {
+  it("updates hover and selection without recreating or replaying the SVG", () => {
     const { rerender } = render(
       <YuragiText
         text="A"
         outline={outline}
         hover="none"
         hoverMotion={false}
+        selectable={false}
       />,
     );
     const handle = issuedHandles[0]!;
+
+    expect(coreMocks.renderYuragiText).toHaveBeenLastCalledWith(
+      expect.any(HTMLElement),
+      outline,
+      expect.objectContaining({ selectable: false }),
+    );
 
     rerender(
       <YuragiText
@@ -347,6 +354,7 @@ describe("YuragiText", () => {
 
     expect(handle.element.dataset.hover).toBe("outline");
     expect(handle.element.dataset.hoverMotion).toBe("true");
+    expect(handle.element.dataset.selectable).toBe("true");
     expect(coreMocks.renderYuragiText).toHaveBeenCalledOnce();
     expect(handle.play).toHaveBeenCalledOnce();
   });

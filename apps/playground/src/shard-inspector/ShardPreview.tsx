@@ -88,6 +88,7 @@ export function ShardPreview({
     const host = hostRef.current;
     if (!host) return null;
     const handle = renderYuragiText(host, data.outline, {
+      selectable: false,
       size: 220,
       ariaLabel: data.char,
       animation,

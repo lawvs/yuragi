@@ -7,6 +7,26 @@ export const YURAGI_STYLE_TEXT = `.yuragi-root {
   stroke-width: 20px;
 }
 
+.yuragi-root [data-yuragi-selection] {
+  fill: transparent;
+  stroke: none;
+  pointer-events: all;
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+}
+
+.yuragi-root [data-yuragi-selection]::selection,
+.yuragi-root [data-yuragi-selection] tspan::selection {
+  fill: transparent;
+  stroke: none;
+  background: color-mix(in srgb, Highlight 35%, transparent);
+}
+
+.yuragi-root[data-selectable="false"] [data-yuragi-selection] {
+  display: none;
+}
+
 .yuragi-root [data-group-motion] {
   transform-origin: 0 0;
   transition: transform 200ms ease;
