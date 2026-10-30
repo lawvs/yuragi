@@ -140,8 +140,8 @@ describe("YuragiTextHandle removal", () => {
     );
     expect(target.children).toHaveLength(0);
     expect(overlay?.parentElement).toBe(document.body);
-    expect(first.element.querySelector("[data-yuragi-selection]")).not.toBeNull();
-    expect(overlay?.querySelector("[data-yuragi-selection]")).toBeNull();
+    expect(first.element.querySelector("[data-yuragi-text-layer]")).not.toBeNull();
+    expect(overlay?.querySelector("[data-yuragi-text-layer]")).toBeNull();
     expect(overlay?.style.position).toBe("fixed");
     expect(overlay?.style.left).toBe("12px");
     expect(overlay?.style.top).toBe("18px");

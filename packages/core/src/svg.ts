@@ -128,7 +128,7 @@ function createSelectionText(
   const scale = layout.options.size / layout.outline.em;
   const ascender = layout.outline.ascender * scale;
   const selection = svgEl(ownerDocument, "text");
-  selection.dataset.yuragiSelection = "true";
+  selection.dataset.yuragiTextLayer = "true";
   selection.setAttribute("aria-hidden", "true");
   selection.setAttribute("fill", "transparent");
   selection.setAttribute("stroke", "none");
