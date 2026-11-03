@@ -55,6 +55,9 @@ export function createShardedSvg(
   svg.style.setProperty("--yuragi-em", String(layout.dimensions.unitsPerEm));
   svg.style.setProperty("--yuragi-line-height", `${layout.options.lineHeight}px`);
 
+  const fragmentLayer = svgEl(ownerDocument, "g");
+  fragmentLayer.dataset.yuragiFragmentLayer = "true";
+
   for (const line of layout.lines) {
     const baselineY = ascender + line.y;
     const lineEl = svgEl(ownerDocument, "g");
@@ -62,7 +65,7 @@ export function createShardedSvg(
     lineEl.style.setProperty("--yuragi-line-x", `${line.x}px`);
     lineEl.style.setProperty("--yuragi-line-y", `${baselineY}px`);
     lineEl.setAttribute("transform", `translate(${line.x} ${baselineY})`);
-    svg.append(lineEl);
+    fragmentLayer.append(lineEl);
 
     for (const group of line.groups) {
       const groupEl = svgEl(ownerDocument, "g");
@@ -82,6 +85,7 @@ export function createShardedSvg(
 
       let glyphX = 0;
       for (const glyph of group.glyphs) {
+        const advance = glyph.advance * scale;
         const glyphEl = svgEl(ownerDocument, "g");
         glyphEl.dataset.glyph = glyph.char;
         glyphEl.style.setProperty("--yuragi-glyph-x", `${glyphX}px`);
@@ -94,10 +98,7 @@ export function createShardedSvg(
           shardMotionEl.dataset.directionX = String(shard.direction[0]);
           shardMotionEl.dataset.directionY = String(shard.direction[1]);
           shardMotionEl.dataset.shardX = String(
-            line.x +
-              group.x +
-              glyphX +
-              ((glyph.advance / layout.outline.em) * layout.options.size) / 2,
+            line.x + group.x + glyphX + advance / 2,
           );
 
           const scaleEl = svgEl(ownerDocument, "g");
@@ -112,12 +113,12 @@ export function createShardedSvg(
           glyphEl.append(shardMotionEl);
         }
 
-        glyphX += (glyph.advance / layout.outline.em) * layout.options.size;
+        glyphX += advance;
       }
     }
   }
 
-  svg.append(createSelectionText(layout, ownerDocument));
+  svg.append(createSelectionText(layout, ownerDocument), fragmentLayer);
   return svg;
 }
 
