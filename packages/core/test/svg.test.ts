@@ -43,6 +43,9 @@ describe("createShardedSvg", () => {
     const selection = svg.querySelector("text")!;
 
     expect(svg.firstElementChild).toBe(selection);
+    const fragments = svg.querySelector("[data-yuragi-fragment-layer]")!;
+    expect(selection.nextElementSibling).toBe(fragments);
+    expect([...fragments.children]).toEqual([...svg.querySelectorAll("[data-line]")]);
     expect(svg.dataset.selectable).toBe("true");
     expect(selection.textContent).toBe("A 中😀B");
     expect(selection.children).toHaveLength(chars.length);

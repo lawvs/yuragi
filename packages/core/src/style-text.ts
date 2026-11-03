@@ -7,7 +7,7 @@ export const YURAGI_STYLE_TEXT = `.yuragi-root {
   stroke-width: 20px;
 }
 
-.yuragi-root[data-selectable="true"] > [data-line] {
+.yuragi-root[data-selectable="true"] > [data-yuragi-fragment-layer] {
   pointer-events: none;
 }
 
@@ -23,7 +23,6 @@ export const YURAGI_STYLE_TEXT = `.yuragi-root {
 }
 
 .yuragi-root [data-group-motion] {
-  transform-origin: 0 0;
   transition: transform 200ms ease;
 }
 
