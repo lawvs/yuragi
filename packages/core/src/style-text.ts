@@ -7,6 +7,10 @@ export const YURAGI_STYLE_TEXT = `.yuragi-root {
   stroke-width: 20px;
 }
 
+.yuragi-root[data-selectable="true"] > [data-line] {
+  pointer-events: none;
+}
+
 .yuragi-root [data-yuragi-text-layer] {
   pointer-events: all;
   user-select: text;

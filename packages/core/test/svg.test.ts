@@ -42,6 +42,7 @@ describe("createShardedSvg", () => {
     const svg = createShardedSvg(layout);
     const selection = svg.querySelector("text")!;
 
+    expect(svg.firstElementChild).toBe(selection);
     expect(svg.dataset.selectable).toBe("true");
     expect(selection.textContent).toBe("A 中😀B");
     expect(selection.children).toHaveLength(chars.length);

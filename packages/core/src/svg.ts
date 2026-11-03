@@ -117,7 +117,7 @@ export function createShardedSvg(
     }
   }
 
-  svg.append(createSelectionText(layout, ownerDocument));
+  svg.prepend(createSelectionText(layout, ownerDocument));
   return svg;
 }
 
