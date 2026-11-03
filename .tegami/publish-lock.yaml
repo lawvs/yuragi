@@ -1,26 +1,15 @@
 core:changelogs:
-  - content: "---\npackages:\n  \"@yuragi-labs/core\":\n    type: patch\n  \"@yuragi-labs/react\":\n    type: patch\n---\n\n## Add configurable hover motion\n\nAdd Layered-style group movement to the hollow hover treatment. Each Unicode\nword-boundary group receives a small diagonal offset of up to 2 px per axis,\ngenerated once per SVG, while reduced-motion preferences disable the movement.\n\nAdd `hoverMotion` to the core renderer and React `YuragiText`. It follows the\noutline setting by default, can be disabled independently, and can be enabled\nwithout the outline treatment. React updates hover effects in place without\nrecreating the SVG or replaying its animation. The playground Demo includes a\nseparate Hover motion control.\n"
-    filename: 2026-08-03-mtfg7k2p.md
-    v: 0.0.0
-  - content: "---\npackages:\n  \"@yuragi-labs/core\":\n    type: minor\n---\n\n## Export static SVG path geometry\n\nAdd `outlineToSvgPath` for DOM-free integrations that need a single SVG path.\nIt reuses Yuragi's text layout, flattens glyph positions and font scaling into\nthe path coordinates, and returns the corresponding view box.\n"
-    filename: 2026-08-03-outline-svg-path.md
-    v: 0.0.0
-  - content: "---\npackages:\n  \"@yuragi-labs/core\":\n    type: minor\n  \"@yuragi-labs/react\":\n    type: minor\n---\n\n## Select rendered text\n\nRendered SVG text now supports native text selection by default. Set\n`selectable: false` in core or `selectable={false}` in React to disable it.\nSelection follows the final text layout without changing fragment animations.\n"
-    filename: 2026-10-30-selectable-text.md
+  - content: "---\npackages:\n  \"@yuragi-labs/core\":\n    type: patch\n---\n\n## Keep selected text visible\n\nRender the selection layer behind glyph fragments so opaque selection\nbackgrounds do not hide the text. Let pointer events reach that layer when\nselection is enabled, while preserving shard interaction when it is disabled.\n"
+    filename: 2026-11-03-selection-layer-order.md
     v: 0.0.0
 core:packages:
   - id: npm:@yuragi-labs/compiler
     updated: true
   - changelogIds:
-      - 2026-08-03-mtfg7k2p.md
-      - 2026-08-03-outline-svg-path.md
-      - 2026-10-30-selectable-text.md
+      - 2026-11-03-selection-layer-order.md
     id: npm:@yuragi-labs/core
     updated: true
-  - changelogIds:
-      - 2026-08-03-mtfg7k2p.md
-      - 2026-10-30-selectable-text.md
-    id: npm:@yuragi-labs/react
+  - id: npm:@yuragi-labs/react
     updated: true
 npm:packages:
   - id: npm:@yuragi-labs/compiler

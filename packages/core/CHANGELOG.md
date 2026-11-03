@@ -1,3 +1,11 @@
+## @yuragi-labs/core@0.4.1
+
+### Keep selected text visible
+
+Render the selection layer behind glyph fragments so opaque selection
+backgrounds do not hide the text. Let pointer events reach that layer when
+selection is enabled, while preserving shard interaction when it is disabled.
+
 ## @yuragi-labs/core@0.4.0
 
 ### Add configurable hover motion
