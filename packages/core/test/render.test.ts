@@ -124,9 +124,13 @@ describe("renderYuragiText", () => {
 
   it("passes layout and SVG options through the public seam", () => {
     const target = document.createElement("div");
-    const handle = renderYuragiText(target, outline, {
+    const wrappedOutline = {
+      ...outline,
+      groups: [...outline.groups, ...outline.groups],
+    };
+    const handle = renderYuragiText(target, wrappedOutline, {
       size: 40,
-      maxWidth: 80,
+      maxWidth: 30,
       lineHeight: 60,
       align: "end",
       className: "title featured",
@@ -137,9 +141,12 @@ describe("renderYuragiText", () => {
     expect(handle.element.classList.contains("title")).toBe(true);
     expect(handle.element.classList.contains("featured")).toBe(true);
     expect(handle.element.dataset.hover).toBe("outline");
-    expect(handle.element.style.getPropertyValue("--yuragi-line-height")).toBe(
-      "60px",
-    );
+    expect(handle.element.getAttribute("viewBox")).toBe("0 0 30 100");
+    expect(
+      [...handle.element.querySelectorAll("[data-line]")].map((line) =>
+        line.getAttribute("transform"),
+      ),
+    ).toEqual(["translate(10 32)", "translate(10 92)"]);
   });
 
   it("derives, overrides, and hides the accessible label", () => {
