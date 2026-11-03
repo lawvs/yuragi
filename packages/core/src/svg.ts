@@ -51,9 +51,6 @@ export function createShardedSvg(
   );
   svg.setAttribute("width", String(layout.dimensions.width));
   svg.setAttribute("height", String(layout.dimensions.height));
-  svg.style.setProperty("--yuragi-size", String(layout.options.size));
-  svg.style.setProperty("--yuragi-em", String(layout.dimensions.unitsPerEm));
-  svg.style.setProperty("--yuragi-line-height", `${layout.options.lineHeight}px`);
 
   const fragmentLayer = svgEl(ownerDocument, "g");
   fragmentLayer.dataset.yuragiFragmentLayer = "true";
@@ -62,16 +59,12 @@ export function createShardedSvg(
     const baselineY = ascender + line.y;
     const lineEl = svgEl(ownerDocument, "g");
     lineEl.dataset.line = String(line.index);
-    lineEl.style.setProperty("--yuragi-line-x", `${line.x}px`);
-    lineEl.style.setProperty("--yuragi-line-y", `${baselineY}px`);
     lineEl.setAttribute("transform", `translate(${line.x} ${baselineY})`);
     fragmentLayer.append(lineEl);
 
     for (const group of line.groups) {
       const groupEl = svgEl(ownerDocument, "g");
       groupEl.dataset.group = group.text;
-      groupEl.dataset.groupIndex = String(group.groupIndex);
-      groupEl.style.setProperty("--yuragi-group-x", `${group.x}px`);
       groupEl.setAttribute("transform", `translate(${group.x} 0)`);
       lineEl.append(groupEl);
 
@@ -88,7 +81,6 @@ export function createShardedSvg(
         const advance = glyph.advance * scale;
         const glyphEl = svgEl(ownerDocument, "g");
         glyphEl.dataset.glyph = glyph.char;
-        glyphEl.style.setProperty("--yuragi-glyph-x", `${glyphX}px`);
         glyphEl.setAttribute("transform", `translate(${glyphX} 0)`);
         motionEl.append(glyphEl);
 

@@ -10,7 +10,6 @@ export type LayoutOptions = {
 export type LayoutGroup = ShardGroup & {
   x: number;
   width: number;
-  groupIndex: number;
 };
 
 export type LayoutLine = {
@@ -28,8 +27,6 @@ export type ShardedTextLayout = {
   dimensions: {
     width: number;
     height: number;
-    lineCount: number;
-    unitsPerEm: number;
   };
 };
 
@@ -104,7 +101,6 @@ export function layoutShardedText(
   const lines: LayoutLine[] = [];
   let pending: LayoutGroup[] = [];
   let pendingWidth = 0;
-  let groupIndex = 0;
 
   function recalculatePendingPositions() {
     let x = 0;
@@ -162,10 +158,8 @@ export function layoutShardedText(
       ...group,
       x: pendingWidth,
       width,
-      groupIndex,
     });
     pendingWidth += width;
-    groupIndex += 1;
   }
 
   flushLine();
@@ -189,8 +183,6 @@ export function layoutShardedText(
     dimensions: {
       width,
       height,
-      lineCount: lines.length,
-      unitsPerEm: outline.em,
     },
   };
 }

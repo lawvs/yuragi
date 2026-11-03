@@ -108,7 +108,7 @@ export function outlineToSvgPath(
             transformPath(shard.path, scale, offsetX, baselineY),
           );
         }
-        glyphX += (glyph.advance / outline.em) * layout.options.size;
+        glyphX += glyph.advance * scale;
       }
     }
   }

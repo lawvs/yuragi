@@ -79,7 +79,7 @@ describe("createShardedSvg", () => {
     expect(svg.querySelectorAll("[data-shard]")).toHaveLength(2);
   });
 
-  it("sets size attributes, variables, viewbox, and baseline transform", () => {
+  it("sets size attributes, viewbox, and baseline transform", () => {
     const layout = layoutShardedText(outline, { size: 20, maxWidth: 40 });
     const svg = createShardedSvg(layout);
 
@@ -89,8 +89,6 @@ describe("createShardedSvg", () => {
     expect(svg.querySelector("[data-line]")?.getAttribute("transform")).toBe(
       "translate(0 17.6)",
     );
-    expect(svg.style.getPropertyValue("--yuragi-size")).toBe("20");
-    expect(svg.style.getPropertyValue("--yuragi-em")).toBe("1000");
   });
 
   it("keeps structural transforms outside animated shard wrappers", () => {
