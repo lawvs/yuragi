@@ -65,7 +65,6 @@ export function createShardedSvg(
     for (const group of line.groups) {
       const groupEl = svgEl(ownerDocument, "g");
       groupEl.dataset.group = group.text;
-      groupEl.dataset.groupIndex = String(group.groupIndex);
       groupEl.setAttribute("transform", `translate(${group.x} 0)`);
       lineEl.append(groupEl);
 
