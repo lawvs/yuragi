@@ -1,6 +1,6 @@
 {
   "name": "@yuragi-labs/core",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Core types, DOM renderer, styles, and runtime WASM compiler for Yuragi text effects.",
   "license": "MIT",
   "keywords": [
